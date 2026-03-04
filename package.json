@@ -1,0 +1,27 @@
+{
+  "name": "servicedesk",
+  "version": "1.0.0",
+  "main": "gulpfile.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "description": "",
+  "dependencies": {
+    "browser-sync": "^3.0.4",
+    "del": "^8.0.1",
+    "gulp": "^5.0.1",
+    "gulp-clean-css": "^4.3.0",
+    "gulp-file-include": "^2.3.0",
+    "gulp-html": "^6.1.0",
+    "gulp-htmlmin": "^5.0.1",
+    "gulp-sass": "^6.0.1",
+    "gulp-svgmin": "^4.1.0",
+    "gulp-svgstore": "^9.0.0",
+    "gulp-uglify": "^3.0.2",
+    "path": "^0.12.7",
+    "sass": "^1.97.3"
+  }
+}

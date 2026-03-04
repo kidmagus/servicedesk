@@ -1,0 +1,21 @@
+/* Modal and form styles */
+.modal-header { border-bottom: 1px solid #e4e9f2; }
+.modal-footer { border-top: 1px solid #e4e9f2; }
+.form-label {
+  font-size: 12.5px;
+  font-weight: 600;
+  color: #1a2235;
+  margin-bottom: 5px;
+}
+.form-control,
+.form-select {
+  font-size: 13px;
+  font-family: inherit;
+  border-color: #e4e9f2;
+  border-radius: 8px;
+}
+.form-control:focus,
+.form-select:focus {
+  border-color: #3b7cf4;
+  box-shadow: 0 0 0 3px rgba(59,124,244,.1);
+}

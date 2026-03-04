@@ -1,0 +1,29 @@
+/* Offcanvas */
+.offcanvas-detail {
+	width: 480px !important;
+}
+
+.comment-role-badge {
+	font-size: 10px;
+	font-weight: 600;
+	padding: 2px 7px;
+	border-radius: 20px;
+}
+
+.comment-role-badge.client {
+	background: #eff4ff;
+	color: #3b7cf4;
+}
+
+.comment-role-badge.support {
+	background: #f0fdf4;
+	color: #16a34a;
+}
+
+.detail-desc {
+	background: #f4f6fb;
+	border-radius: 9px;
+	font-size: 13.5px;
+	line-height: 1.65;
+	color: #3a4560;
+}
