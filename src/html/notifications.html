@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Notifications – Client Portal</title>
+
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/bootstrap.min.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-icons/1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="css/main.css">
+</head>
+<body>
+
+<div class="d-flex" style="height:100vh;overflow:hidden;">
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar flex-shrink-0">
+    <div class="d-flex align-items-center gap-2 px-3 py-3 border-bottom border-white border-opacity-10">
+      <div class="brand-icon d-flex align-items-center justify-content-center text-white flex-shrink-0">
+        <i class="bi bi-headset fs-6"></i>
+      </div>
+      <div>
+        <div class="text-white fw-bold" style="font-size:14px">Client Portal</div>
+        <div class="text-white-50" style="font-size:10.5px">Support Center</div>
+      </div>
+    </div>
+
+    <nav class="flex-grow-1 px-2 py-3">
+      <div class="nav-section-label mb-2">Menu</div>
+      <ul class="nav flex-column gap-1 mb-3">
+        <li class="nav-item">
+          <a href="index.html" class="nav-link d-flex align-items-center gap-2">
+            <i class="bi bi-grid-1x2"></i> Dashboard
+            <span class="ms-auto badge rounded-pill" style="background:rgba(255,255,255,.12);color:rgba(255,255,255,.7);font-size:10px">20</span>
+          </a>
+        </li>
+        <li class="nav-item">
+          <a href="my-tickets.html" class="nav-link d-flex align-items-center gap-2">
+            <i class="bi bi-ticket-perforated"></i> My Tickets
+            <span class="ms-auto badge rounded-pill" style="background:rgba(255,255,255,.12);color:rgba(255,255,255,.7);font-size:10px">8</span>
+          </a>
+        </li>
+        <li class="nav-item">
+          <a href="notifications.html" class="nav-link active d-flex align-items-center gap-2">
+            <i class="bi bi-bell"></i> Notifications
+            <span class="ms-auto badge rounded-pill" style="background:rgba(255,255,255,.25);font-size:10px" id="unreadBadge">5</span>
+          </a>
+        </li>
+      </ul>
+      <div class="nav-section-label mb-2">Reports</div>
+      <ul class="nav flex-column gap-1">
+        <li class="nav-item">
+          <a href="analytics.html" class="nav-link d-flex align-items-center gap-2">
+            <i class="bi bi-bar-chart-line"></i> Analytics
+          </a>
+        </li>
+        <li class="nav-item">
+          <a href="exports.html" class="nav-link d-flex align-items-center gap-2">
+            <i class="bi bi-download"></i> Exports
+          </a>
+        </li>
+      </ul>
+    </nav>
+
+    <div class="px-2 py-3 border-top border-white border-opacity-10">
+      <div class="user-chip d-flex align-items-center gap-2 px-2 py-2">
+        <div class="user-avatar d-flex align-items-center justify-content-center text-white flex-shrink-0">JC</div>
+        <div>
+          <div class="text-white fw-semibold" style="font-size:12.5px">John Client</div>
+          <div class="text-white-50" style="font-size:10.5px">Client Account</div>
+        </div>
+        <i class="bi bi-three-dots ms-auto text-white-50" style="cursor:pointer"></i>
+      </div>
+    </div>
+  </aside>
+
+  <!-- MAIN -->
+  <div class="flex-grow-1 d-flex flex-column overflow-hidden">
+
+    <!-- TOPBAR -->
+    <header class="topbar d-flex align-items-center gap-3 px-4 py-3 flex-shrink-0">
+      <div>
+        <span class="fw-bold" style="font-size:16px;color:#1a2235">Notifications</span>
+        <span class="text-muted ms-2" style="font-size:12px">Stay updated on your tickets</span>
+      </div>
+      <div class="ms-auto d-flex gap-2">
+        <button class="btn btn-light btn-sm rounded-2 fw-semibold d-flex align-items-center gap-1" onclick="markAllRead()" style="font-size:12.5px;border:1px solid #e4e9f2">
+          <i class="bi bi-check2-all"></i> Mark all read
+        </button>
+        <button class="btn-icon-top"><i class="bi bi-gear"></i></button>
+      </div>
+    </header>
+
+    <!-- CONTENT -->
+    <div class="d-flex flex-column flex-grow-1 overflow-hidden p-4 gap-3">
+
+      <!-- SUMMARY CARDS -->
+      <div class="row g-3 flex-shrink-0">
+        <div class="col-4">
+          <div class="card border-0 shadow-sm rounded-3">
+            <div class="card-body d-flex align-items-center gap-3 p-3">
+              <div style="width:38px;height:38px;border-radius:10px;background:#eff4ff;color:#3b7cf4" class="d-flex align-items-center justify-content-center fs-5">
+                <i class="bi bi-bell-fill"></i>
+              </div>
+              <div>
+                <div class="text-muted fw-medium" style="font-size:11.5px">Total</div>
+                <div class="fw-bold" style="font-size:22px;font-family:'JetBrains Mono',monospace" id="totalCount">12</div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="col-4">
+          <div class="card border-0 shadow-sm rounded-3">
+            <div class="card-body d-flex align-items-center gap-3 p-3">
+              <div style="width:38px;height:38px;border-radius:10px;background:#dbeafe;color:#1d4ed8" class="d-flex align-items-center justify-content-center fs-5">
+                <i class="bi bi-circle-fill" style="font-size:11px"></i>
+              </div>
+              <div>
+                <div class="text-muted fw-medium" style="font-size:11.5px">Unread</div>
+                <div class="fw-bold" style="font-size:22px;font-family:'JetBrains Mono',monospace;color:#1d4ed8" id="unreadCount">5</div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="col-4">
+          <div class="card border-0 shadow-sm rounded-3">
+            <div class="card-body d-flex align-items-center gap-3 p-3">
+              <div style="width:38px;height:38px;border-radius:10px;background:#dcfce7;color:#166534" class="d-flex align-items-center justify-content-center fs-5">
+                <i class="bi bi-check-circle"></i>
+              </div>
+              <div>
+                <div class="text-muted fw-medium" style="font-size:11.5px">Read</div>
+                <div class="fw-bold" style="font-size:22px;font-family:'JetBrains Mono',monospace;color:#16a34a" id="readCount">7</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- NOTIFICATIONS PANEL -->
+      <div class="card border-0 shadow-sm rounded-3 flex-grow-1 d-flex flex-column overflow-hidden">
+        <div class="card-header bg-white border-bottom d-flex align-items-center gap-2 py-3 px-4 flex-shrink-0">
+          <div class="d-flex gap-1">
+            <button class="filter-tab active" onclick="setFilter('all',this)">All</button>
+            <button class="filter-tab" onclick="setFilter('unread',this)">Unread</button>
+            <button class="filter-tab" onclick="setFilter('tickets',this)">Tickets</button>
+            <button class="filter-tab" onclick="setFilter('comments',this)">Comments</button>
+            <button class="filter-tab" onclick="setFilter('system',this)">System</button>
+          </div>
+        </div>
+        <div class="notif-scroll" id="notifList"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="js/bootstrap.bundle.min.js"></script>
+<script>
+let NOTIFS = [
+  { id:1,  type:'critical', category:'tickets',  unread:true,  title:'Critical ticket requires attention',    body:'TK-017: SSO login loop with SAML provider is marked Critical and has been open for 2 days.',             time:'2 min ago',   ticket:'TK-017' },
+  { id:2,  type:'comment',  category:'comments', unread:true,  title:'New comment on TK-001',                 body:'Sarah Johnson replied: "I\'ve started investigating the issue. Will update you within 2 hours."',        time:'28 min ago',  ticket:'TK-001' },
+  { id:3,  type:'assigned', category:'tickets',  unread:true,  title:'Ticket assigned to Sarah Johnson',      body:'TK-020: Password reset link expiring instantly has been assigned to Sarah Johnson.',                     time:'1 hr ago',    ticket:'TK-020' },
+  { id:4,  type:'update',   category:'tickets',  unread:true,  title:'Ticket status updated',                 body:'TK-005: Email notifications not sending has been moved to In Progress.',                                time:'2 hr ago',    ticket:'TK-005' },
+  { id:5,  type:'comment',  category:'comments', unread:true,  title:'New comment on TK-009',                 body:'Support team: "We are escalating this to the infrastructure team immediately."',                         time:'3 hr ago',    ticket:'TK-009' },
+  { id:6,  type:'resolved', category:'tickets',  unread:false, title:'Ticket resolved',                       body:'TK-003: Slow page load times on product catalog has been marked as Resolved.',                          time:'5 hr ago',    ticket:'TK-003' },
+  { id:7,  type:'system',   category:'system',   unread:false, title:'Scheduled maintenance window',          body:'The support portal will undergo maintenance on Jan 25, 2024 from 2:00 AM – 4:00 AM UTC.',               time:'6 hr ago',    ticket:null },
+  { id:8,  type:'comment',  category:'comments', unread:false, title:'New comment on TK-007',                 body:'David Kim: "Elasticsearch index appears corrupted. Re-indexing in progress, ETA 1 hour."',               time:'8 hr ago',    ticket:'TK-007' },
+  { id:9,  type:'update',   category:'tickets',  unread:false, title:'Ticket priority escalated',             body:'TK-012: Admin panel inaccessible after update has been escalated to High priority.',                    time:'Yesterday',   ticket:'TK-012' },
+  { id:10, type:'resolved', category:'tickets',  unread:false, title:'Ticket closed',                         body:'TK-010: API rate limits too restrictive has been closed after resolution confirmation.',                 time:'Yesterday',   ticket:'TK-010' },
+  { id:11, type:'assigned', category:'tickets',  unread:false, title:'New ticket auto-assigned',              body:'TK-019: Audit log timestamps incorrect has been assigned to Mike Torres.',                               time:'2 days ago',  ticket:'TK-019' },
+  { id:12, type:'system',   category:'system',   unread:false, title:'Monthly support summary available',     body:'Your January 2024 support activity summary is ready. 20 tickets submitted, 3 resolved.',                time:'3 days ago',  ticket:null },
+];
+
+const TYPE_ICON = { update:'bi-arrow-clockwise', comment:'bi-chat-left-text-fill', resolved:'bi-check-circle-fill', critical:'bi-exclamation-triangle-fill', assigned:'bi-person-check-fill', closed:'bi-x-circle-fill', system:'bi-info-circle-fill' };
+
+let currentFilter = 'all';
+
+function setFilter(f, el){
+  currentFilter = f;
+  document.querySelectorAll('.filter-tab').forEach(t=>t.classList.remove('active'));
+  el.classList.add('active');
+  renderNotifs();
+}
+
+function getFiltered(){
+  if(currentFilter==='all')      return NOTIFS;
+  if(currentFilter==='unread')   return NOTIFS.filter(n=>n.unread);
+  if(currentFilter==='tickets')  return NOTIFS.filter(n=>n.category==='tickets');
+  if(currentFilter==='comments') return NOTIFS.filter(n=>n.category==='comments');
+  if(currentFilter==='system')   return NOTIFS.filter(n=>n.category==='system');
+  return NOTIFS;
+}
+
+function renderNotifs(){
+  const list=getFiltered();
+  const el=document.getElementById('notifList');
+  if(!list.length){
+    el.innerHTML=`<div class="text-center py-5 text-muted"><i class="bi bi-bell-slash fs-1 d-block mb-2 opacity-25"></i><p>No notifications.</p></div>`;
+    return;
+  }
+  el.innerHTML=list.map(n=>`
+    <div class="notif-item ${n.unread?'unread':''}" onclick="markRead(${n.id})">
+      <div class="notif-icon ${n.type}"><i class="bi ${TYPE_ICON[n.type]}"></i></div>
+      <div class="flex-grow-1">
+        <div class="d-flex justify-content-between align-items-start">
+          <div class="notif-title">${n.title}</div>
+          ${n.unread?'<div class="notif-dot ms-2"></div>':''}
+        </div>
+        <div class="notif-body">${n.body}</div>
+        <div class="notif-meta d-flex align-items-center gap-2">
+          <i class="bi bi-clock"></i>${n.time}
+          ${n.ticket?`<span class="ms-1" style="font-family:'JetBrains Mono',monospace;font-size:10.5px;color:#3b7cf4">${n.ticket}</span>`:''}
+        </div>
+      </div>
+    </div>
+  `).join('');
+  updateCounts();
+}
+
+function markRead(id){
+  const n=NOTIFS.find(n=>n.id===id); if(n) n.unread=false;
+  renderNotifs();
+}
+
+function markAllRead(){
+  NOTIFS.forEach(n=>n.unread=false); renderNotifs();
+}
+
+function updateCounts(){
+  const unread=NOTIFS.filter(n=>n.unread).length;
+  document.getElementById('unreadCount').textContent=unread;
+  document.getElementById('readCount').textContent=NOTIFS.length-unread;
+  document.getElementById('totalCount').textContent=NOTIFS.length;
+  document.getElementById('unreadBadge').textContent=unread;
+}
+
+window.addEventListener('DOMContentLoaded', renderNotifs);
+</script>
+
+</body>
+</html>

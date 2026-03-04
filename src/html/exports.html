@@ -1,0 +1,376 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Exports – Client Portal</title>
+
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/bootstrap.min.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-icons/1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="css/main.css">
+</head>
+<body>
+
+<div class="d-flex" style="height:100vh;overflow:hidden;">
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar flex-shrink-0">
+    <div class="d-flex align-items-center gap-2 px-3 py-3 border-bottom border-white border-opacity-10">
+      <div class="brand-icon d-flex align-items-center justify-content-center text-white flex-shrink-0">
+        <i class="bi bi-headset fs-6"></i>
+      </div>
+      <div>
+        <div class="text-white fw-bold" style="font-size:14px">Client Portal</div>
+        <div class="text-white-50" style="font-size:10.5px">Support Center</div>
+      </div>
+    </div>
+
+    <nav class="flex-grow-1 px-2 py-3">
+      <div class="nav-section-label mb-2">Menu</div>
+      <ul class="nav flex-column gap-1 mb-3">
+        <li class="nav-item">
+          <a href="index.html" class="nav-link d-flex align-items-center gap-2">
+            <i class="bi bi-grid-1x2"></i> Dashboard
+            <span class="ms-auto badge rounded-pill" style="background:rgba(255,255,255,.12);color:rgba(255,255,255,.7);font-size:10px">20</span>
+          </a>
+        </li>
+        <li class="nav-item">
+          <a href="my-tickets.html" class="nav-link d-flex align-items-center gap-2">
+            <i class="bi bi-ticket-perforated"></i> My Tickets
+            <span class="ms-auto badge rounded-pill" style="background:rgba(255,255,255,.12);color:rgba(255,255,255,.7);font-size:10px">8</span>
+          </a>
+        </li>
+        <li class="nav-item">
+          <a href="notifications.html" class="nav-link d-flex align-items-center gap-2">
+            <i class="bi bi-bell"></i> Notifications
+          </a>
+        </li>
+      </ul>
+      <div class="nav-section-label mb-2">Reports</div>
+      <ul class="nav flex-column gap-1">
+        <li class="nav-item">
+          <a href="analytics.html" class="nav-link d-flex align-items-center gap-2">
+            <i class="bi bi-bar-chart-line"></i> Analytics
+          </a>
+        </li>
+        <li class="nav-item">
+          <a href="exports.html" class="nav-link active d-flex align-items-center gap-2">
+            <i class="bi bi-download"></i> Exports
+          </a>
+        </li>
+      </ul>
+    </nav>
+
+    <div class="px-2 py-3 border-top border-white border-opacity-10">
+      <div class="user-chip d-flex align-items-center gap-2 px-2 py-2">
+        <div class="user-avatar d-flex align-items-center justify-content-center text-white flex-shrink-0">JC</div>
+        <div>
+          <div class="text-white fw-semibold" style="font-size:12.5px">John Client</div>
+          <div class="text-white-50" style="font-size:10.5px">Client Account</div>
+        </div>
+        <i class="bi bi-three-dots ms-auto text-white-50" style="cursor:pointer"></i>
+      </div>
+    </div>
+  </aside>
+
+  <!-- MAIN -->
+  <div class="flex-grow-1 d-flex flex-column overflow-hidden">
+
+    <!-- TOPBAR -->
+    <header class="topbar d-flex align-items-center gap-3 px-4 py-3 flex-shrink-0">
+      <div>
+        <span class="fw-bold" style="font-size:16px;color:#1a2235">Exports</span>
+        <span class="text-muted ms-2" style="font-size:12px">Download your ticket data</span>
+      </div>
+      <div class="ms-auto d-flex gap-2">
+        <button class="btn-icon-top"><i class="bi bi-bell"></i></button>
+      </div>
+    </header>
+
+    <!-- CONTENT -->
+    <div class="content-scroll">
+      <div class="row g-4">
+
+        <!-- LEFT: CONFIG -->
+        <div class="col-5">
+
+          <!-- Format selection -->
+          <div class="config-card mb-3">
+            <div class="config-title">Export Format</div>
+            <div class="row g-2">
+              <div class="col-4">
+                <div class="format-card selected" onclick="selectFormat('csv', this)">
+                  <div class="format-icon" style="background:#f0fdf4;color:#16a34a">
+                    <i class="bi bi-filetype-csv"></i>
+                  </div>
+                  <div class="format-name">CSV</div>
+                  <div class="format-desc">Spreadsheet compatible</div>
+                </div>
+              </div>
+              <div class="col-4">
+                <div class="format-card" onclick="selectFormat('xlsx', this)">
+                  <div class="format-icon" style="background:#eff4ff;color:#3b7cf4">
+                    <i class="bi bi-file-earmark-spreadsheet"></i>
+                  </div>
+                  <div class="format-name">Excel</div>
+                  <div class="format-desc">Formatted workbook</div>
+                </div>
+              </div>
+              <div class="col-4">
+                <div class="format-card" onclick="selectFormat('pdf', this)">
+                  <div class="format-icon" style="background:#ffe4e6;color:#be123c">
+                    <i class="bi bi-file-earmark-pdf"></i>
+                  </div>
+                  <div class="format-name">PDF</div>
+                  <div class="format-desc">Printable report</div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Filters -->
+          <div class="config-card mb-3">
+            <div class="config-title">Filter Data</div>
+            <div class="row g-3 mb-3">
+              <div class="col-6">
+                <label class="form-label">Date From</label>
+                <input type="date" class="form-control" id="dateFrom" value="2024-01-01"/>
+              </div>
+              <div class="col-6">
+                <label class="form-label">Date To</label>
+                <input type="date" class="form-control" id="dateTo" value="2024-01-31"/>
+              </div>
+            </div>
+            <div class="row g-3">
+              <div class="col-6">
+                <label class="form-label">Status</label>
+                <select class="form-select" id="expStatus">
+                  <option value="">All Statuses</option>
+                  <option>Open</option>
+                  <option>In Progress</option>
+                  <option>Resolved</option>
+                  <option>Closed</option>
+                </select>
+              </div>
+              <div class="col-6">
+                <label class="form-label">Priority</label>
+                <select class="form-select" id="expPriority">
+                  <option value="">All Priorities</option>
+                  <option>Critical</option>
+                  <option>High</option>
+                  <option>Medium</option>
+                  <option>Low</option>
+                </select>
+              </div>
+            </div>
+          </div>
+
+          <!-- Columns -->
+          <div class="config-card mb-4">
+            <div class="config-title">Include Columns</div>
+            <div class="row g-2">
+              <div class="col-6">
+                <div class="form-check">
+                  <input class="form-check-input" type="checkbox" checked id="col1"/>
+                  <label class="form-check-label" for="col1" style="font-size:13px">Ticket ID</label>
+                </div>
+              </div>
+              <div class="col-6">
+                <div class="form-check">
+                  <input class="form-check-input" type="checkbox" checked id="col2"/>
+                  <label class="form-check-label" for="col2" style="font-size:13px">Title</label>
+                </div>
+              </div>
+              <div class="col-6">
+                <div class="form-check">
+                  <input class="form-check-input" type="checkbox" checked id="col3"/>
+                  <label class="form-check-label" for="col3" style="font-size:13px">Status</label>
+                </div>
+              </div>
+              <div class="col-6">
+                <div class="form-check">
+                  <input class="form-check-input" type="checkbox" checked id="col4"/>
+                  <label class="form-check-label" for="col4" style="font-size:13px">Priority</label>
+                </div>
+              </div>
+              <div class="col-6">
+                <div class="form-check">
+                  <input class="form-check-input" type="checkbox" checked id="col5"/>
+                  <label class="form-check-label" for="col5" style="font-size:13px">Assignee</label>
+                </div>
+              </div>
+              <div class="col-6">
+                <div class="form-check">
+                  <input class="form-check-input" type="checkbox" checked id="col6"/>
+                  <label class="form-check-label" for="col6" style="font-size:13px">Created Date</label>
+                </div>
+              </div>
+              <div class="col-6">
+                <div class="form-check">
+                  <input class="form-check-input" type="checkbox" id="col7"/>
+                  <label class="form-check-label" for="col7" style="font-size:13px">Description</label>
+                </div>
+              </div>
+              <div class="col-6">
+                <div class="form-check">
+                  <input class="form-check-input" type="checkbox" id="col8"/>
+                  <label class="form-check-label" for="col8" style="font-size:13px">Comments</label>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <button class="btn-export-main w-100 justify-content-center" onclick="runExport()">
+            <i class="bi bi-download"></i> Generate Export
+          </button>
+        </div>
+
+        <!-- RIGHT: HISTORY -->
+        <div class="col-7">
+          <div class="card border-0 shadow-sm rounded-3 overflow-hidden">
+            <div class="card-header bg-white border-bottom d-flex align-items-center justify-content-between py-3 px-4">
+              <span class="fw-bold" style="font-size:14px;color:#1a2235">Export History</span>
+              <span class="badge bg-light text-secondary rounded-pill" style="font-size:11px" id="historyCount">4 exports</span>
+            </div>
+            <div style="overflow-y:auto;max-height:520px;">
+              <table class="table history-table mb-0">
+                <thead>
+                  <tr>
+                    <th>File</th>
+                    <th>Filters</th>
+                    <th>Records</th>
+                    <th>Date</th>
+                    <th>Status</th>
+                    <th></th>
+                  </tr>
+                </thead>
+                <tbody id="historyBody"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div class="export-toast d-flex align-items-center gap-3" id="exportToast">
+  <div class="spinner-border spinner-border-sm text-primary flex-shrink-0" role="status" id="toastSpinner"></div>
+  <i class="bi bi-check-circle-fill text-success flex-shrink-0 d-none" id="toastCheck" style="font-size:18px"></i>
+  <span id="toastMsg">Generating export...</span>
+</div>
+
+<script src="js/bootstrap.bundle.min.js"></script>
+<script>
+const TICKETS = [
+  { id:'TK-001', title:'Website login page not responding',         status:'Open',        priority:'Critical', assignee:'Sarah Johnson', created:'Jan 15, 2024', desc:'Users are unable to access the login page.' },
+  { id:'TK-002', title:'Mobile app crashes on iOS devices',          status:'In Progress', priority:'High',     assignee:'Mike Torres',   created:'Jan 15, 2024', desc:'App crashes on iOS 17.' },
+  { id:'TK-003', title:'Slow page load times on product catalog',    status:'Resolved',    priority:'Medium',   assignee:'Anna Lee',      created:'Jan 14, 2024', desc:'Product catalog page slow.' },
+  { id:'TK-004', title:'Payment gateway integration errors',         status:'Open',        priority:'Critical', assignee:'Sarah Johnson', created:'Jan 16, 2024', desc:'Stripe payments failing.' },
+  { id:'TK-005', title:'Email notifications not sending',            status:'In Progress', priority:'High',     assignee:'Mike Torres',   created:'Jan 16, 2024', desc:'SMTP 550 errors.' },
+  { id:'TK-006', title:'Dashboard analytics incorrect',              status:'Open',        priority:'Medium',   assignee:'Anna Lee',      created:'Jan 16, 2024', desc:'Metrics appear duplicated.' },
+  { id:'TK-007', title:'Search feature returning no results',        status:'In Progress', priority:'High',     assignee:'David Kim',     created:'Jan 17, 2024', desc:'Search returns 0 results.' },
+  { id:'TK-008', title:'User profile images not uploading',          status:'Resolved',    priority:'Low',      assignee:'Anna Lee',      created:'Jan 12, 2024', desc:'S3 permissions fixed.' },
+  { id:'TK-009', title:'Two-factor auth codes not delivered',        status:'Open',        priority:'Critical', assignee:'Sarah Johnson', created:'Jan 17, 2024', desc:'SMS 2FA not sending.' },
+  { id:'TK-010', title:'API rate limits too restrictive',            status:'Closed',      priority:'Medium',   assignee:'David Kim',     created:'Jan 10, 2024', desc:'Rate limits adjusted.' },
+  { id:'TK-011', title:'CSV export corrupting characters',           status:'In Progress', priority:'Medium',   assignee:'Mike Torres',   created:'Jan 18, 2024', desc:'Garbled text in exports.' },
+  { id:'TK-012', title:'Admin panel inaccessible',                   status:'Open',        priority:'High',     assignee:'Sarah Johnson', created:'Jan 18, 2024', desc:'403 error after v3.2.' },
+  { id:'TK-013', title:'Webhook events not firing',                  status:'Resolved',    priority:'High',     assignee:'David Kim',     created:'Jan 11, 2024', desc:'Incorrect URL in config.' },
+  { id:'TK-014', title:'Onboarding wizard skipping steps',           status:'In Progress', priority:'Low',      assignee:'Anna Lee',      created:'Jan 19, 2024', desc:'Wizard skips step 2-5.' },
+  { id:'TK-015', title:'Dark mode flickering',                       status:'Closed',      priority:'Low',      assignee:'Mike Torres',   created:'Jan 9, 2024',  desc:'Fixed via localStorage.' },
+  { id:'TK-016', title:'Subscription renewal emails missing',        status:'Open',        priority:'High',     assignee:'Sarah Johnson', created:'Jan 19, 2024', desc:'No renewal reminders.' },
+  { id:'TK-017', title:'SSO login loop with SAML',                   status:'In Progress', priority:'Critical', assignee:'David Kim',     created:'Jan 20, 2024', desc:'SAML redirect loop.' },
+  { id:'TK-018', title:'Bulk user import failing',                   status:'Resolved',    priority:'Medium',   assignee:'Anna Lee',      created:'Jan 13, 2024', desc:'Batch processing fixed.' },
+  { id:'TK-019', title:'Audit log timestamps incorrect',             status:'Open',        priority:'Medium',   assignee:'Mike Torres',   created:'Jan 20, 2024', desc:'UTC timezone issue.' },
+  { id:'TK-020', title:'Password reset link expiring',               status:'In Progress', priority:'High',     assignee:'Sarah Johnson', created:'Jan 21, 2024', desc:'Links expire instantly.' },
+];
+
+let selectedFormat = 'csv';
+let history = [
+  { file:'tickets-jan-2024.csv',  filters:'All statuses, All priorities', records:20, date:'Jan 21, 2024', status:'done', format:'csv'  },
+  { file:'open-critical.xlsx',    filters:'Open, Critical only',          records:3,  date:'Jan 20, 2024', status:'done', format:'xlsx' },
+  { file:'resolved-tickets.pdf',  filters:'Resolved tickets',             records:4,  date:'Jan 18, 2024', status:'done', format:'pdf'  },
+  { file:'weekly-report.csv',     filters:'Jan 14–21, All',               records:12, date:'Jan 14, 2024', status:'done', format:'csv'  },
+];
+
+function selectFormat(fmt, el){
+  selectedFormat = fmt;
+  document.querySelectorAll('.format-card').forEach(c=>c.classList.remove('selected'));
+  el.classList.add('selected');
+}
+
+function renderHistory(){
+  const ICONS = { csv:'csv', xlsx:'xlsx', pdf:'pdf' };
+  document.getElementById('historyCount').textContent = `${history.length} exports`;
+  document.getElementById('historyBody').innerHTML = history.map((h,i)=>`
+    <tr>
+      <td>
+        <div class="d-flex align-items-center gap-2">
+          <div class="file-icon ${ICONS[h.format]}"><i class="bi bi-file-earmark-${h.format==='xlsx'?'spreadsheet':h.format==='pdf'?'pdf':'text'}"></i></div>
+          <span class="fw-semibold" style="font-size:13px">${h.file}</span>
+        </div>
+      </td>
+      <td class="text-muted" style="font-size:12px">${h.filters}</td>
+      <td style="font-family:'JetBrains Mono',monospace;font-size:12px;color:#3b7cf4">${h.records}</td>
+      <td class="text-muted" style="font-size:12px">${h.date}</td>
+      <td><span class="status-done">Done</span></td>
+      <td>
+        <button class="btn btn-light btn-sm rounded-2 d-flex align-items-center gap-1 fw-semibold" onclick="reDownload(${i})" style="font-size:12px;border:1px solid #e4e9f2">
+          <i class="bi bi-download"></i> Re-download
+        </button>
+      </td>
+    </tr>
+  `).join('');
+}
+
+function runExport(){
+  const status   = document.getElementById('expStatus').value;
+  const priority = document.getElementById('expPriority').value;
+  let data = [...TICKETS];
+  if(status)   data=data.filter(t=>t.status===status);
+  if(priority) data=data.filter(t=>t.priority===priority);
+
+  // Show toast
+  const toast=document.getElementById('exportToast');
+  document.getElementById('toastSpinner').classList.remove('d-none');
+  document.getElementById('toastCheck').classList.add('d-none');
+  document.getElementById('toastMsg').textContent='Generating export...';
+  toast.classList.add('show');
+
+  setTimeout(()=>{
+    if(selectedFormat==='csv'){
+      const cols=['Ticket ID','Title','Status','Priority','Assignee','Created'];
+      const rows=data.map(t=>[t.id,`"${t.title}"`,t.status,t.priority,t.assignee,t.created]);
+      const csv=[cols,...rows].map(r=>r.join(',')).join('\n');
+      const a=document.createElement('a'); a.href='data:text/csv,'+encodeURIComponent(csv); a.download='tickets-export.csv'; a.click();
+    }
+
+    const fname=`tickets-export.${selectedFormat}`;
+    const filtersLabel=`${status||'All'}, ${priority||'All priorities'}`;
+    history.unshift({file:fname,filters:filtersLabel,records:data.length,date:new Date().toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}),status:'done',format:selectedFormat});
+    renderHistory();
+
+    document.getElementById('toastSpinner').classList.add('d-none');
+    document.getElementById('toastCheck').classList.remove('d-none');
+    document.getElementById('toastMsg').textContent=`${data.length} records exported successfully!`;
+
+    setTimeout(()=>toast.classList.remove('show'), 2800);
+  }, 1400);
+}
+
+function reDownload(i){
+  const h=history[i];
+  if(h.format==='csv'){
+    const csv='Ticket ID,Title,Status,Priority\n';
+    const a=document.createElement('a'); a.href='data:text/csv,'+encodeURIComponent(csv); a.download=h.file; a.click();
+  }
+}
+
+window.addEventListener('DOMContentLoaded', renderHistory);
+</script>
+
+</body>
+</html>
