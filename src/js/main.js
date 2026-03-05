@@ -206,6 +206,18 @@ function addComment() {
   renderDetail();
 }
 
+// ── ENABLE ENTER TO SUBMIT COMMENT ───────────
+document.addEventListener('DOMContentLoaded', function() {
+  var commentBox = document.getElementById('newComment');
+  if (commentBox) {
+    commentBox.addEventListener('keydown', function(e) {
+      if (e.key === 'Enter' && !e.shiftKey) {
+        e.preventDefault();
+        addComment();
+      }
+    });
+  }
+});
 // ── CLIENT ACTIONS ────────────────────────────
 function updateStatus(val) {
   if (!selectedTicket) return;
