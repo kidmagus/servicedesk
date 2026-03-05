@@ -254,6 +254,7 @@ function addComment() {
       unread: true,
       ticketId: t.id
     });
+    showToast({type: 'info', title: `New comment`, message: `${CURRENT_USER} commented on ${t.id}`});
     // If there are attachments, push notification for attachments
     if (commentAttachments && commentAttachments.length > 0) {
       NOTIFS.unshift({
@@ -267,6 +268,7 @@ function addComment() {
         unread: true,
         ticketId: t.id
       });
+      showToast({type: 'info', title: `Attachment added`, message: `${CURRENT_USER} added ${commentAttachments.length} attachment(s)`});
     }
     renderNotifList();
   }
@@ -317,6 +319,7 @@ function updateStatus(val) {
       unread: true,
       ticketId: t.id
     });
+    showToast({type: 'info', title: `Status updated`, message: `${CURRENT_USER} set status to ${val}`});
     renderNotifList();
   }
   saveTicketsToStorage();
@@ -353,6 +356,7 @@ function updatePriority(val) {
       unread: true,
       ticketId: t.id
     });
+    showToast({type: 'info', title: `Priority updated`, message: `${CURRENT_USER} set priority to ${val}`});
     renderNotifList();
   }
   saveTicketsToStorage();
@@ -379,11 +383,12 @@ function removeTicket(dataSource) {
     bg: '#fee2e2',
     fg: '#b91c1c',
     title: `Ticket removed: ${selectedTicket.id}`,
-    body: `John Client removed the ticket`,
+    body: `${CURRENT_USER} removed the ticket`,
     time: new Date().toLocaleString('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' }),
     unread: true,
     ticketId: selectedTicket.id
   });
+  showToast({type: 'error', title: `Ticket removed`, message: `${CURRENT_USER} removed the ticket`});
   renderNotifList();
   saveTicketsToStorage();
   bootstrap.Offcanvas.getInstance(document.getElementById('ticketOffcanvas')).hide();
@@ -566,6 +571,7 @@ function submitTicket() {
     unread: true,
     ticketId: id
   });
+  showToast({type: 'success', title: `Ticket created`, message: `${CURRENT_USER} created a new ticket: ${title}`});
   saveNotifsToStorage();
   saveTicketsToStorage();
   document.getElementById('ctTitle').value   = '';
@@ -610,6 +616,7 @@ function submitComment() {
         unread: true,
         ticketId: t.id
       });
+      showToast({type: 'info', title: `New comment`, message: `${CURRENT_USER} commented on ${t.id}`});
     }
     // Log attachment activity and notification
     if (commentAttachments && commentAttachments.length > 0) {
@@ -631,6 +638,7 @@ function submitComment() {
         unread: true,
         ticketId: t.id
       });
+      showToast({type: 'info', title: `Attachment added`, message: `${CURRENT_USER} added ${commentAttachments.length} attachment(s)`});
     }
     renderNotifList();
   }
@@ -850,4 +858,57 @@ function initMyTicketsPage() {
 if (document.getElementById('myStat0')) {
   window.addEventListener('DOMContentLoaded', initMyTicketsPage);
 }
+
+// ── TOASTS ───────────────────────────────────
+function showToast({type = 'info', title = '', message = ''}) {
+  const config = {
+    success: {bg: '#bbf7d0', fg: '#166534', icon: 'bi-check-circle'},
+    info:    {bg: '#bae6fd', fg: '#075985', icon: 'bi-info-circle'},
+    warning: {bg: '#fef3c7', fg: '#92400e', icon: 'bi-exclamation-circle'},
+    error:   {bg: '#fecaca', fg: '#b91c1c', icon: 'bi-x-circle'}
+  };
+  const {bg, fg, icon} = config[type] || config.info;
+  let container = document.getElementById('toastContainer');
+  if (!container) {
+    container = document.createElement('div');
+    container.id = 'toastContainer';
+    container.className = 'toast-container position-fixed bottom-0 start-0 p-3'; // changed end-0 to start-0
+    container.style.zIndex = 9999;
+    document.body.appendChild(container);
+  }
+  const toastId = 'toast-' + Math.random().toString(36).slice(2, 10);
+  const toast = document.createElement('div');
+  toast.className = 'toast show d-flex align-items-center mb-2';
+  toast.id = toastId;
+  toast.setAttribute('role', 'alert');
+  toast.setAttribute('aria-live', 'assertive');
+  toast.setAttribute('aria-atomic', 'true');
+  toast.style.background = bg;
+  toast.style.color = fg;
+  toast.style.borderRadius = '8px';
+  toast.style.boxShadow = '0 2px 8px rgba(0,0,0,0.08)';
+  toast.style.minWidth = '360px';
+  toast.style.maxWidth = '450px';
+  toast.innerHTML = `
+    <div class="d-flex align-items-center px-3 py-2 flex-grow-1">
+      <i class="bi ${icon} me-2" style="font-size:20px;color:${fg}"></i>
+      <div>
+        <div class="fw-semibold" style="font-size:15px;color:${fg}">${title}</div>
+        <div style="font-size:13px;color:${fg}">${message}</div>
+      </div>
+    </div>
+    <button type="button" class="btn-close ms-3 me-2" style="filter:invert(0.7);" aria-label="Close"></button>
+  `;
+  toast.querySelector('.btn-close').onclick = () => toast.remove();
+  container.appendChild(toast);
+  setTimeout(() => {
+    toast.classList.remove('show');
+    setTimeout(() => toast.remove(), 500);
+  }, 4000);
+}
+// Add a test button to window for manual toast testing
+window.testToast = function() {
+  showToast({type: 'success', title: 'Success', message: 'This is a test toast!'});
+};
+// You can now run testToast() in the browser console to verify toast appearance.
 
