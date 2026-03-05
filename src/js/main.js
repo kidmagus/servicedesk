@@ -181,6 +181,13 @@ function renderDetail() {
         </div>`).join('')}
     </div></div>` : '';
 
+  // Preserve active tab
+  var activeTab = 'tab-all';
+  var tabNav = document.getElementById('ticketTabNav');
+  if (tabNav) {
+    var current = tabNav.querySelector('.nav-link.active');
+    if (current) activeTab = current.id;
+  }
   document.getElementById('detailBody').innerHTML = `
     <span class="ticket-id" style="font-family:'JetBrains Mono',monospace; margin-bottom: 10px;">${t.id}</span>
     <h5 class="fw-bold mb-3" style="font-size:18px;line-height:1.3">${t.title}</h5>
@@ -190,8 +197,7 @@ function renderDetail() {
     </div>
     <div class="detail-desc p-3 mb-3 rounded-3">${t.desc}</div>
     ${attachmentsHTML}
-    ${activityHTML}
-    <div class="row g-3 mb-4">
+    <div class="row g-3 mb-3">
       <div class="col-6">
         <p class="text-uppercase text-muted fw-semibold mb-1" style="font-size:10.5px;letter-spacing:.6px">Assignee</p>
         <div class="d-flex align-items-center gap-2 fw-semibold" style="font-size:13px">
@@ -212,13 +218,49 @@ function renderDetail() {
         <div class="fw-semibold" style="font-size:13px">${t.category || '—'}</div>
       </div>
     </div>
-    <p class="fw-bold mb-3" style="font-size:13px">Comments (${comments.length})</p>
-    ${commentsHTML}
+    <ul class="nav nav-tabs mb-3" id="ticketTabNav" role="tablist">
+      <li class="nav-item" role="presentation">
+        <button class="nav-link active" id="tab-all" data-bs-toggle="tab" data-bs-target="#tabAll" type="button" role="tab" style="font-size:13px">All</button>
+      </li>
+      <li class="nav-item" role="presentation">
+        <button class="nav-link" id="tab-worklog" data-bs-toggle="tab" data-bs-target="#tabWorklog" type="button" role="tab" style="font-size:13px">Worklog</button>
+      </li>
+      <li class="nav-item" role="presentation">
+        <button class="nav-link" id="tab-comments" data-bs-toggle="tab" data-bs-target="#tabComments" type="button" role="tab" style="font-size:13px">Comments</button>
+      </li>
+    </ul>
+    <div class="tab-content" id="ticketTabContent">
+      <div class="tab-pane fade show active" id="tabAll" role="tabpanel">
+        ${activityHTML}
+        <p class="fw-bold mb-2 mt-3" style="font-size:13px">Comments (${comments.length})</p>
+        ${commentsHTML}
+      </div>
+      <div class="tab-pane fade" id="tabWorklog" role="tabpanel">
+        ${activityHTML || '<p class="text-muted">No worklog yet.</p>'}
+      </div>
+      <div class="tab-pane fade" id="tabComments" role="tabpanel">
+        <p class="fw-bold mb-2" style="font-size:13px">Comments (${comments.length})</p>
+        ${commentsHTML}
+      </div>
+    </div>
   `;
 
   // Sync action dropdowns
   document.getElementById('detailStatus').value   = t.status;
   document.getElementById('detailPriority').value = t.priority;
+
+  // Restore active tab after rendering
+  setTimeout(function() {
+    var nav = document.getElementById('ticketTabNav');
+    var content = document.getElementById('ticketTabContent');
+    if (nav && content) {
+      var tabBtn = document.getElementById(activeTab);
+      if (tabBtn) {
+        var tab = new bootstrap.Tab(tabBtn);
+        tab.show();
+      }
+    }
+  }, 0);
 
   // Remove button: only visible for Resolved/Closed
   const rb = document.getElementById('removeTicketBtn');
