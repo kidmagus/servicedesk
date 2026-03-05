@@ -108,6 +108,14 @@ function renderDetail() {
   const t = selectedTicket;
   const comments = commentsMap[t.id] || [];
 
+  // Ticket attachments (screenshots/files)
+  let attachmentsHTML = '';
+  if (t.attachments && t.attachments.length) {
+    attachmentsHTML = '<div class="mb-3"><label class="form-label fw-semibold" style="font-size:13px">Attachments</label><div style="display:flex;flex-wrap:wrap;gap:8px;">';
+    attachmentsHTML += t.attachments.map(src => `<img src="${src}" style="width:64px;height:64px;object-fit:cover;border-radius:7px;border:1px solid #e4e9f2;cursor:pointer" onclick="window.open().document.write('<img src=\\''+src+'\\' style=max-width:100%>')">`).join('');
+    attachmentsHTML += '</div></div>';
+  }
+
   const commentsHTML = comments.length
     ? comments.map(c => `
         <div class="d-flex gap-2 mb-3">
@@ -131,6 +139,7 @@ function renderDetail() {
       ${prioBadgeHTML(t.priority)}
     </div>
     <div class="detail-desc p-3 mb-3 rounded-3">${t.desc}</div>
+    ${attachmentsHTML}
     <div class="row g-3 mb-4">
       <div class="col-6">
         <p class="text-uppercase text-muted fw-semibold mb-1" style="font-size:10.5px;letter-spacing:.6px">Assignee</p>
