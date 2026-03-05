@@ -117,7 +117,6 @@ function openDetail(id, dataSource) {
   const source = dataSource || TICKETS;
   selectedTicket = source.find(t => t.id === id);
   if (!selectedTicket) return;
-  document.getElementById('detailTid').textContent = selectedTicket.id;
   document.getElementById('newComment').value = '';
   renderDetail();
   offcanvas.show();
@@ -152,6 +151,7 @@ function renderDetail() {
     : `<p class="text-muted mb-0" style="font-size:13px">No comments yet.</p>`;
 
   document.getElementById('detailBody').innerHTML = `
+    <span class="text-muted" style="font-family:'JetBrains Mono',monospace;font-size:20px; font-weight: 500">${t.id}</span>
     <h5 class="fw-bold mb-3" style="font-size:18px;line-height:1.3">${t.title}</h5>
     <div class="d-flex gap-2 mb-3">
       ${statusBadgeHTML(t.status)}

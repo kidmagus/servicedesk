@@ -90,10 +90,19 @@
 }
 
 .ticket-id {
+	background: #141d22;
+	color: #fff;
 	font-family: 'JetBrains Mono', monospace;
-	font-size: 12px;
-	font-weight: 500;
-	color: #3b7cf4;
+	font-size: 14px;
+	font-weight: 700;
+	padding: 6px 16px;
+	border-radius: 14px;
+	display: inline-block;
+	min-width: 80px;
+	text-align: center;
+	letter-spacing: 1.5px;
+	box-shadow: 0 2px 8px 0 rgba(20,29,34,0.10);
+	transition: background 0.2s, color 0.2s;
 }
 
 .avatar-sm {
