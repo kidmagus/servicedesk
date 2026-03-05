@@ -1,3 +1,6 @@
+// Dynamic user (frontend-only)
+let CURRENT_USER = 'Matthew Samson'; // Set from sidebar or user selection
+
 // ─────────────────────────────────────────────
 // Dashboard - Client Support Portal
 // ─────────────────────────────────────────────
@@ -213,7 +216,7 @@ function addComment() {
   const txt = document.getElementById('newComment').value.trim();
   if (!txt || !selectedTicket) return;
   const now = new Date().toLocaleString('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
-  commentsMap[selectedTicket.id].push({ author: 'John Client', role: 'client', time: now, text: txt });
+  commentsMap[selectedTicket.id].push({ author: CURRENT_USER, role: 'client', time: now, text: txt });
   // Also update the ticket's comments in TICKETS
   const t = TICKETS.find(t => t.id === selectedTicket.id);
   if (t) {
@@ -221,7 +224,7 @@ function addComment() {
     t.activity = t.activity || [];
     t.activity.unshift({
       type: 'comment',
-      author: 'John Client',
+      author: CURRENT_USER,
       action: 'commented',
       value: txt,
       time: now
@@ -233,7 +236,7 @@ function addComment() {
       bg: '#f0fdf4',
       fg: '#16a34a',
       title: `New comment on ${t.id}`,
-      body: `John Client commented: ${txt}`,
+      body: `${CURRENT_USER} commented: ${txt}`,
       time: now,
       unread: true
     });
@@ -245,7 +248,7 @@ function addComment() {
         bg: '#e0e7ff',
         fg: '#3730a3',
         title: `Attachment added to ${t.id}`,
-        body: `John Client added ${commentAttachments.length} attachment(s) to a comment`,
+        body: `${CURRENT_USER} added ${commentAttachments.length} attachment(s) to a comment`,
         time: now,
         unread: true
       });
@@ -264,7 +267,7 @@ document.addEventListener('DOMContentLoaded', function() {
     commentBox.addEventListener('keydown', function(e) {
       if (e.key === 'Enter' && !e.shiftKey) {
         e.preventDefault();
-        addComment();
+        submitComment(); // Use unified comment logic
       }
     });
   }
@@ -282,7 +285,7 @@ function updateStatus(val) {
     const now = new Date().toLocaleString('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
     t.activity.unshift({
       type: 'status',
-      author: 'John Client',
+      author: CURRENT_USER,
       action: `set status to`,
       value: val,
       time: now
@@ -294,7 +297,7 @@ function updateStatus(val) {
       bg: '#fef9c3',
       fg: '#92400e',
       title: `Status updated: ${t.id}`,
-      body: `John Client set status to ${val}`,
+      body: `${CURRENT_USER} set status to ${val}`,
       time: now,
       unread: true
     });
@@ -317,7 +320,7 @@ function updatePriority(val) {
     const now = new Date().toLocaleString('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
     t.activity.unshift({
       type: 'priority',
-      author: 'John Client',
+      author: CURRENT_USER,
       action: `set priority to`,
       value: val,
       time: now
@@ -329,7 +332,7 @@ function updatePriority(val) {
       bg: '#ffedd5',
       fg: '#9a3412',
       title: `Priority updated: ${t.id}`,
-      body: `John Client set priority to ${val}`,
+      body: `${CURRENT_USER} set priority to ${val}`,
       time: now,
       unread: true
     });
@@ -540,7 +543,7 @@ function submitComment() {
   if (!txt && !commentAttachments.length) return;
   if (!selectedTicket) return;
   const now = new Date().toLocaleString('en-US',{month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'});
-  commentsMap[selectedTicket.id].push({ author:'John Client', role:'client', time:now, text:txt, attachments:[...commentAttachments] });
+  commentsMap[selectedTicket.id].push({ author: CURRENT_USER, role:'client', time:now, text:txt, attachments:[...commentAttachments] });
   // Also update the ticket's comments in TICKETS
   const t = TICKETS.find(t => t.id === selectedTicket.id);
   if (t) {
@@ -550,7 +553,7 @@ function submitComment() {
     if (txt) {
       t.activity.unshift({
         type: 'comment',
-        author: 'John Client',
+        author: CURRENT_USER,
         action: 'commented',
         value: txt,
         time: now
@@ -562,7 +565,7 @@ function submitComment() {
         bg: '#f0fdf4',
         fg: '#16a34a',
         title: `New comment on ${t.id}`,
-        body: `John Client commented: ${txt}`,
+        body: `${CURRENT_USER} commented: ${txt}`,
         time: now,
         unread: true
       });
@@ -571,7 +574,7 @@ function submitComment() {
     if (commentAttachments && commentAttachments.length > 0) {
       t.activity.unshift({
         type: 'attachment',
-        author: 'John Client',
+        author: CURRENT_USER,
         action: 'added attachment(s)',
         value: `${commentAttachments.length} file(s)`,
         time: now
@@ -582,7 +585,7 @@ function submitComment() {
         bg: '#e0e7ff',
         fg: '#3730a3',
         title: `Attachment added to ${t.id}`,
-        body: `John Client added ${commentAttachments.length} attachment(s) to a comment`,
+        body: `${CURRENT_USER} added ${commentAttachments.length} attachment(s) to a comment`,
         time: now,
         unread: true
       });
