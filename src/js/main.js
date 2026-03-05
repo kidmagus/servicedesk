@@ -46,13 +46,15 @@ const DEFAULT_TICKETS = [
 ];
 
 // Initialize TICKETS from storage or default
-let TICKETS = loadTicketsFromStorage() || DEFAULT_TICKETS.map(t => ({
-  ...t,
-  comments: t.comments ? [...t.comments] : [],
-  activity: []
-}));
-// Ensure all tickets have activity array
-TICKETS.forEach(t => { if (!t.activity) t.activity = []; });
+let TICKETS = loadTicketsFromStorage() || [];
+// To clear all tickets, call clearAllTickets()
+
+function clearAllTickets() {
+  TICKETS = [];
+  saveTicketsToStorage();
+}
+
+// Ensure all tickets have activity array (no-op since TICKETS is empty)
 
 // ── SHARED CONSTANTS ──────────────────────────
 const STATUS_CLASS = {
@@ -98,13 +100,13 @@ function loadNotifsFromStorage() {
   }
   return null;
 }
-let NOTIFS = loadNotifsFromStorage() || [
-  { id:1, icon:'bi-exclamation-triangle-fill', bg:'#ffe4e6', fg:'#be123c', title:'Critical: SSO login loop',    body:'TK-017 open for 2 days without resolution.',         time:'2 min ago',  unread:true,  ticketId:'TK-017' },
-  { id:2, icon:'bi-chat-left-text-fill',       bg:'#f0fdf4', fg:'#16a34a', title:'New comment on TK-001',       body:'Sarah Johnson replied to your ticket.',               time:'28 min ago', unread:true,  ticketId:'TK-001' },
-  { id:3, icon:'bi-arrow-clockwise',           bg:'#fef9c3', fg:'#92400e', title:'Status updated: TK-005',      body:'Email notifications moved to In Progress.',           time:'2 hr ago',   unread:true,  ticketId:'TK-005' },
-  { id:4, icon:'bi-check-circle-fill',         bg:'#dcfce7', fg:'#166534', title:'TK-003 Resolved',             body:'Slow page load issue has been resolved.',             time:'5 hr ago',   unread:false, ticketId:'TK-003' },
-  { id:5, icon:'bi-info-circle-fill',          bg:'#f3e8ff', fg:'#7c3aed', title:'Scheduled maintenance',       body:'Jan 25, 2:00–4:00 AM UTC downtime window.',           time:'Yesterday',  unread:false }
-];
+let NOTIFS = loadNotifsFromStorage() || [];
+// To clear all notifications, call clearAllNotifs()
+
+function clearAllNotifs() {
+  NOTIFS = [];
+  saveNotifsToStorage();
+}
 
 // ── UTILITIES ─────────────────────────────────
 const initials = n => n.split(' ').map(w => w[0]).join('').toUpperCase().slice(0, 2);
