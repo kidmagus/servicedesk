@@ -226,6 +226,31 @@ function addComment() {
       value: txt,
       time: now
     });
+    // Push notification for comment
+    NOTIFS.unshift({
+      id: Date.now(),
+      icon: 'bi-chat-left-text-fill',
+      bg: '#f0fdf4',
+      fg: '#16a34a',
+      title: `New comment on ${t.id}`,
+      body: `John Client commented: ${txt}`,
+      time: now,
+      unread: true
+    });
+    // If there are attachments, push notification for attachments
+    if (commentAttachments && commentAttachments.length > 0) {
+      NOTIFS.unshift({
+        id: Date.now()+1,
+        icon: 'bi-paperclip',
+        bg: '#e0e7ff',
+        fg: '#3730a3',
+        title: `Attachment added to ${t.id}`,
+        body: `John Client added ${commentAttachments.length} attachment(s) to a comment`,
+        time: now,
+        unread: true
+      });
+    }
+    renderNotifList();
   }
   saveTicketsToStorage();
   document.getElementById('newComment').value = '';
@@ -254,13 +279,26 @@ function updateStatus(val) {
   if (t) {
     t.status = val;
     t.activity = t.activity || [];
+    const now = new Date().toLocaleString('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
     t.activity.unshift({
       type: 'status',
       author: 'John Client',
       action: `set status to`,
       value: val,
-      time: new Date().toLocaleString('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })
+      time: now
     });
+    // Push notification
+    NOTIFS.unshift({
+      id: Date.now(),
+      icon: 'bi-arrow-clockwise',
+      bg: '#fef9c3',
+      fg: '#92400e',
+      title: `Status updated: ${t.id}`,
+      body: `John Client set status to ${val}`,
+      time: now,
+      unread: true
+    });
+    renderNotifList();
   }
   saveTicketsToStorage();
   renderDetail();
@@ -276,13 +314,26 @@ function updatePriority(val) {
   if (t) {
     t.priority = val;
     t.activity = t.activity || [];
+    const now = new Date().toLocaleString('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
     t.activity.unshift({
       type: 'priority',
       author: 'John Client',
       action: `set priority to`,
       value: val,
-      time: new Date().toLocaleString('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })
+      time: now
     });
+    // Push notification
+    NOTIFS.unshift({
+      id: Date.now(),
+      icon: 'bi-flag-fill',
+      bg: '#ffedd5',
+      fg: '#9a3412',
+      title: `Priority updated: ${t.id}`,
+      body: `John Client set priority to ${val}`,
+      time: now,
+      unread: true
+    });
+    renderNotifList();
   }
   saveTicketsToStorage();
   renderDetail();
@@ -301,6 +352,18 @@ function removeTicket(dataSource) {
   // Remove from TICKETS array if not already
   const mainIdx = TICKETS.findIndex(t => t.id === selectedTicket.id);
   if (mainIdx > -1) TICKETS.splice(mainIdx, 1);
+  // Push notification for removal
+  NOTIFS.unshift({
+    id: Date.now(),
+    icon: 'bi-trash-fill',
+    bg: '#fee2e2',
+    fg: '#b91c1c',
+    title: `Ticket removed: ${selectedTicket.id}`,
+    body: `John Client removed the ticket`,
+    time: new Date().toLocaleString('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' }),
+    unread: true
+  });
+  renderNotifList();
   saveTicketsToStorage();
   bootstrap.Offcanvas.getInstance(document.getElementById('ticketOffcanvas')).hide();
   selectedTicket = null;
@@ -480,7 +543,52 @@ function submitComment() {
   commentsMap[selectedTicket.id].push({ author:'John Client', role:'client', time:now, text:txt, attachments:[...commentAttachments] });
   // Also update the ticket's comments in TICKETS
   const t = TICKETS.find(t => t.id === selectedTicket.id);
-  if (t) t.comments = [...commentsMap[selectedTicket.id]];
+  if (t) {
+    t.comments = [...commentsMap[selectedTicket.id]];
+    t.activity = t.activity || [];
+    // Log comment activity
+    if (txt) {
+      t.activity.unshift({
+        type: 'comment',
+        author: 'John Client',
+        action: 'commented',
+        value: txt,
+        time: now
+      });
+      // Push notification for comment
+      NOTIFS.unshift({
+        id: Date.now(),
+        icon: 'bi-chat-left-text-fill',
+        bg: '#f0fdf4',
+        fg: '#16a34a',
+        title: `New comment on ${t.id}`,
+        body: `John Client commented: ${txt}`,
+        time: now,
+        unread: true
+      });
+    }
+    // Log attachment activity and notification
+    if (commentAttachments && commentAttachments.length > 0) {
+      t.activity.unshift({
+        type: 'attachment',
+        author: 'John Client',
+        action: 'added attachment(s)',
+        value: `${commentAttachments.length} file(s)`,
+        time: now
+      });
+      NOTIFS.unshift({
+        id: Date.now()+1,
+        icon: 'bi-paperclip',
+        bg: '#e0e7ff',
+        fg: '#3730a3',
+        title: `Attachment added to ${t.id}`,
+        body: `John Client added ${commentAttachments.length} attachment(s) to a comment`,
+        time: now,
+        unread: true
+      });
+    }
+    renderNotifList();
+  }
   saveTicketsToStorage();
   document.getElementById('newComment').value = '';
   commentAttachments = [];
