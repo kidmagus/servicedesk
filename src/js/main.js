@@ -145,6 +145,114 @@ function openDetail(id, dataSource) {
 }
 
 function renderDetail() {
+    // Assignee and Category click-to-edit logic (script only, not in template)
+    setTimeout(function() {
+      // Assignee
+      var display = document.getElementById('assigneeDisplay');
+      var select = document.getElementById('assigneeSelect');
+      if (display && select) {
+        display.onclick = function() {
+          display.classList.add('d-none');
+          select.classList.remove('d-none');
+          select.value = t.assignee;
+          select.focus();
+        };
+        select.onblur = function() {
+          select.classList.add('d-none');
+          display.classList.remove('d-none');
+        };
+        select.onchange = function() {
+          var newAssignee = select.value;
+          if (newAssignee !== t.assignee) {
+            t.assignee = newAssignee;
+            if (commentsMap[t.id]) {
+              t.activity = t.activity || [];
+              t.activity.unshift({
+                type: 'assignee',
+                author: CURRENT_USER,
+                action: 'changed assignee to',
+                value: newAssignee,
+                time: new Date().toLocaleString('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })
+              });
+            }
+            // Push notification for assignee change
+            NOTIFS.unshift({
+              id: Date.now(),
+              icon: 'bi-person-check-fill',
+              bg: '#e0e7ff',
+              fg: '#3730a3',
+              title: `Assignee changed: ${t.id}`,
+              body: `${CURRENT_USER} assigned ticket to ${newAssignee}`,
+              time: new Date().toLocaleString('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' }),
+              unread: true,
+              ticketId: t.id
+            });
+            showToast({type: 'info', title: 'Assignee changed', message: `${CURRENT_USER} assigned ticket to ${newAssignee}`});
+            saveNotifsToStorage();
+            renderNotifList && renderNotifList();
+            saveTicketsToStorage();
+            if (typeof render === 'function') render();
+            renderDetail();
+          } else {
+            select.classList.add('d-none');
+            display.classList.remove('d-none');
+          }
+        };
+      }
+
+      // Category
+      var catDisplay = document.getElementById('categoryDisplay');
+      var catSelect = document.getElementById('categorySelect');
+      if (catDisplay && catSelect) {
+        catDisplay.onclick = function() {
+          catDisplay.classList.add('d-none');
+          catSelect.classList.remove('d-none');
+          catSelect.value = t.category;
+          catSelect.focus();
+        };
+        catSelect.onblur = function() {
+          catSelect.classList.add('d-none');
+          catDisplay.classList.remove('d-none');
+        };
+        catSelect.onchange = function() {
+          var newCategory = catSelect.value;
+          if (newCategory !== t.category) {
+            t.category = newCategory;
+            if (commentsMap[t.id]) {
+              t.activity = t.activity || [];
+              t.activity.unshift({
+                type: 'category',
+                author: CURRENT_USER,
+                action: 'changed category to',
+                value: newCategory,
+                time: new Date().toLocaleString('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })
+              });
+            }
+            // Push notification for category change
+            NOTIFS.unshift({
+              id: Date.now(),
+              icon: 'bi-tags-fill',
+              bg: '#fef9c3',
+              fg: '#92400e',
+              title: `Category changed: ${t.id}`,
+              body: `${CURRENT_USER} changed category to ${newCategory}`,
+              time: new Date().toLocaleString('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' }),
+              unread: true,
+              ticketId: t.id
+            });
+            showToast({type: 'info', title: 'Category changed', message: `${CURRENT_USER} changed category to ${newCategory}`});
+            saveNotifsToStorage();
+            renderNotifList && renderNotifList();
+            saveTicketsToStorage();
+            if (typeof render === 'function') render();
+            renderDetail();
+          } else {
+            catSelect.classList.add('d-none');
+            catDisplay.classList.remove('d-none');
+          }
+        };
+      }
+    }, 0);
   const t = selectedTicket;
   const comments = commentsMap[t.id] || [];
 
@@ -174,7 +282,7 @@ function renderDetail() {
 
   // Activity log HTML
   const activityHTML = t.activity && t.activity.length ?
-    `<div class="mb-4"><h6 class="fw-bold mb-2" style="font-size:14px">Activity Log</h6><div style="max-height:120px;overflow-y:auto;">
+    `<div class="mb-4"><h6 class="fw-bold mb-2" style="font-size:14px">Activity Log</h6><div>
       ${t.activity.map(a => `
         <div style="font-size:12.5px;color:#7a8599;margin-bottom:6px">
           <span style="font-weight:600;color:#3b7cf4">${a.author}</span> ${a.action} <b>${a.value || ''}</b> <span style="font-size:11px;color:#bfc6d1">${a.time}</span>
@@ -202,7 +310,14 @@ function renderDetail() {
         <p class="text-uppercase text-muted fw-semibold mb-1" style="font-size:10.5px;letter-spacing:.6px">Assignee</p>
         <div class="d-flex align-items-center gap-2 fw-semibold" style="font-size:13px">
           <div class="avatar-sm ${t.ac}" style="width:22px;height:22px;font-size:9px">${initials(t.assignee)}</div>
-          ${t.assignee}
+          <span id="assigneeDisplay" style="cursor:pointer;text-decoration:underline dotted;">${t.assignee}</span>
+          <select id="assigneeSelect" class="form-select form-select-sm d-none" style="width:auto;min-width:120px;font-size:13px;">
+            <option value="Sarah Johnson">Sarah Johnson</option>
+            <option value="Alex Lee">Alex Lee</option>
+            <option value="Priya Patel">Priya Patel</option>
+            <option value="David Kim">David Kim</option>
+            <option value="Emma Brown">Emma Brown</option>
+          </select>
         </div>
       </div>
       <div class="col-6">
@@ -211,11 +326,24 @@ function renderDetail() {
       </div>
       <div class="col-6">
         <p class="text-uppercase text-muted fw-semibold mb-1" style="font-size:10.5px;letter-spacing:.6px">Reporter</p>
-        <div class="fw-semibold" style="font-size:13px">${t.reporter || '—'}</div>
+        <div class="fw-semibold d-flex align-items-center gap-2" style="font-size:13px">
+          <div class="avatar-sm" style="background:#e0e7ef;color:#3b3b4f;width:22px;height:22px;font-size:9px;display:flex;align-items:center;justify-content:center;border-radius:7px;">${initials(t.reporter)}</div>
+          <span>${t.reporter || '—'}</span>
+        </div>
       </div>
       <div class="col-6">
         <p class="text-uppercase text-muted fw-semibold mb-1" style="font-size:10.5px;letter-spacing:.6px">Category</p>
-        <div class="fw-semibold" style="font-size:13px">${t.category || '—'}</div>
+        <div class="fw-semibold" style="font-size:13px">
+          <span id="categoryDisplay" style="cursor:pointer;text-decoration:underline dotted;">${t.category || '—'}</span>
+          <select id="categorySelect" class="form-select form-select-sm d-none" style="width:auto;min-width:120px;font-size:13px;display:inline-block;">
+            <option value="Bug">Bug</option>
+            <option value="Task">Task</option>
+            <option value="Feature Request">Feature Request</option>
+            <option value="Performance Issue">Performance Issue</option>
+            <option value="Account Issue">Account Issue</option>
+            <option value="Other">Other</option>
+          </select>
+        </div>
       </div>
     </div>
     <ul class="nav nav-tabs mb-3" id="ticketTabNav" role="tablist">
@@ -572,9 +700,32 @@ function render() {
         <td class="fw-medium" style="color:#1a2235">${t.title}</td>
         <td>${statusBadgeHTML(t.status)}</td>
         <td>${prioBadgeHTML(t.priority)}</td>
-        <td><span class="badge rounded-pill" style="background:${t.category==='Bug'?'#ffe4e6':'#eff4ff'};color:${t.category==='Bug'?'#be123c':'#3b7cf4'};font-size:11px">
-          <i class="bi ${t.category==='Bug'?'bi-bug':'bi-check2-square'} me-1"></i>${t.category||'—'}</span></td>
-        <td style="font-size:12.5px;color:#3a4560;font-weight:500">${t.reporter||'—'}</td>
+        <td><span class="badge rounded-pill" style="background:${
+          t.category==='Bug' ? '#ffe4e6' :
+          t.category==='Task' ? '#eff4ff' :
+          t.category==='Feature Request' ? '#e0f2fe' :
+          t.category==='Performance Issue' ? '#fef9c3' :
+          t.category==='Account Issue' ? '#ede9fe' :
+          t.category==='Other' ? '#f3e8ff' : '#eff4ff'};color:${
+          t.category==='Bug' ? '#be123c' :
+          t.category==='Task' ? '#3b7cf4' :
+          t.category==='Feature Request' ? '#0369a1' :
+          t.category==='Performance Issue' ? '#78350f' :
+          t.category==='Account Issue' ? '#6d28d9' :
+          t.category==='Other' ? '#a21caf' : '#3b7cf4'};font-size:11px">
+          <i class="bi ${
+            t.category==='Bug' ? 'bi-bug' :
+            t.category==='Task' ? 'bi-list-task' :
+            t.category==='Feature Request' ? 'bi-stars' :
+            t.category==='Performance Issue' ? 'bi-speedometer2' :
+            t.category==='Account Issue' ? 'bi-person-badge' :
+            t.category==='Other' ? 'bi-three-dots' : 'bi-check2-square'} me-1"></i>${t.category||'—'}</span></td>
+        <td style="font-size:12.5px;color:#3a4560;font-weight:500">
+          <div class="d-flex align-items-center gap-2">
+            <div class="avatar-sm" style="background:#e0e7ef;color:#3b3b4f;width:22px;height:22px;font-size:9px;display:flex;align-items:center;justify-content:center;border-radius:7px;">${initials(t.reporter)}</div>
+            <span>${t.reporter||'—'}</span>
+          </div>
+        </td>
         <td><div class="d-flex align-items-center gap-2">
           <div class="avatar-sm ${t.ac}">${initials(t.assignee)}</div>
           <span style="font-size:12.5px">${t.assignee}</span>
@@ -802,7 +953,7 @@ function initMyTicketsPage() {
           <p class="text-muted mb-3" style="font-size:12px;line-height:1.5">${t.desc.substring(0,80)}...</p>
           <div class="d-flex align-items-center justify-content-between">
             <div class="d-flex align-items-center gap-2">
-              <div class="avatar-sm ${t.ac}" style="width:22px;height:22px;font-size:9px">${initials(t.assignee)}</div>
+              <div class="avatar-sm ${t.ac}" style="width:22px;height:22px;font-size:9px;display:flex;align-items:center;justify-content:center;border-radius:7px;">${initials(t.assignee)}</div>
               <span class="text-muted" style="font-size:11.5px">${t.assignee}</span>
             </div>
             ${prioBadgeHTML(t.priority)}
