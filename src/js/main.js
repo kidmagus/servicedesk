@@ -3,7 +3,23 @@
 // ─────────────────────────────────────────────
 
 // ── SHARED DATA ───────────────────────────────
-const TICKETS = [
+// LocalStorage helpers for tickets
+const TICKETS_STORAGE_KEY = 'servicedesk_tickets';
+function saveTicketsToStorage() {
+  localStorage.setItem(TICKETS_STORAGE_KEY, JSON.stringify(TICKETS));
+}
+function loadTicketsFromStorage() {
+  const data = localStorage.getItem(TICKETS_STORAGE_KEY);
+  if (data) {
+    try {
+      return JSON.parse(data);
+    } catch (e) { return null; }
+  }
+  return null;
+}
+
+// Default tickets array
+const DEFAULT_TICKETS = [
   { id:'TK-001', reporter:'John Client', category:'Bug', title:'Website login page not responding',         status:'Open',        priority:'Critical', assignee:'Sarah Johnson', ac:'',       created:'Jan 15, 2024', desc:'Users are unable to access the login page. The page loads but the login button becomes unresponsive after clicking.', comments:[{author:'John Client',role:'client',time:'Jan 15, 06:35 PM',text:'This is affecting all our users. Please prioritize.'},{author:'Sarah Johnson',role:'support',time:'Jan 15, 07:00 PM',text:"I've started investigating this issue. Will update you within 2 hours."}] },
   { id:'TK-002', reporter:'John Client', category:'Bug', title:'Mobile app crashes on iOS devices',          status:'In Progress', priority:'High',     assignee:'Mike Torres',   ac:'orange', created:'Jan 15, 2024', desc:'The mobile application crashes upon launch on devices running iOS 17. Affects all iPhone 14 and 15 models.', comments:[{author:'Mike Torres',role:'support',time:'Jan 15, 05:00 PM',text:'Identified a memory leak in build 2.4.1. Patch incoming.'}] },
   { id:'TK-003', reporter:'Maria Santos', category:'Bug', title:'Slow page load times on product catalog',    status:'Resolved',    priority:'Medium',   assignee:'Anna Lee',      ac:'purple', created:'Jan 14, 2024', desc:'Product catalog page took over 8 seconds to load. Optimized via CDN and lazy loading.', comments:[{author:'Anna Lee',role:'support',time:'Jan 14, 03:00 PM',text:'Issue resolved. Load time is now under 1.2s.'}] },
@@ -25,6 +41,9 @@ const TICKETS = [
   { id:'TK-019', reporter:'John Client', category:'Bug', title:'Audit log timestamps incorrect',             status:'Open',        priority:'Medium',   assignee:'Mike Torres',   ac:'orange', created:'Jan 20, 2024', desc:'Audit logs recorded in UTC but displayed without timezone conversion.', comments:[] },
   { id:'TK-020', reporter:'John Client', category:'Bug', title:'Password reset link expiring instantly',     status:'In Progress', priority:'High',     assignee:'Sarah Johnson', ac:'',       created:'Jan 21, 2024', desc:'Password reset links expire before users can click them.', comments:[{author:'John Client',role:'client',time:'Jan 21, 07:00 AM',text:'This is blocking our new employee accounts.'}] },
 ];
+
+// Initialize TICKETS from storage or default
+let TICKETS = loadTicketsFromStorage() || DEFAULT_TICKETS.map(t => ({...t, comments: t.comments ? [...t.comments] : [] }));
 
 // ── SHARED CONSTANTS ──────────────────────────
 const STATUS_CLASS = {
@@ -179,6 +198,10 @@ function addComment() {
   if (!txt || !selectedTicket) return;
   const now = new Date().toLocaleString('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
   commentsMap[selectedTicket.id].push({ author: 'John Client', role: 'client', time: now, text: txt });
+  // Also update the ticket's comments in TICKETS
+  const t = TICKETS.find(t => t.id === selectedTicket.id);
+  if (t) t.comments = [...commentsMap[selectedTicket.id]];
+  saveTicketsToStorage();
   document.getElementById('newComment').value = '';
   renderDetail();
 }
@@ -187,6 +210,10 @@ function addComment() {
 function updateStatus(val) {
   if (!selectedTicket) return;
   selectedTicket.status = val;
+  // Update in TICKETS array
+  const t = TICKETS.find(t => t.id === selectedTicket.id);
+  if (t) t.status = val;
+  saveTicketsToStorage();
   renderDetail();
   if (typeof window._pageRender === 'function') window._pageRender();
 }
@@ -194,6 +221,10 @@ function updateStatus(val) {
 function updatePriority(val) {
   if (!selectedTicket) return;
   selectedTicket.priority = val;
+  // Update in TICKETS array
+  const t = TICKETS.find(t => t.id === selectedTicket.id);
+  if (t) t.priority = val;
+  saveTicketsToStorage();
   renderDetail();
   if (typeof window._pageRender === 'function') window._pageRender();
 }
@@ -207,6 +238,10 @@ function removeTicket(dataSource) {
   const source = dataSource || TICKETS;
   const idx = source.findIndex(t => t.id === selectedTicket.id);
   if (idx > -1) source.splice(idx, 1);
+  // Remove from TICKETS array if not already
+  const mainIdx = TICKETS.findIndex(t => t.id === selectedTicket.id);
+  if (mainIdx > -1) TICKETS.splice(mainIdx, 1);
+  saveTicketsToStorage();
   bootstrap.Offcanvas.getInstance(document.getElementById('ticketOffcanvas')).hide();
   selectedTicket = null;
   if (typeof window._pageRender === 'function') window._pageRender();
@@ -367,6 +402,7 @@ function submitTicket() {
   const now = new Date().toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'});
   TICKETS.unshift({ id, title, status:'Open', priority, category, reporter, assignee:'Sarah Johnson', ac:'', created:now, desc, comments:[], attachments:[...ctAttachments] });
   commentsMap[id] = [];
+  saveTicketsToStorage();
   document.getElementById('ctTitle').value   = '';
   document.getElementById('ctDesc').value    = '';
   ctAttachments = [];
@@ -382,6 +418,10 @@ function submitComment() {
   if (!selectedTicket) return;
   const now = new Date().toLocaleString('en-US',{month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'});
   commentsMap[selectedTicket.id].push({ author:'John Client', role:'client', time:now, text:txt, attachments:[...commentAttachments] });
+  // Also update the ticket's comments in TICKETS
+  const t = TICKETS.find(t => t.id === selectedTicket.id);
+  if (t) t.comments = [...commentsMap[selectedTicket.id]];
+  saveTicketsToStorage();
   document.getElementById('newComment').value = '';
   commentAttachments = [];
   document.getElementById('commentPreview').innerHTML = '';
