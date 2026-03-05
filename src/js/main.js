@@ -166,7 +166,7 @@ function renderDetail() {
               <span class="comment-role-badge ${c.role}">${c.role === 'client' ? 'Client' : 'Support'}</span>
               <span class="text-muted ms-auto" style="font-size:11px">${c.time}</span>
             </div>
-            <p class="mb-0" style="font-size:13px;color:#3a4560">${c.text}</p>
+            <p class="mb-0 comment-text" style="font-size:13px;color:#3a4560">${c.text}</p>
             ${c.attachments&&c.attachments.length ? `<div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:7px">${c.attachments.map(src=>`<img src="${src}" style="width:64px;height:64px;object-fit:cover;border-radius:7px;border:1px solid #e4e9f2;cursor:pointer" onclick="window.open().document.write('<img src=\\''+src+'\\' style=max-width:100%>')">`).join('')}</div>` : ''}
           </div>
         </div>`).join('')

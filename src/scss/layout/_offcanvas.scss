@@ -1,3 +1,10 @@
+// Ensure long comment text wraps and doesn't overflow
+.comment-text {
+	max-width: 100%;
+	word-break: break-word;
+	overflow-wrap: break-word;
+	white-space: pre-line;
+}
 /* Offcanvas */
 .offcanvas-detail {
 	width: 500px !important;
