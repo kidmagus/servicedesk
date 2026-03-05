@@ -83,7 +83,10 @@
           <div class="dropdown-menu dropdown-menu-end p-0 shadow rounded-3 notif-dropdown" style="border:1px solid #e4e9f2;">
             <div class="d-flex align-items-center justify-content-between px-3 py-2 border-bottom">
               <span class="fw-bold" style="font-size:13px">Notifications</span>
-              <button class="btn btn-link btn-sm p-0 text-decoration-none" style="font-size:12px;color:#3b7cf4" onclick="markAllRead()">Mark all read</button>
+              <div class="d-flex gap-2">
+                <button class="btn btn-link btn-sm p-0 text-decoration-none" style="font-size:12px;color:#3b7cf4" onclick="markAllRead()">Mark all read</button>
+                <button class="btn btn-link btn-sm p-0 text-decoration-none" style="font-size:12px;color:#d11a2a" onclick="deleteAllNotifs()">Delete all</button>
+              </div>
             </div>
             <div id="notifList"></div>
           </div>

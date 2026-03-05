@@ -85,12 +85,25 @@ let ctAttachments      = [];
 let commentAttachments = [];
 
 // ── NOTIFICATIONS ──────────────────────────────
-const NOTIFS = [
-  { id:1, icon:'bi-exclamation-triangle-fill', bg:'#ffe4e6', fg:'#be123c', title:'Critical: SSO login loop',    body:'TK-017 open for 2 days without resolution.',         time:'2 min ago',  unread:true  },
-  { id:2, icon:'bi-chat-left-text-fill',       bg:'#f0fdf4', fg:'#16a34a', title:'New comment on TK-001',       body:'Sarah Johnson replied to your ticket.',               time:'28 min ago', unread:true  },
-  { id:3, icon:'bi-arrow-clockwise',           bg:'#fef9c3', fg:'#92400e', title:'Status updated: TK-005',      body:'Email notifications moved to In Progress.',           time:'2 hr ago',   unread:true  },
-  { id:4, icon:'bi-check-circle-fill',         bg:'#dcfce7', fg:'#166534', title:'TK-003 Resolved',             body:'Slow page load issue has been resolved.',             time:'5 hr ago',   unread:false },
-  { id:5, icon:'bi-info-circle-fill',          bg:'#f3e8ff', fg:'#7c3aed', title:'Scheduled maintenance',       body:'Jan 25, 2:00–4:00 AM UTC downtime window.',           time:'Yesterday',  unread:false },
+const NOTIFS_STORAGE_KEY = 'servicedesk_notifs';
+function saveNotifsToStorage() {
+  localStorage.setItem(NOTIFS_STORAGE_KEY, JSON.stringify(NOTIFS));
+}
+function loadNotifsFromStorage() {
+  const data = localStorage.getItem(NOTIFS_STORAGE_KEY);
+  if (data) {
+    try {
+      return JSON.parse(data);
+    } catch (e) { return null; }
+  }
+  return null;
+}
+let NOTIFS = loadNotifsFromStorage() || [
+  { id:1, icon:'bi-exclamation-triangle-fill', bg:'#ffe4e6', fg:'#be123c', title:'Critical: SSO login loop',    body:'TK-017 open for 2 days without resolution.',         time:'2 min ago',  unread:true,  ticketId:'TK-017' },
+  { id:2, icon:'bi-chat-left-text-fill',       bg:'#f0fdf4', fg:'#16a34a', title:'New comment on TK-001',       body:'Sarah Johnson replied to your ticket.',               time:'28 min ago', unread:true,  ticketId:'TK-001' },
+  { id:3, icon:'bi-arrow-clockwise',           bg:'#fef9c3', fg:'#92400e', title:'Status updated: TK-005',      body:'Email notifications moved to In Progress.',           time:'2 hr ago',   unread:true,  ticketId:'TK-005' },
+  { id:4, icon:'bi-check-circle-fill',         bg:'#dcfce7', fg:'#166534', title:'TK-003 Resolved',             body:'Slow page load issue has been resolved.',             time:'5 hr ago',   unread:false, ticketId:'TK-003' },
+  { id:5, icon:'bi-info-circle-fill',          bg:'#f3e8ff', fg:'#7c3aed', title:'Scheduled maintenance',       body:'Jan 25, 2:00–4:00 AM UTC downtime window.',           time:'Yesterday',  unread:false }
 ];
 
 // ── UTILITIES ─────────────────────────────────
@@ -238,7 +251,8 @@ function addComment() {
       title: `New comment on ${t.id}`,
       body: `${CURRENT_USER} commented: ${txt}`,
       time: now,
-      unread: true
+      unread: true,
+      ticketId: t.id
     });
     // If there are attachments, push notification for attachments
     if (commentAttachments && commentAttachments.length > 0) {
@@ -250,7 +264,8 @@ function addComment() {
         title: `Attachment added to ${t.id}`,
         body: `${CURRENT_USER} added ${commentAttachments.length} attachment(s) to a comment`,
         time: now,
-        unread: true
+        unread: true,
+        ticketId: t.id
       });
     }
     renderNotifList();
@@ -299,7 +314,8 @@ function updateStatus(val) {
       title: `Status updated: ${t.id}`,
       body: `${CURRENT_USER} set status to ${val}`,
       time: now,
-      unread: true
+      unread: true,
+      ticketId: t.id
     });
     renderNotifList();
   }
@@ -334,7 +350,8 @@ function updatePriority(val) {
       title: `Priority updated: ${t.id}`,
       body: `${CURRENT_USER} set priority to ${val}`,
       time: now,
-      unread: true
+      unread: true,
+      ticketId: t.id
     });
     renderNotifList();
   }
@@ -364,7 +381,8 @@ function removeTicket(dataSource) {
     title: `Ticket removed: ${selectedTicket.id}`,
     body: `John Client removed the ticket`,
     time: new Date().toLocaleString('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' }),
-    unread: true
+    unread: true,
+    ticketId: selectedTicket.id
   });
   renderNotifList();
   saveTicketsToStorage();
@@ -377,20 +395,27 @@ function removeTicket(dataSource) {
 function renderNotifList() {
   const unread = NOTIFS.filter(n => n.unread).length;
   document.getElementById('notifDot').style.display = unread > 0 ? 'block' : 'none';
-  document.getElementById('notifList').innerHTML = NOTIFS.map(n => `
-    <div class="notif-row ${n.unread ? 'unread' : ''}" onclick="markNotifRead(${n.id})">
-      <div class="notif-icon-sm" style="background:${n.bg};color:${n.fg}"><i class="bi ${n.icon}"></i></div>
-      <div class="flex-grow-1">
-        <div class="fw-semibold" style="font-size:12.5px;color:#1a2235">${n.title}</div>
-        <div class="text-muted" style="font-size:12px;line-height:1.4">${n.body}</div>
-        <div class="text-muted mt-1" style="font-size:11px"><i class="bi bi-clock me-1"></i>${n.time}</div>
-      </div>
-    </div>`).join('') +
+  document.getElementById('notifList').innerHTML =
+    NOTIFS.map(n => `
+      <div class="notif-row ${n.unread ? 'unread' : ''}" onclick="openDetail('${n.ticketId || (n.title && n.title.match(/TK-\d{3}/) ? n.title.match(/TK-\d{3}/)[0] : '')}')">
+        <div class="notif-icon-sm" style="background:${n.bg};color:${n.fg}"><i class="bi ${n.icon}"></i></div>
+        <div class="flex-grow-1">
+          <div class="fw-semibold" style="font-size:12.5px;color:#1a2235">${n.title}</div>
+          <div class="text-muted" style="font-size:12px;line-height:1.4">${n.body}</div>
+          <div class="text-muted mt-1" style="font-size:11px"><i class="bi bi-clock me-1"></i>${n.time}</div>
+        </div>
+      </div>`).join('') +
     `<div class="text-center py-2 border-top"><span class="text-muted" style="font-size:12px">${unread} unread · ${NOTIFS.length} total</span></div>`;
+  saveNotifsToStorage();
 }
 
 function markNotifRead(id) { const n = NOTIFS.find(x => x.id === id); if(n){ n.unread=false; renderNotifList(); } }
 function markAllRead()     { NOTIFS.forEach(n => n.unread = false); renderNotifList(); }
+function deleteAllNotifs() {
+  NOTIFS.length = 0;
+  saveNotifsToStorage();
+  renderNotifList();
+}
 
 // ── SCREENSHOT HANDLERS ───────────────────────
 function initScreenshots() {
@@ -398,6 +423,7 @@ function initScreenshots() {
   const fileInput = document.getElementById('ctFileInput');
   dropZone.addEventListener('click',     () => fileInput.click());
   fileInput.addEventListener('change',   e  => { addFiles(Array.from(e.target.files), 'ct'); fileInput.value=''; });
+  dropZone.addEventListener('dragover',  e  => { e.preventDefault(); dropZone.classList.add('drag-over'); });
   dropZone.addEventListener('dragover',  e  => { e.preventDefault(); dropZone.classList.add('drag-over'); });
   dropZone.addEventListener('dragleave', () => dropZone.classList.remove('drag-over'));
   dropZone.addEventListener('drop', e => {
@@ -528,12 +554,26 @@ function submitTicket() {
   const now = new Date().toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'});
   TICKETS.unshift({ id, title, status:'Open', priority, category, reporter, assignee:'Sarah Johnson', ac:'', created:now, desc, comments:[], attachments:[...ctAttachments] });
   commentsMap[id] = [];
+  // Add notification for ticket creation
+  NOTIFS.unshift({
+    id: Date.now(),
+    icon: 'bi-plus-lg',
+    bg: '#e0f2fe',
+    fg: '#0284c7',
+    title: `Ticket created: ${id}`,
+    body: `${CURRENT_USER} created a new ticket: ${title}`,
+    time: now,
+    unread: true,
+    ticketId: id
+  });
+  saveNotifsToStorage();
   saveTicketsToStorage();
   document.getElementById('ctTitle').value   = '';
   document.getElementById('ctDesc').value    = '';
   ctAttachments = [];
   document.getElementById('ctPreview').innerHTML = '';
   bootstrap.Modal.getInstance(document.getElementById('createTicketModal')).hide();
+  renderNotifList();
   render();
 }
 
@@ -567,7 +607,8 @@ function submitComment() {
         title: `New comment on ${t.id}`,
         body: `${CURRENT_USER} commented: ${txt}`,
         time: now,
-        unread: true
+        unread: true,
+        ticketId: t.id
       });
     }
     // Log attachment activity and notification
@@ -587,7 +628,8 @@ function submitComment() {
         title: `Attachment added to ${t.id}`,
         body: `${CURRENT_USER} added ${commentAttachments.length} attachment(s) to a comment`,
         time: now,
-        unread: true
+        unread: true,
+        ticketId: t.id
       });
     }
     renderNotifList();
