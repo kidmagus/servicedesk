@@ -43,7 +43,13 @@ const DEFAULT_TICKETS = [
 ];
 
 // Initialize TICKETS from storage or default
-let TICKETS = loadTicketsFromStorage() || DEFAULT_TICKETS.map(t => ({...t, comments: t.comments ? [...t.comments] : [] }));
+let TICKETS = loadTicketsFromStorage() || DEFAULT_TICKETS.map(t => ({
+  ...t,
+  comments: t.comments ? [...t.comments] : [],
+  activity: []
+}));
+// Ensure all tickets have activity array
+TICKETS.forEach(t => { if (!t.activity) t.activity = []; });
 
 // ── SHARED CONSTANTS ──────────────────────────
 const STATUS_CLASS = {
@@ -150,6 +156,15 @@ function renderDetail() {
         </div>`).join('')
     : `<p class="text-muted mb-0" style="font-size:13px">No comments yet.</p>`;
 
+  // Activity log HTML
+  const activityHTML = t.activity && t.activity.length ?
+    `<div class="mb-4"><h6 class="fw-bold mb-2" style="font-size:14px">Activity Log</h6><div style="max-height:120px;overflow-y:auto;">
+      ${t.activity.map(a => `
+        <div style="font-size:12.5px;color:#7a8599;margin-bottom:6px">
+          <span style="font-weight:600;color:#3b7cf4">${a.author}</span> ${a.action} <b>${a.value || ''}</b> <span style="font-size:11px;color:#bfc6d1">${a.time}</span>
+        </div>`).join('')}
+    </div></div>` : '';
+
   document.getElementById('detailBody').innerHTML = `
     <span class="text-muted" style="font-family:'JetBrains Mono',monospace;font-size:20px; font-weight: 500">${t.id}</span>
     <h5 class="fw-bold mb-3" style="font-size:18px;line-height:1.3">${t.title}</h5>
@@ -159,6 +174,7 @@ function renderDetail() {
     </div>
     <div class="detail-desc p-3 mb-3 rounded-3">${t.desc}</div>
     ${attachmentsHTML}
+    ${activityHTML}
     <div class="row g-3 mb-4">
       <div class="col-6">
         <p class="text-uppercase text-muted fw-semibold mb-1" style="font-size:10.5px;letter-spacing:.6px">Assignee</p>
@@ -200,7 +216,17 @@ function addComment() {
   commentsMap[selectedTicket.id].push({ author: 'John Client', role: 'client', time: now, text: txt });
   // Also update the ticket's comments in TICKETS
   const t = TICKETS.find(t => t.id === selectedTicket.id);
-  if (t) t.comments = [...commentsMap[selectedTicket.id]];
+  if (t) {
+    t.comments = [...commentsMap[selectedTicket.id]];
+    t.activity = t.activity || [];
+    t.activity.unshift({
+      type: 'comment',
+      author: 'John Client',
+      action: 'commented',
+      value: txt,
+      time: now
+    });
+  }
   saveTicketsToStorage();
   document.getElementById('newComment').value = '';
   renderDetail();
@@ -221,10 +247,21 @@ document.addEventListener('DOMContentLoaded', function() {
 // ── CLIENT ACTIONS ────────────────────────────
 function updateStatus(val) {
   if (!selectedTicket) return;
+  const prev = selectedTicket.status;
   selectedTicket.status = val;
   // Update in TICKETS array
   const t = TICKETS.find(t => t.id === selectedTicket.id);
-  if (t) t.status = val;
+  if (t) {
+    t.status = val;
+    t.activity = t.activity || [];
+    t.activity.unshift({
+      type: 'status',
+      author: 'John Client',
+      action: `set status to`,
+      value: val,
+      time: new Date().toLocaleString('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })
+    });
+  }
   saveTicketsToStorage();
   renderDetail();
   if (typeof window._pageRender === 'function') window._pageRender();
@@ -232,10 +269,21 @@ function updateStatus(val) {
 
 function updatePriority(val) {
   if (!selectedTicket) return;
+  const prev = selectedTicket.priority;
   selectedTicket.priority = val;
   // Update in TICKETS array
   const t = TICKETS.find(t => t.id === selectedTicket.id);
-  if (t) t.priority = val;
+  if (t) {
+    t.priority = val;
+    t.activity = t.activity || [];
+    t.activity.unshift({
+      type: 'priority',
+      author: 'John Client',
+      action: `set priority to`,
+      value: val,
+      time: new Date().toLocaleString('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })
+    });
+  }
   saveTicketsToStorage();
   renderDetail();
   if (typeof window._pageRender === 'function') window._pageRender();
