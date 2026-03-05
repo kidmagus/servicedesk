@@ -182,7 +182,7 @@ function renderDetail() {
     </div></div>` : '';
 
   document.getElementById('detailBody').innerHTML = `
-    <span class="text-muted" style="font-family:'JetBrains Mono',monospace;font-size:20px; font-weight: 500">${t.id}</span>
+    <span class="ticket-id" style="font-family:'JetBrains Mono',monospace; margin-bottom: 10px;">${t.id}</span>
     <h5 class="fw-bold mb-3" style="font-size:18px;line-height:1.3">${t.title}</h5>
     <div class="d-flex gap-2 mb-3">
       ${statusBadgeHTML(t.status)}
@@ -548,16 +548,29 @@ function render() {
 }
 
 // ── CREATE TICKET ─────────────────────────────
+// Helper to generate the next unique ticket ID
+function getNextTicketId() {
+  let max = 0;
+  for (const t of TICKETS) {
+    const match = /^TK-(\d+)$/.exec(t.id);
+    if (match) {
+      const num = parseInt(match[1], 10);
+      if (num > max) max = num;
+    }
+  }
+  return 'TK-' + String(max + 1).padStart(3, '0');
+}
 function submitTicket() {
   const title    = document.getElementById('ctTitle').value.trim();
   const priority = document.getElementById('ctPriority').value;
   const category = document.getElementById('ctCategory').value;
   const reporter = document.getElementById('ctReporter').value;
+  const assignee = document.getElementById('ctAssignee') ? document.getElementById('ctAssignee').value : 'Sarah Johnson';
   const desc     = document.getElementById('ctDesc').value.trim();
   if (!title || !desc) { alert('Title and Description are required.'); return; }
-  const id  = 'TK-' + String(TICKETS.length + 1).padStart(3,'0');
+  const id  = getNextTicketId();
   const now = new Date().toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'});
-  TICKETS.unshift({ id, title, status:'Open', priority, category, reporter, assignee:'Sarah Johnson', ac:'', created:now, desc, comments:[], attachments:[...ctAttachments] });
+  TICKETS.unshift({ id, title, status:'Open', priority, category, reporter, assignee, ac:'', created:now, desc, comments:[], attachments:[...ctAttachments] });
   commentsMap[id] = [];
   // Add notification for ticket creation
   NOTIFS.unshift({
@@ -787,13 +800,14 @@ function initMyTicketsPage() {
   function submitNewTicket() {
     const title    = document.getElementById('newTitle').value.trim();
     const priority = document.getElementById('newPriority').value;
+    const assignee = document.getElementById('newAssignee') ? document.getElementById('newAssignee').value : 'Sarah Johnson';
     const desc     = document.getElementById('newDesc').value.trim();
     if (!title || !desc) return;
-    const id  = `TK-${String(100 + TICKETS.length + 1).slice(1)}`;
+    const id  = getNextTicketId();
     const now = new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
     const newTicket = { 
       id, title, status: 'Open', priority, 
-      assignee: 'Sarah Johnson', ac: '', created: now, 
+      assignee, ac: '', created: now, 
       desc, comments: [] 
     };
     ticketsData.unshift(newTicket);
