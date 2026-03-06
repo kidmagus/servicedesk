@@ -14,7 +14,10 @@
 <div class="d-flex" style="height:100vh;overflow:hidden;">
 
   <!-- SIDEBAR — Dashboard only -->
-  <aside class="sidebar flex-shrink-0">
+  <aside class="sidebar flex-shrink-0" id="sidebar">
+    <button id="sidebarToggle" class="btn btn-light btn-sm" style="position:absolute;z-index:10;top:16px;right:12px;width:28px;height:28px;padding:0;border-radius:50%;box-shadow:0 2px 8px rgba(0,0,0,0.1);display:flex;align-items:center;justify-content:center;" title="Toggle sidebar">
+      <i class="bi bi-chevron-left" id="sidebarToggleIcon" style="font-size:14px;"></i>
+    </button>
     <div class="d-flex align-items-center gap-2 px-3 py-3 border-bottom border-white border-opacity-10">
       <div class="brand-icon d-flex align-items-center justify-content-center text-white flex-shrink-0"  style="background:transparent;padding:0;">
         <svg width="34" height="34" viewBox="0 0 37 53.8" xmlns="http://www.w3.org/2000/svg" style="display:block;">
@@ -22,16 +25,17 @@
         </svg>
       </div>
       <div>
-        <div class="text-white fw-bold" style="font-size:14px">Client Portal</div>
-        <div class="text-white-50" style="font-size:10.5px">Support Center</div>
+        <div class="text-white fw-bold" style="font-size:14px; white-space: nowrap;">Client Portal</div>
+        <div class="text-white-50" style="font-size:10.5px; white-space: nowrap;">Support Center</div>
       </div>
     </div>
     <nav class="flex-grow-1 px-2 py-3">
       <ul class="nav flex-column gap-1">
         <li class="nav-item">
           <a href="index.html" class="nav-link active d-flex align-items-center gap-2">
-            <i class="bi bi-grid-1x2"></i> Dashboard
-            <span class="ms-auto badge rounded-pill" id="sidebarCount" style="background:rgba(255,255,255,.25);font-size:10px">20</span>
+            <i class="bi bi-grid-1x2"></i>
+            <span class="sidebar-link-text">Dashboard</span>
+            <span class="ms-auto badge rounded-pill sidebar-link-badge" id="sidebarCount" style="background:rgba(255,255,255,.25);font-size:10px">20</span>
           </a>
         </li>
       </ul>
@@ -40,8 +44,8 @@
       <div class="user-chip d-flex align-items-center gap-2 px-2 py-2">
         <div class="user-avatar d-flex align-items-center justify-content-center text-white flex-shrink-0">MS</div>
         <div>
-          <div class="text-white fw-semibold" style="font-size:12.5px">Matthew Samson</div>
-          <div class="text-white-50" style="font-size:10.5px">Client Account</div>
+          <div class="text-white fw-semibold" style="font-size:12.5px; ">Matthew Samson</div>
+          <div class="text-white-50" style="font-size:10.5px; white-space: nowrap;">Client Account</div>
         </div>
         <i class="bi bi-three-dots ms-auto text-white-50" style="cursor:pointer"></i>
       </div>

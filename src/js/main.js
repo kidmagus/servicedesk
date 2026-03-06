@@ -1,6 +1,46 @@
 // Dynamic user (frontend-only)
 let CURRENT_USER = 'Matthew Samson'; // Set from sidebar or user selection
 
+// ── SIDEBAR COLLAPSE ─────────────────────────
+const SIDEBAR_STORAGE_KEY = 'servicedesk_sidebar_collapsed';
+
+function initSidebar() {
+  const sidebar = document.getElementById('sidebar');
+  const toggleBtn = document.getElementById('sidebarToggle');
+  const brandIcon = document.querySelector('.brand-icon');
+  
+  if (!sidebar || !toggleBtn) return;
+  
+  // Restore collapsed state from localStorage
+  if (localStorage.getItem(SIDEBAR_STORAGE_KEY) === 'true') {
+    sidebar.classList.add('collapsed');
+  }
+  
+  // Toggle sidebar on button click
+  toggleBtn.addEventListener('click', function() {
+    sidebar.classList.toggle('collapsed');
+    const isCollapsed = sidebar.classList.contains('collapsed');
+    localStorage.setItem(SIDEBAR_STORAGE_KEY, isCollapsed);
+  });
+
+  // Allow clicking the SVG logo to expand sidebar if collapsed
+  if (brandIcon) {
+    brandIcon.addEventListener('click', function() {
+      if (sidebar.classList.contains('collapsed')) {
+        sidebar.classList.remove('collapsed');
+        localStorage.setItem(SIDEBAR_STORAGE_KEY, false);
+      }
+    });
+  }
+}
+
+// Initialize sidebar on DOM ready
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', initSidebar);
+} else {
+  initSidebar();
+}
+
 // ─────────────────────────────────────────────
 // Dashboard - Client Support Portal
 // ─────────────────────────────────────────────

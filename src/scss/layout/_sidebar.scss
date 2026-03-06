@@ -1,3 +1,34 @@
+.sidebar.collapsed {
+	width: 70px;
+	min-width: 70px;
+	overflow: hidden;
+
+	.sidebar-link-text,
+	.sidebar-link-badge,
+	.brand-icon + div,
+	.user-chip > div:not(:first-child),
+	.user-chip .bi-three-dots {
+		display: none !important;
+	}
+
+	.nav-link {
+		justify-content: center;
+		padding: 9px 0 !important;
+		display: flex;
+		align-items: center;
+	}
+	.nav-link > i {
+		margin: 0 auto !important;
+	}
+	.user-chip {
+		justify-content: center;
+		padding-left: 0 !important;
+		padding-right: 0 !important;
+	}
+	#sidebarToggle {
+		display: none !important;
+	}
+}
 /* Sidebar */
 .sidebar {
 	width: var(--sidebar-w);
@@ -6,7 +37,11 @@
 	height: 100vh;
 	display: flex;
 	flex-direction: column;
+	position: relative;
+	transition: width 0.3s ease, min-width 0.3s ease;
+	overflow: hidden;
 }
+
 
 .sidebar .nav-link {
 	color: rgba(255,255,255,.55);
