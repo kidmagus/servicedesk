@@ -1,3 +1,15 @@
+// Update category from detail view
+function pmUpdateCategory(newCategory) {
+  if (!selectedTicket) return;
+  selectedTicket.category = newCategory;
+  // Update in TICKETS array
+  const idx = TICKETS.findIndex(t => t.id === selectedTicket.id);
+  if (idx !== -1) {
+    TICKETS[idx].category = newCategory;
+    saveTickets();
+  }
+  renderDetail();
+}
 // pm-view.js — PM View functionality
 // All JavaScript for PM dashboard
 
@@ -413,22 +425,22 @@ function renderDetail() {
   const cms = commentsMap[t.id]||[];
   const nts = NOTES[t.id]||[];
 
-  const commentsHTML = cms.length
-    ? cms.map(c=>`
-        <div class="d-flex gap-2 mb-3">
-          <div class="avatar-sm ${c.role==='support'?'green':''} flex-shrink-0">${initials(c.author)}</div>
-          <div class="flex-grow-1">
-            <div class="d-flex align-items-center gap-2 mb-1">
-              <span class="fw-bold" style="font-size:12.5px">${c.author}</span>
-              <span class="comment-role-badge ${c.role}">${c.role==='client'?'Client':'Support'}</span>
-              <span class="text-muted ms-auto" style="font-size:11px">${c.time}</span>
-            </div>
-            <p class="mb-0 comment-text" style="font-size:13px;color:#3a4560">${c.text}</p>
-          </div>
-        </div>`)
-      .join('')
-    : '<p class="text-muted mb-0" style="font-size:13px">No comments yet.</p>';
 
+    const commentsHTML = cms.length
+      ? cms.map(c=>`
+          <div class="d-flex gap-2 mb-3">
+            <div class="avatar-sm ${c.role==='support'?'green':''} flex-shrink-0">${initials(c.author)}</div>
+            <div class="flex-grow-1">
+              <div class="d-flex align-items-center gap-2 mb-1">
+                <span class="fw-bold" style="font-size:12.5px">${c.author}</span>
+                <span class="comment-role-badge ${c.role}">${c.role==='client'?'Client':'Support'}</span>
+                <span class="text-muted ms-auto" style="font-size:11px">${c.time}</span>
+              </div>
+              <p class="mb-0 comment-text" style="font-size:13px;color:#3a4560">${c.text}</p>
+            </div>
+          </div>`)
+        .join('')
+      : '<p class="text-muted mb-0" style="font-size:13px">No comments yet.</p>';
   const notesHTML = nts.length
     ? nts.map(n=>`<div class="internal-note mb-2"><div class="internal-note-meta">🔒 ${n.author} · ${n.time}</div><div class="internal-note-text">${n.text}</div></div>`).join('')
     : '<p class="text-muted" style="font-size:13px">No internal notes yet.</p>';
@@ -457,17 +469,27 @@ function renderDetail() {
         <p class="text-uppercase text-muted fw-semibold mb-1" style="font-size:10.5px;letter-spacing:.6px">Created</p>
         <div class="fw-semibold" style="font-size:13px">${t.created}</div>
       </div>
-      <div class="col-6">
-        <p class="text-uppercase text-muted fw-semibold mb-1" style="font-size:10.5px;letter-spacing:.6px">Reporter</p>
-        <div class="fw-semibold d-flex align-items-center gap-2" style="font-size:13px">
-          <div class="avatar-sm" style="background:#e0e7ef;color:#3b3b4f;width:22px;height:22px;font-size:9px;border-radius:7px">${initials(t.reporter||'?')}</div>
-          ${t.reporter||'—'}
+        <div class="col-6">
+          <p class="text-uppercase text-muted fw-semibold mb-1" style="font-size:10.5px;letter-spacing:.6px">Reporter</p>
+          <div class="fw-semibold d-flex align-items-center gap-2" style="font-size:13px">
+            <div class="avatar-sm" style="background:#e0e7ef;color:#3b3b4f;width:22px;height:22px;font-size:9px;border-radius:7px">${initials(t.reporter||'?')}</div>
+            ${t.reporter||'—'}
+          </div>
         </div>
-      </div>
-      <div class="col-6">
-        <p class="text-uppercase text-muted fw-semibold mb-1" style="font-size:10.5px;letter-spacing:.6px">Category</p>
-        <div style="font-size:13px">${catBadge(t.category)}</div>
-      </div>
+        <div class="col-6">
+          <p class="text-uppercase text-muted fw-semibold mb-1" style="font-size:10.5px;letter-spacing:.6px">Category</p>
+          <div class="fw-semibold" style="font-size:13px">
+            <span id="categoryDisplay" style="cursor:pointer;text-decoration:underline dotted;">${t.category || '—'}</span>
+            <select id="categorySelect" class="form-select form-select-sm d-none" style="width:auto;min-width:120px;font-size:13px;">
+              <option value="Bug">Bug</option>
+              <option value="Task">Task</option>
+              <option value="Feature Request">Feature Request</option>
+              <option value="Performance Issue">Performance Issue</option>
+              <option value="Account Issue">Account Issue</option>
+              <option value="Other">Other</option>
+            </select>
+          </div>
+        </div>
     </div>
     <ul class="nav nav-tabs mb-3" role="tablist">
       <li class="nav-item"><button class="nav-link active" data-bs-toggle="tab" data-bs-target="#dtAll" type="button" style="font-size:13px">All</button></li>
@@ -501,6 +523,39 @@ function renderDetail() {
   `;
   document.getElementById('detailStatus').value   = t.status;
   document.getElementById('detailPriority').value = t.priority;
+
+  // Attach click-to-edit handler for category (always after HTML is set)
+  var catDisplay = document.getElementById('categoryDisplay');
+  var catSelect = document.getElementById('categorySelect');
+  if (catDisplay && catSelect) {
+    catDisplay.onclick = function() {
+      catDisplay.classList.add('d-none');
+      catSelect.classList.remove('d-none');
+      catSelect.value = t.category;
+      catSelect.focus();
+    };
+    catSelect.onblur = function() {
+      catSelect.classList.add('d-none');
+      catDisplay.classList.remove('d-none');
+    };
+    catSelect.onchange = function() {
+      var newCategory = catSelect.value;
+      if (!selectedTicket) return;
+      if (newCategory !== selectedTicket.category) {
+        selectedTicket.category = newCategory;
+        const idx = TICKETS.findIndex(t => t.id === selectedTicket.id);
+        if (idx !== -1) {
+          TICKETS[idx].category = newCategory;
+          saveTickets();
+        }
+        if (typeof pmRender === 'function') pmRender();
+        renderDetail();
+      } else {
+        catSelect.classList.add('d-none');
+        catDisplay.classList.remove('d-none');
+      }
+    };
+  }
   // Attach Enter-to-submit for internal notes
   setTimeout(function() {
     var noteBox = document.getElementById('newNote');
@@ -550,19 +605,40 @@ function pmAddNote() {
   if (document.querySelector('#dtNotes')) {
     // Re-render notes list and clear textarea
     const nts = NOTES[selectedTicket.id]||[];
-    const notesHTML = nts.length
-      ? nts.map(n=>`<div class="internal-note mb-2"><div class="internal-note-meta">🔒 ${n.author} · ${n.time}</div><div class="internal-note-text">${n.text}</div></div>`).join('')
-      : '<p class="text-muted" style="font-size:13px">No internal notes yet.</p>';
-    document.querySelector('#dtNotes').innerHTML = `
-      <div class="internal-badge"><i class="bi bi-lock-fill me-1"></i>PM Only — Not visible to client</div>
-      ${notesHTML}
-      <div class="mt-3">
-        <label class="form-label">Add Internal Note</label>
-        <textarea class="form-control rounded-3 mb-2" id="newNote" rows="2" style="font-size:13px;font-family:inherit;resize:none" placeholder="Private note for the team..."></textarea>
-        <button class="btn btn-sm btn-outline-secondary rounded-2 fw-semibold" onclick="pmAddNote()"><i class="bi bi-plus me-1"></i>Add Note</button>
-      </div>
-    `;
     // Re-attach Enter-to-submit for newNote
+  // Click-to-edit category (PM view, like client view)
+  setTimeout(function() {
+    var catDisplay = document.getElementById('categoryDisplay');
+    var catSelect = document.getElementById('categorySelect');
+    if (catDisplay && catSelect) {
+      catDisplay.onclick = function() {
+        catDisplay.classList.add('d-none');
+        catSelect.classList.remove('d-none');
+        catSelect.value = selectedTicket.category;
+        catSelect.focus();
+      };
+      catSelect.onblur = function() {
+        catSelect.classList.add('d-none');
+        catDisplay.classList.remove('d-none');
+      };
+      catSelect.onchange = function() {
+        var newCategory = catSelect.value;
+        if (!selectedTicket) return;
+        if (newCategory !== selectedTicket.category) {
+          selectedTicket.category = newCategory;
+          const idx = TICKETS.findIndex(t => t.id === selectedTicket.id);
+          if (idx !== -1) {
+            TICKETS[idx].category = newCategory;
+            saveTickets();
+          }
+          renderDetail();
+        } else {
+          catSelect.classList.add('d-none');
+          catDisplay.classList.remove('d-none');
+        }
+      };
+    }
+  }, 0);
     setTimeout(function() {
       var noteBox = document.getElementById('newNote');
       if (noteBox) {
