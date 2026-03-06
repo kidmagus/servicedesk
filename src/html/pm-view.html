@@ -1,0 +1,1227 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>E-Bureauet – Service Desk</title>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.2/css/bootstrap.min.css">
+<link rel="stylesheet" href="css/main.css">
+<link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-icons/1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
+
+</head>
+<body>
+
+<!-- ═══════════════════════════════════════════════════════
+     LOGIN PAGE
+═══════════════════════════════════════════════════════ -->
+<div id="loginPage">
+  <div class="login-card">
+    <div class="login-brand">
+      <div class="brand-icon d-flex align-items-center justify-content-center" style="background:transparent;padding:0">
+        <svg width="32" height="32" viewBox="0 0 37 53.8" xmlns="http://www.w3.org/2000/svg"><path fill="#FFFFFF" d="M28.7,0c-4,0-6.1,7.7-14.8,11.9C10.7,13.4,0,15.9,0,19.4l0,0c0,4.9,5.2,2.5,8.2,2.5c11.4,0,11.6,7.1,1.3,11c-3.8,1.5-8.3,2.3-8.3,7.2c0,7.5,13.7,2.1,20.9,8.9c2.4,2.3,1.7,4.8,8.4,4.8c5.8,0,8.8-7.7,4.6-10.8c-3.4-2.6-6.3-0.9-11.6-0.9c-3,0-9.3-1.9-9.3-5.6c0-3.9,4.7-6.1,8.1-7c3.5-1,6.5-0.3,6.5-5c0-3.7-6.1-3-10-3.1c-3.1-0.1-9.1-1.7-9.7-3.4c-0.7-2.5,9.6-5.9,12.5-6.8c4.3-1.4,5.3-1,8.2-1.6C31,9.3,32.2,8.8,33,7.9c1.5-1.8,1.8-4.5-0.1-6.4C31.6,0.1,30.4,0,28.7,0"/></svg>
+      </div>
+      <div>
+        <div class="login-brand-name">E-Bureauet</div>
+        <div class="login-brand-sub">Service Desk</div>
+      </div>
+    </div>
+    <div class="login-title">Welcome back</div>
+    <div class="login-sub">Select your role to sign in</div>
+    <div class="role-grid">
+      <div class="role-card" id="roleCardClient" onclick="selectRole('client')">
+        <div class="ri">👤</div>
+        <div class="rn">Client</div>
+        <div class="rd">Submit & track tickets</div>
+      </div>
+      <div class="role-card active" id="roleCardPM" onclick="selectRole('pm')">
+        <div class="ri">🧭</div>
+        <div class="rn">Project Manager</div>
+        <div class="rd">Full team oversight</div>
+      </div>
+    </div>
+    <div class="login-field" id="fieldClient" style="display:none">
+      <label>Sign in as</label>
+      <select id="selClient">
+        <option>John Client</option>
+        <option>Maria Santos</option>
+        <option>Carlos Reyes</option>
+        <option>Ana Rivera</option>
+        <option>Ben Cruz</option>
+      </select>
+    </div>
+    <div class="login-field" id="fieldPM">
+      <label>Sign in as</label>
+      <select id="selPM">
+        <option>Rachel Morgan</option>
+        <option>James Tran</option>
+      </select>
+    </div>
+    <button class="login-btn" onclick="doLogin()"><i class="bi bi-arrow-right-circle me-2"></i>Sign In</button>
+    <div class="login-link">Going to client view? <a href="index.html">Client Portal →</a></div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════
+     PM APP SHELL
+═══════════════════════════════════════════════════════ -->
+<div id="pmApp" class="d-flex d-none" style="height:100vh;overflow:hidden">
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar flex-shrink-0" id="sidebar">
+    <button id="sidebarToggle" class="btn btn-light btn-sm" style="position:absolute;z-index:10;top:16px;right:12px;width:28px;height:28px;padding:0;border-radius:50%;box-shadow:0 2px 8px rgba(0,0,0,0.1);display:flex;align-items:center;justify-content:center;" title="Toggle sidebar">
+      <i class="bi bi-chevron-left" id="sidebarToggleIcon" style="font-size:14px"></i>
+    </button>
+    <div class="d-flex align-items-center gap-2 px-3 py-3 border-bottom border-white border-opacity-10">
+      <div class="brand-icon d-flex align-items-center justify-content-center text-white flex-shrink-0" style="background:transparent;padding:0">
+        <svg width="34" height="34" viewBox="0 0 37 53.8" xmlns="http://www.w3.org/2000/svg"><path fill="#FFFFFF" d="M28.7,0c-4,0-6.1,7.7-14.8,11.9C10.7,13.4,0,15.9,0,19.4l0,0c0,4.9,5.2,2.5,8.2,2.5c11.4,0,11.6,7.1,1.3,11c-3.8,1.5-8.3,2.3-8.3,7.2c0,7.5,13.7,2.1,20.9,8.9c2.4,2.3,1.7,4.8,8.4,4.8c5.8,0,8.8-7.7,4.6-10.8c-3.4-2.6-6.3-0.9-11.6-0.9c-3,0-9.3-1.9-9.3-5.6c0-3.9,4.7-6.1,8.1-7c3.5-1,6.5-0.3,6.5-5c0-3.7-6.1-3-10-3.1c-3.1-0.1-9.1-1.7-9.7-3.4c-0.7-2.5,9.6-5.9,12.5-6.8c4.3-1.4,5.3-1,8.2-1.6C31,9.3,32.2,8.8,33,7.9c1.5-1.8,1.8-4.5-0.1-6.4C31.6,0.1,30.4,0,28.7,0"/></svg>
+      </div>
+      <div>
+        <div class="text-white fw-bold" style="font-size:14px;white-space:nowrap">PM Portal</div>
+        <div class="text-white-50" style="font-size:10.5px;white-space:nowrap">Support Center</div>
+      </div>
+    </div>
+    <nav class="flex-grow-1 px-2 py-3">
+      <span class="nav-section-label">Overview</span>
+      <ul class="nav flex-column gap-1 mb-2">
+        <li class="nav-item">
+          <a class="nav-link active d-flex align-items-center gap-2" onclick="showSection('overview')" href="#" id="nav-overview">
+            <i class="bi bi-grid-1x2"></i><span class="sidebar-link-text">Dashboard</span>
+          </a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link d-flex align-items-center gap-2" onclick="showSection('tickets')" href="#" id="nav-tickets">
+            <i class="bi bi-ticket-detailed"></i><span class="sidebar-link-text">All Tickets</span>
+            <span class="ms-auto badge rounded-pill sidebar-link-badge" id="sidebarOpenCount" style="background:rgba(255,255,255,.25);font-size:10px">0</span>
+          </a>
+        </li>
+      </ul>
+      <span class="nav-section-label">Management</span>
+      <ul class="nav flex-column gap-1">
+        <li class="nav-item">
+          <a class="nav-link d-flex align-items-center gap-2" onclick="showSection('workload')" href="#" id="nav-workload">
+            <i class="bi bi-people"></i><span class="sidebar-link-text">Team Workload</span>
+          </a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link d-flex align-items-center gap-2" onclick="showSection('analytics')" href="#" id="nav-analytics">
+            <i class="bi bi-bar-chart-line"></i><span class="sidebar-link-text">Analytics</span>
+          </a>
+        </li>
+      </ul>
+    </nav>
+    <div class="px-2 py-3 border-top border-white border-opacity-10">
+      <div class="user-chip d-flex align-items-center gap-2 px-2 py-2">
+        <div class="user-avatar d-flex align-items-center justify-content-center text-white flex-shrink-0" id="pmAvatar" style="background:#7c3aed">RM</div>
+        <div>
+          <div class="text-white fw-semibold" style="font-size:12.5px" id="pmName">Rachel Morgan</div>
+          <div class="text-white-50" style="font-size:10.5px;white-space:nowrap">Project Manager</div>
+        </div>
+        <i class="bi bi-box-arrow-right ms-auto text-white-50" style="cursor:pointer" onclick="doLogout()" title="Sign out"></i>
+      </div>
+    </div>
+  </aside>
+
+  <!-- MAIN -->
+  <div class="flex-grow-1 d-flex flex-column overflow-hidden">
+
+    <!-- TOPBAR -->
+    <header class="topbar d-flex align-items-center gap-3 px-4 py-3 flex-shrink-0">
+      <div class="d-flex align-items-center gap-3">
+        <span class="fw-bold" style="font-size:16px;color:#1a2235" id="topbarTitle">Dashboard</span>
+        <div class="d-flex align-items-center gap-2 px-3 py-1 rounded-3" style="background:#eff4ff;border:1px solid #c7d5f8">
+          <svg width="22" height="22" viewBox="0 0 37 53.8" xmlns="http://www.w3.org/2000/svg"><path fill="#141d22" d="M28.7,0c-4,0-6.1,7.7-14.8,11.9C10.7,13.4,0,15.9,0,19.4l0,0c0,4.9,5.2,2.5,8.2,2.5c11.4,0,11.6,7.1,1.3,11c-3.8,1.5-8.3,2.3-8.3,7.2c0,7.5,13.7,2.1,20.9,8.9c2.4,2.3,1.7,4.8,8.4,4.8c5.8,0,8.8-7.7,4.6-10.8c-3.4-2.6-6.3-0.9-11.6-0.9c-3,0-9.3-1.9-9.3-5.6c0-3.9,4.7-6.1,8.1-7c3.5-1,6.5-0.3,6.5-5c0-3.7-6.1-3-10-3.1c-3.1-0.1-9.1-1.7-9.7-3.4c-0.7-2.5,9.6-5.9,12.5-6.8c4.3-1.4,5.3-1,8.2-1.6C31,9.3,32.2,8.8,33,7.9c1.5-1.8,1.8-4.5-0.1-6.4C31.6,0.1,30.4,0,28.7,0"/></svg>
+          <span class="fw-semibold" style="font-size:12.5px;color:#3b7cf4">E-Bureauet</span>
+          <span class="text-muted" style="font-size:11px" id="topbarSub">· PM View</span>
+        </div>
+      </div>
+      <div class="search-wrap ms-2">
+        <i class="bi bi-search"></i>
+        <input class="search-input" id="pmSearch" type="text" placeholder="Search tickets..." oninput="onSearch(this.value)">
+      </div>
+      <div class="d-flex gap-2 ms-auto align-items-center">
+        <button class="btn btn-primary btn-sm d-flex align-items-center gap-1 rounded-2 fw-semibold px-3" onclick="openCreateModal()" style="font-size:13px">
+          <i class="bi bi-plus-lg"></i> Create Ticket
+        </button>
+        <div class="dropdown">
+          <button class="btn-icon-top" data-bs-toggle="dropdown" data-bs-auto-close="outside">
+            <i class="bi bi-bell"></i><span class="notif-dot" id="notifDot" style="display:none"></span>
+          </button>
+          <div class="dropdown-menu dropdown-menu-end p-0 shadow rounded-3 notif-dropdown" style="border:1px solid #e4e9f2">
+            <div class="d-flex align-items-center justify-content-between px-3 py-2 border-bottom">
+              <span class="fw-bold" style="font-size:13px">Notifications</span>
+              <div class="d-flex gap-2">
+                <button class="btn btn-link btn-sm p-0 text-decoration-none" style="font-size:12px;color:#3b7cf4" onclick="markAllRead()">Mark all read</button>
+                <button class="btn btn-link btn-sm p-0 text-decoration-none" style="font-size:12px;color:#d11a2a" onclick="deleteAllNotifs()">Delete all</button>
+              </div>
+            </div>
+            <div id="notifList"></div>
+          </div>
+        </div>
+        <button class="btn-icon-top"><i class="bi bi-gear"></i></button>
+      </div>
+    </header>
+
+    <!-- ── SECTION: OVERVIEW ─────────────────────────────── -->
+    <div id="sec-overview" class="content-scroll d-flex flex-column gap-3">
+      <!-- Stats row -->
+      <div class="row g-3 flex-shrink-0">
+        <div class="col-2">
+          <div class="card border-0 shadow-sm rounded-3">
+            <div class="card-body d-flex justify-content-between align-items-start p-3">
+              <div><p class="text-muted mb-2 fw-medium" style="font-size:11.5px">Total</p><div class="stat-value text-dark" id="ovTotal">0</div><p class="text-muted mt-1 mb-0" style="font-size:11px">All tickets</p></div>
+              <div class="stat-icon" style="background:#eff4ff;color:#3b7cf4"><i class="bi bi-collection"></i></div>
+            </div>
+          </div>
+        </div>
+        <div class="col-2">
+          <div class="card border-0 shadow-sm rounded-3">
+            <div class="card-body d-flex justify-content-between align-items-start p-3">
+              <div><p class="text-muted mb-2 fw-medium" style="font-size:11.5px">Open</p><div class="stat-value" style="color:#1d4ed8" id="ovOpen">0</div><p class="text-muted mt-1 mb-0" style="font-size:11px">Awaiting action</p></div>
+              <div class="stat-icon" style="background:#dbeafe;color:#1d4ed8"><i class="bi bi-circle-fill" style="font-size:11px"></i></div>
+            </div>
+          </div>
+        </div>
+        <div class="col-2">
+          <div class="card border-0 shadow-sm rounded-3">
+            <div class="card-body d-flex justify-content-between align-items-start p-3">
+              <div><p class="text-muted mb-2 fw-medium" style="font-size:11.5px">In Progress</p><div class="stat-value" style="color:#b45309" id="ovInProg">0</div><p class="text-muted mt-1 mb-0" style="font-size:11px">Active work</p></div>
+              <div class="stat-icon" style="background:#fef9c3;color:#92400e"><i class="bi bi-arrow-repeat"></i></div>
+            </div>
+          </div>
+        </div>
+        <div class="col-2">
+          <div class="card border-0 shadow-sm rounded-3">
+            <div class="card-body d-flex justify-content-between align-items-start p-3">
+              <div><p class="text-muted mb-2 fw-medium" style="font-size:11.5px">Resolved</p><div class="stat-value" style="color:#16a34a" id="ovResolved">0</div><p class="text-muted mt-1 mb-0" style="font-size:11px">Completed</p></div>
+              <div class="stat-icon" style="background:#dcfce7;color:#166534"><i class="bi bi-check-circle"></i></div>
+            </div>
+          </div>
+        </div>
+        <div class="col-2">
+          <div class="card border-0 shadow-sm rounded-3">
+            <div class="card-body d-flex justify-content-between align-items-start p-3">
+              <div><p class="text-muted mb-2 fw-medium" style="font-size:11.5px">Closed</p><div class="stat-value text-secondary" id="ovClosed">0</div><p class="text-muted mt-1 mb-0" style="font-size:11px">Archived</p></div>
+              <div class="stat-icon" style="background:#f1f5f9;color:#64748b"><i class="bi bi-lock"></i></div>
+            </div>
+          </div>
+        </div>
+        <div class="col-2">
+          <div class="card border-0 shadow-sm rounded-3">
+            <div class="card-body d-flex justify-content-between align-items-start p-3">
+              <div><p class="text-muted mb-2 fw-medium" style="font-size:11.5px">Critical</p><div class="stat-value" style="color:#be123c" id="ovCritical">0</div><p class="text-muted mt-1 mb-0" style="font-size:11px">Urgent priority</p></div>
+              <div class="stat-icon" style="background:#ffe4e6;color:#be123c"><i class="bi bi-exclamation-triangle"></i></div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <!-- Charts row -->
+      <div class="row g-3 flex-shrink-0">
+        <div class="col-4">
+          <div class="chart-card h-100">
+            <div class="chart-title">Tickets by Status</div>
+            <div class="chart-sub">Current distribution</div>
+            <div style="position:relative;height:200px"><canvas id="chartStatus"></canvas></div>
+          </div>
+        </div>
+        <div class="col-4">
+          <div class="chart-card h-100">
+            <div class="chart-title">Priority Breakdown</div>
+            <div class="chart-sub">All open tickets</div>
+            <div style="position:relative;height:200px"><canvas id="chartPriority"></canvas></div>
+          </div>
+        </div>
+        <div class="col-4">
+          <div class="chart-card h-100">
+            <div class="chart-title">Tickets by Category</div>
+            <div class="chart-sub">All time</div>
+            <div style="position:relative;height:200px"><canvas id="chartCategory"></canvas></div>
+          </div>
+        </div>
+      </div>
+      <!-- Urgent + Activity row -->
+      <div class="row g-3 flex-shrink-0">
+        <div class="col-6">
+          <div class="card border-0 shadow-sm rounded-3 h-100">
+            <div class="card-header bg-white border-bottom px-4 py-3">
+              <span class="fw-bold" style="font-size:14px;color:#1a2235"><i class="bi bi-exclamation-triangle text-danger me-2"></i>Critical & High Tickets</span>
+            </div>
+            <div id="urgentList" style="overflow-y:auto;max-height:220px"></div>
+          </div>
+        </div>
+        <div class="col-6">
+          <div class="card border-0 shadow-sm rounded-3 h-100">
+            <div class="card-header bg-white border-bottom px-4 py-3">
+              <span class="fw-bold" style="font-size:14px;color:#1a2235"><i class="bi bi-clock-history me-2 text-primary"></i>Recent Activity</span>
+            </div>
+            <div id="activityFeed" style="overflow-y:auto;max-height:220px"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── SECTION: ALL TICKETS ──────────────────────────── -->
+    <div id="sec-tickets" class="d-flex flex-column flex-grow-1 overflow-hidden d-none">
+      <div class="d-flex flex-column flex-grow-1 overflow-hidden p-4 gap-3">
+        <div class="card border-0 shadow-sm rounded-3 tickets-panel flex-grow-1">
+          <div class="card-header bg-white border-bottom d-flex align-items-center gap-2 py-3 px-4">
+            <span class="fw-bold" style="font-size:14px;color:#1a2235">All Tickets</span>
+            <span class="badge bg-light text-secondary rounded-pill ms-1" id="pmTicketCount" style="font-size:11px">0 found</span>
+            <div class="d-flex gap-2 ms-auto align-items-center">
+              <select class="filter-select" id="pmFStatus" onchange="pmRender()">
+                <option value="">All Statuses</option><option>Open</option><option>In Progress</option><option>Resolved</option><option>Closed</option>
+              </select>
+              <select class="filter-select" id="pmFPriority" onchange="pmRender()">
+                <option value="">All Priorities</option><option>Critical</option><option>High</option><option>Medium</option><option>Low</option>
+              </select>
+              <select class="filter-select" id="pmFClient" onchange="pmRender()">
+                <option value="">All Clients</option>
+                <option>John Client</option><option>Maria Santos</option><option>Carlos Reyes</option><option>Ana Rivera</option><option>Ben Cruz</option>
+              </select>
+              <select class="filter-select" id="pmFAssignee" onchange="pmRender()">
+                <option value="">All Assignees</option>
+                <option>Sarah Johnson</option><option>Alex Lee</option><option>Priya Patel</option><option>David Kim</option><option>Emma Brown</option>
+              </select>
+            </div>
+          </div>
+          <div class="table-scroll">
+            <table class="table table-hover mb-0">
+              <thead>
+                <tr>
+                  <th onclick="pmSort('id')">Ticket ID <i class="bi bi-chevron-expand ms-1" style="font-size:10px;opacity:.4"></i></th>
+                  <th onclick="pmSort('title')">Title <i class="bi bi-chevron-expand ms-1" style="font-size:10px;opacity:.4"></i></th>
+                  <th onclick="pmSort('status')">Status <i class="bi bi-chevron-expand ms-1" style="font-size:10px;opacity:.4"></i></th>
+                  <th onclick="pmSort('priority')">Priority <i class="bi bi-chevron-expand ms-1" style="font-size:10px;opacity:.4"></i></th>
+                  <th onclick="pmSort('category')">Category <i class="bi bi-chevron-expand ms-1" style="font-size:10px;opacity:.4"></i></th>
+                  <th onclick="pmSort('reporter')">Reporter <i class="bi bi-chevron-expand ms-1" style="font-size:10px;opacity:.4"></i></th>
+                  <th>Assignee</th>
+                  <th onclick="pmSort('created')">Created <i class="bi bi-chevron-expand ms-1" style="font-size:10px;opacity:.4"></i></th>
+                </tr>
+              </thead>
+              <tbody id="pmTableBody"></tbody>
+            </table>
+            <div class="d-none text-center py-5 text-muted" id="pmEmptyState">
+              <i class="bi bi-inbox fs-1 d-block mb-2 opacity-25"></i>
+              <p class="mb-0" style="font-size:13.5px">No tickets match your filters.</p>
+            </div>
+          </div>
+          <div class="card-footer bg-white border-top d-flex align-items-center justify-content-between px-4 py-2">
+            <div class="text-muted" style="font-size:12.5px">Showing <strong class="text-dark" id="pmPageFrom">1</strong>–<strong class="text-dark" id="pmPageTo">8</strong> of <strong class="text-dark" id="pmPageTotal">0</strong> tickets</div>
+            <div class="d-flex gap-1" id="pmPageControls"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── SECTION: TEAM WORKLOAD ────────────────────────── -->
+    <div id="sec-workload" class="content-scroll d-flex flex-column gap-3 d-none">
+      <div>
+        <p class="fw-bold mb-1" style="font-size:16px;color:#1a2235">Team Workload</p>
+        <p class="text-muted mb-0" style="font-size:13px">Agent assignment overview and capacity</p>
+      </div>
+      <div class="row g-3" id="agentCards"></div>
+      <!-- Workload table -->
+      <div class="card border-0 shadow-sm rounded-3">
+        <div class="card-header bg-white border-bottom px-4 py-3">
+          <span class="fw-bold" style="font-size:14px;color:#1a2235">Workload Summary</span>
+        </div>
+        <div>
+          <table class="table table-hover mb-0">
+            <thead>
+              <tr>
+                <th>Agent</th><th>Total</th><th>Open</th><th>In Progress</th><th>Resolved</th><th>Closed</th><th style="min-width:140px">Utilization</th>
+              </tr>
+            </thead>
+            <tbody id="workloadTableBody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── SECTION: ANALYTICS ────────────────────────────── -->
+    <div id="sec-analytics" class="content-scroll d-flex flex-column gap-3 d-none">
+      <div>
+        <p class="fw-bold mb-1" style="font-size:16px;color:#1a2235">Analytics</p>
+        <p class="text-muted mb-0" style="font-size:13px">Performance metrics & trends</p>
+      </div>
+      <!-- Stat row -->
+      <div class="row g-3 flex-shrink-0">
+        <div class="col-3">
+          <div class="card border-0 shadow-sm rounded-3">
+            <div class="card-body d-flex justify-content-between align-items-start p-3">
+              <div><p class="text-muted mb-2 fw-medium" style="font-size:11.5px">Total Tickets</p><div class="stat-value text-dark" id="anTotal">0</div><p class="text-muted mt-1 mb-0" style="font-size:11px">All time</p></div>
+              <div class="stat-icon" style="background:#eff4ff;color:#3b7cf4"><i class="bi bi-collection"></i></div>
+            </div>
+          </div>
+        </div>
+        <div class="col-3">
+          <div class="card border-0 shadow-sm rounded-3">
+            <div class="card-body d-flex justify-content-between align-items-start p-3">
+              <div><p class="text-muted mb-2 fw-medium" style="font-size:11.5px">Resolution Rate</p><div class="stat-value" style="color:#16a34a" id="anRate">0%</div><p class="text-muted mt-1 mb-0" style="font-size:11px">Resolved + Closed</p></div>
+              <div class="stat-icon" style="background:#dcfce7;color:#166534"><i class="bi bi-graph-up-arrow"></i></div>
+            </div>
+          </div>
+        </div>
+        <div class="col-3">
+          <div class="card border-0 shadow-sm rounded-3">
+            <div class="card-body d-flex justify-content-between align-items-start p-3">
+              <div><p class="text-muted mb-2 fw-medium" style="font-size:11.5px">Avg. Response</p><div class="stat-value" style="color:#b45309" id="anAvg">~2.4d</div><p class="text-muted mt-1 mb-0" style="font-size:11px">Estimated</p></div>
+              <div class="stat-icon" style="background:#fef9c3;color:#92400e"><i class="bi bi-stopwatch"></i></div>
+            </div>
+          </div>
+        </div>
+        <div class="col-3">
+          <div class="card border-0 shadow-sm rounded-3">
+            <div class="card-body d-flex justify-content-between align-items-start p-3">
+              <div><p class="text-muted mb-2 fw-medium" style="font-size:11.5px">Critical Open</p><div class="stat-value" style="color:#be123c" id="anCritOpen">0</div><p class="text-muted mt-1 mb-0" style="font-size:11px">Needs attention</p></div>
+              <div class="stat-icon" style="background:#ffe4e6;color:#be123c"><i class="bi bi-exclamation-triangle"></i></div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="row g-3">
+        <div class="col-6">
+          <div class="chart-card">
+            <div class="chart-title">Tickets per Client</div>
+            <div class="chart-sub">All time submitted</div>
+            <div style="position:relative;height:220px"><canvas id="chartClient"></canvas></div>
+          </div>
+        </div>
+        <div class="col-6">
+          <div class="chart-card">
+            <div class="chart-title">Agent Performance</div>
+            <div class="chart-sub">Resolved + Closed tickets per agent</div>
+            <div style="position:relative;height:220px"><canvas id="chartAgent"></canvas></div>
+          </div>
+        </div>
+      </div>
+      <div class="row g-3">
+        <div class="col-12">
+          <div class="chart-card">
+            <div class="chart-title">Resolution Rate – Last 14 Days</div>
+            <div class="chart-sub">Opened vs Resolved per day</div>
+            <div style="position:relative;height:200px"><canvas id="chartTrend"></canvas></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /MAIN -->
+</div><!-- /pmApp -->
+
+<!-- ═══════════════════════════════════════════════════════
+     CREATE TICKET MODAL (PM version — includes status + reporter selector)
+═══════════════════════════════════════════════════════ -->
+<div class="modal fade" id="createTicketModal" tabindex="-1">
+  <div class="modal-dialog modal-dialog-centered modal-lg">
+    <div class="modal-content rounded-3 border-0 shadow">
+      <div class="modal-header px-4 py-3 border-bottom">
+        <h6 class="modal-title fw-bold mb-0" id="createModalTitle">Create Ticket</h6>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body px-4 py-3">
+        <div class="mb-3">
+          <label class="form-label">Title <span class="text-danger">*</span></label>
+          <input type="text" class="form-control" id="ctTitle" placeholder="Brief description of the issue">
+        </div>
+        <div class="row g-3 mb-3">
+          <!-- Status field removed: always set to 'Open' for new tickets -->
+          <div class="col-3">
+            <label class="form-label">Priority <span class="text-danger">*</span></label>
+            <select class="form-select" id="ctPriority">
+              <option value="Low">Low</option>
+              <option value="Medium" selected>Medium</option>
+              <option value="High">High</option>
+              <option value="Critical">Critical</option>
+            </select>
+          </div>
+          <div class="col-3">
+            <label class="form-label">Category <span class="text-danger">*</span></label>
+            <select class="form-select" id="ctCategory">
+              <option value="Task">Task</option>
+              <option value="Bug">Bug</option>
+              <option value="Feature Request">Feature Request</option>
+              <option value="Performance Issue">Performance Issue</option>
+              <option value="Account Issue">Account Issue</option>
+              <option value="Other">Other</option>
+            </select>
+          </div>
+          <div class="col-3">
+            <label class="form-label">Reporter <span class="text-danger">*</span></label>
+            <select class="form-select" id="ctReporter">
+              <option value="John Client">John Client</option>
+              <option value="Maria Santos">Maria Santos</option>
+              <option value="Carlos Reyes">Carlos Reyes</option>
+              <option value="Ana Rivera">Ana Rivera</option>
+              <option value="Ben Cruz">Ben Cruz</option>
+            </select>
+          </div>
+          <div class="col-3">
+            <label class="form-label">Assignee <span class="text-danger">*</span></label>
+            <select class="form-select" id="ctAssignee">
+              <option value="Sarah Johnson">Sarah Johnson</option>
+              <option value="Alex Lee">Alex Lee</option>
+              <option value="Priya Patel">Priya Patel</option>
+              <option value="David Kim">David Kim</option>
+              <option value="Emma Brown">Emma Brown</option>
+            </select>
+          </div>
+        </div>
+        <div class="mb-3">
+          <label class="form-label">Description <span class="text-danger">*</span></label>
+          <textarea class="form-control" id="ctDesc" rows="3" placeholder="Describe the issue in detail..."></textarea>
+        </div>
+        <!-- Screenshot upload section (copied from index.html) -->
+        <div>
+          <label class="form-label">
+            Screenshots
+            <span class="text-muted fw-normal ms-1" style="font-size:11.5px">(optional — paste Ctrl+V, drag & drop, or browse)</span>
+          </label>
+          <div class="screenshot-drop" id="ctDropZone">
+            <i class="bi bi-images d-block mb-1" style="font-size:22px"></i>
+            <div>Drag & drop images or <strong>click to browse</strong></div>
+            <div class="mt-1" style="font-size:11.5px;color:#9aa5bc">You can also paste a screenshot with Ctrl+V / ⌘V</div>
+            <input type="file" id="ctFileInput" accept="image/*" multiple style="display:none"/>
+          </div>
+          <div class="screenshot-preview" id="ctPreview"></div>
+        </div>
+      </div>
+      <div class="modal-footer px-4 py-3 border-top">
+        <button class="btn btn-light rounded-2 fw-semibold border" data-bs-dismiss="modal" style="font-size:13px">Cancel</button>
+        <button class="btn btn-primary rounded-2 fw-semibold px-4" onclick="pmSubmitTicket()" style="font-size:13px"><i class="bi bi-send me-1"></i> Submit Ticket</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════
+     TICKET DETAIL OFFCANVAS (PM version — with internal notes + full edit + delete)
+═══════════════════════════════════════════════════════ -->
+<div class="offcanvas offcanvas-end offcanvas-detail" tabindex="-1" id="ticketOffcanvas">
+  <div class="offcanvas-header border-bottom px-4 py-3">
+    <div class="d-flex align-items-center gap-2">
+      <h6 class="offcanvas-title fw-bold mb-0" style="font-size:14px">Ticket Details</h6>
+      <span class="text-muted" id="detailTid" style="font-family:'JetBrains Mono',monospace;font-size:12px"></span>
+    </div>
+    <button type="button" class="btn-close" data-bs-dismiss="offcanvas"></button>
+  </div>
+  <div class="offcanvas-body p-4" id="detailBody" style="overflow-y:auto;flex:1"></div>
+  <div class="border-top px-4 pt-3 pb-3 flex-shrink-0">
+    <div class="row g-2 mb-3">
+      <div class="col-6">
+        <label class="text-uppercase text-muted fw-semibold d-block mb-1" style="font-size:10px;letter-spacing:.6px">Update Status</label>
+        <select class="action-select" id="detailStatus" onchange="pmUpdateStatus(this.value)">
+          <option>Open</option><option>In Progress</option><option>Resolved</option><option>Closed</option>
+        </select>
+      </div>
+      <div class="col-6">
+        <label class="text-uppercase text-muted fw-semibold d-block mb-1" style="font-size:10px;letter-spacing:.6px">Set Priority</label>
+        <select class="action-select" id="detailPriority" onchange="pmUpdatePriority(this.value)">
+          <option>Critical</option><option>High</option><option>Medium</option><option>Low</option>
+        </select>
+      </div>
+    </div>
+    <textarea class="form-control rounded-3 mb-2" id="newComment" rows="2" placeholder="Add a comment..." style="font-size:13px;font-family:inherit;resize:none"></textarea>
+    <div class="d-flex justify-content-between align-items-center">
+      <button class="btn btn-primary btn-sm px-4 rounded-2 fw-semibold" style="font-size:13px" onclick="pmSubmitComment()">Add Comment</button>
+      <button class="btn-delete-soft d-flex align-items-center gap-1" onclick="pmDeleteTicket()"><i class="bi bi-trash3"></i> Delete</button>
+    </div>
+  </div>
+</div>
+
+<!-- confirm delete modal -->
+<div class="modal fade" id="confirmDeleteModal" tabindex="-1">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content rounded-3 border-0 shadow">
+      <div class="modal-header"><h6 class="modal-title fw-bold">Delete Ticket</h6><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+      <div class="modal-body"><div class="d-flex align-items-center gap-2"><i class="bi bi-trash3 text-danger fs-3"></i><span id="confirmDeleteMsg">Are you sure? This cannot be undone.</span></div></div>
+      <div class="modal-footer">
+        <button class="btn btn-light" data-bs-dismiss="modal">Cancel</button>
+        <button class="btn btn-danger" id="confirmDeleteBtn">Delete</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.2/js/bootstrap.bundle.min.js"></script>
+<script>
+// ═══════════════════════════════════════════════════════
+// CONSTANTS & STATE
+// ═══════════════════════════════════════════════════════
+const TICKETS_KEY = 'servicedesk_tickets';
+const NOTIFS_KEY  = 'servicedesk_notifs';
+const NOTES_KEY   = 'servicedesk_internal_notes'; // PM-only
+const AGENTS      = ['Sarah Johnson','Alex Lee','Priya Patel','David Kim','Emma Brown'];
+const AGENT_COLORS= ['#3b7cf4','#16a34a','#ea580c','#7c3aed','#dc2626'];
+const STATUS_CLASS= {Open:'primary text-white','In Progress':'warning text-dark',Resolved:'success text-white',Closed:'secondary text-white'};
+const PRIO_STYLE  = {Critical:'background:#ffe4e6;color:#be123c',High:'background:#ffedd5;color:#9a3412',Medium:'background:#fef9c3;color:#78350f',Low:'background:#f0fdf4;color:#14532d'};
+const PAGE_SIZE   = 8;
+
+let PM_USER  = 'Rachel Morgan';
+let TICKETS  = [];
+let NOTIFS   = [];
+let NOTES    = {}; // { ticketId: [{author,time,text}] }
+let commentsMap = {};
+let selectedTicket = null;
+let pmOffcanvas    = null;
+let pmPage = 1, pmSortField = 'id', pmSortDir = 1;
+let pmFStatus='', pmFPriority='', pmFClient='', pmFAssignee='', pmFSearch='';
+let charts = {};
+
+const initials = n => n.split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,2);
+
+function loadData() {
+  try { TICKETS = JSON.parse(localStorage.getItem(TICKETS_KEY)) || []; } catch(e){ TICKETS=[]; }
+  try { NOTIFS  = JSON.parse(localStorage.getItem(NOTIFS_KEY))  || []; } catch(e){ NOTIFS=[];  }
+  try { NOTES   = JSON.parse(localStorage.getItem(NOTES_KEY))   || {}; } catch(e){ NOTES={};   }
+  TICKETS.forEach(t => commentsMap[t.id] = [...(t.comments||[])]);
+}
+function saveTickets() { localStorage.setItem(TICKETS_KEY, JSON.stringify(TICKETS)); }
+function saveNotifs()  { localStorage.setItem(NOTIFS_KEY,  JSON.stringify(NOTIFS));  }
+function saveNotes()   { localStorage.setItem(NOTES_KEY,   JSON.stringify(NOTES));   }
+
+// ═══════════════════════════════════════════════════════
+// LOGIN
+// ═══════════════════════════════════════════════════════
+let loginRole = 'pm';
+function selectRole(r) {
+  loginRole = r;
+  document.getElementById('roleCardClient').classList.toggle('active', r==='client');
+  document.getElementById('roleCardPM').classList.toggle('active',    r==='pm');
+  document.getElementById('fieldClient').style.display = r==='client' ? 'block':'none';
+  document.getElementById('fieldPM').style.display     = r==='pm'     ? 'block':'none';
+}
+function doLogin() {
+  if (loginRole === 'client') {
+    window.location.href = 'index.html';
+    return;
+  }
+  PM_USER = document.getElementById('selPM').value;
+  document.getElementById('loginPage').classList.add('d-none');
+  document.getElementById('pmApp').classList.remove('d-none');
+  document.getElementById('pmName').textContent   = PM_USER;
+  document.getElementById('pmAvatar').textContent = initials(PM_USER);
+  document.getElementById('topbarSub').textContent = '· ' + PM_USER;
+  loadData();
+  pmOffcanvas = new bootstrap.Offcanvas(document.getElementById('ticketOffcanvas'));
+  initSidebar();
+  initScreenshots();
+  showSection('overview');
+  renderNotifList();
+}
+function doLogout() {
+  document.getElementById('pmApp').classList.add('d-none');
+  document.getElementById('loginPage').classList.remove('d-none');
+}
+
+// ═══════════════════════════════════════════════════════
+// SIDEBAR COLLAPSE (same logic as main.js)
+// ═══════════════════════════════════════════════════════
+function initSidebar() {
+  const sb  = document.getElementById('sidebar');
+  const btn = document.getElementById('sidebarToggle');
+  if (!sb || !btn) return;
+  if (localStorage.getItem('servicedesk_sidebar_collapsed') === 'true') sb.classList.add('collapsed');
+  btn.addEventListener('click', () => {
+    sb.classList.toggle('collapsed');
+    localStorage.setItem('servicedesk_sidebar_collapsed', sb.classList.contains('collapsed'));
+  });
+}
+
+// ═══════════════════════════════════════════════════════
+// SECTION NAV
+// ═══════════════════════════════════════════════════════
+const SECTIONS = ['overview','tickets','workload','analytics'];
+function showSection(id, e) {
+  if (e) e.preventDefault();
+  SECTIONS.forEach(s => {
+    document.getElementById('sec-'+s).classList.add('d-none');
+    document.getElementById('nav-'+s)?.classList.remove('active');
+  });
+  document.getElementById('sec-'+id).classList.remove('d-none');
+  document.getElementById('nav-'+id)?.classList.add('active');
+  const titles = {overview:'Dashboard',tickets:'All Tickets',workload:'Team Workload',analytics:'Analytics'};
+  document.getElementById('topbarTitle').textContent = titles[id]||id;
+  // Render section content
+  if (id==='overview')  renderOverview();
+  if (id==='tickets')   pmRender();
+  if (id==='workload')  renderWorkload();
+  if (id==='analytics') renderAnalytics();
+  return false;
+}
+
+// ═══════════════════════════════════════════════════════
+// BADGE HELPERS
+// ═══════════════════════════════════════════════════════
+function statusBadge(s) {
+  const [bg,tc] = (STATUS_CLASS[s]||'secondary text-white').split(' ');
+  return `<span class="badge bg-${bg} ${tc||''} rounded-pill" style="font-size:11px">${s}</span>`;
+}
+function prioBadge(p) {
+  return `<span class="badge rounded-pill" style="${PRIO_STYLE[p]||PRIO_STYLE.Low};font-size:11px">${p}</span>`;
+}
+function catBadge(c) {
+  const map = {Bug:'#ffe4e6|#be123c',Task:'#eff4ff|#3b7cf4','Feature Request':'#e0f2fe|#0369a1','Performance Issue':'#fef9c3|#78350f','Account Issue':'#ede9fe|#6d28d9',Other:'#f3e8ff|#a21caf'};
+  const icon = {Bug:'bi-bug',Task:'bi-list-task','Feature Request':'bi-stars','Performance Issue':'bi-speedometer2','Account Issue':'bi-person-badge',Other:'bi-three-dots'};
+  const [bg,fg] = (map[c]||'#eff4ff|#3b7cf4').split('|');
+  return `<span class="badge rounded-pill" style="background:${bg};color:${fg};font-size:11px"><i class="bi ${icon[c]||'bi-check2-square'} me-1"></i>${c||'—'}</span>`;
+}
+
+// ═══════════════════════════════════════════════════════
+// OVERVIEW
+// ═══════════════════════════════════════════════════════
+function renderOverview() {
+  const total    = TICKETS.length;
+  const open     = TICKETS.filter(t=>t.status==='Open').length;
+  const inprog   = TICKETS.filter(t=>t.status==='In Progress').length;
+  const resolved = TICKETS.filter(t=>t.status==='Resolved').length;
+  const closed   = TICKETS.filter(t=>t.status==='Closed').length;
+  const critical = TICKETS.filter(t=>t.priority==='Critical').length;
+  document.getElementById('ovTotal').textContent    = total;
+  document.getElementById('ovOpen').textContent     = open;
+  document.getElementById('ovInProg').textContent   = inprog;
+  document.getElementById('ovResolved').textContent = resolved;
+  document.getElementById('ovClosed').textContent   = closed;
+  document.getElementById('ovCritical').textContent = critical;
+  document.getElementById('sidebarOpenCount').textContent = open;
+
+  // Urgent list
+  const urgent = TICKETS.filter(t=>['Critical','High'].includes(t.priority)&&!['Resolved','Closed'].includes(t.status)).slice(0,6);
+  document.getElementById('urgentList').innerHTML = urgent.length===0
+    ? '<p class="text-muted text-center py-4 mb-0" style="font-size:13px">No urgent tickets 🎉</p>'
+    : urgent.map(t=>`
+        <div class="d-flex align-items-start gap-3 px-4 py-3 border-bottom" style="cursor:pointer" onclick="openDetail('${t.id}')">
+          <div class="flex-grow-1">
+            <div class="d-flex gap-2 mb-1">${prioBadge(t.priority)} ${statusBadge(t.status)}</div>
+            <div class="fw-semibold" style="font-size:13px;color:#1a2235">${t.title}</div>
+            <div class="text-muted mt-1" style="font-size:11.5px"><i class="bi bi-person me-1"></i>${t.reporter} · <i class="bi bi-person-fill-check me-1"></i>${t.assignee}</div>
+          </div>
+        </div>`).join('');
+
+  // Activity feed (static + recent)
+  const activities = [
+    {icon:'bi-plus-lg',bg:'#e0f2fe',fg:'#0284c7',text:`<b>${PM_USER}</b> opened PM Dashboard`,time:'Just now'},
+    ...NOTIFS.slice(0,7).map(n=>({icon:n.icon,bg:n.bg,fg:n.fg,text:n.body,time:n.time}))
+  ];
+  document.getElementById('activityFeed').innerHTML = activities.map(a=>`
+    <div class="d-flex align-items-start gap-3 px-4 py-3 border-bottom">
+      <div style="width:30px;height:30px;border-radius:8px;background:${a.bg};color:${a.fg};display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:13px"><i class="bi ${a.icon}"></i></div>
+      <div>
+        <div style="font-size:12.5px;color:#1a2235">${a.text}</div>
+        <div class="text-muted" style="font-size:11px">${a.time}</div>
+      </div>
+    </div>`).join('');
+
+  // Charts
+  setTimeout(() => {
+    destroyChart('chartStatus');
+    destroyChart('chartPriority');
+    destroyChart('chartCategory');
+    charts.chartStatus = new Chart(document.getElementById('chartStatus'), {
+      type:'doughnut',
+      data:{
+        labels:['Open','In Progress','Resolved','Closed'],
+        datasets:[{data:[open,inprog,resolved,closed],backgroundColor:['#3b7cf4','#eab308','#22c55e','#94a3b8'],borderWidth:0,hoverOffset:6}]
+      },
+      options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'right',labels:{font:{family:'Plus Jakarta Sans',size:12},padding:12}}}}
+    });
+    const pCounts = ['Critical','High','Medium','Low'].map(p=>TICKETS.filter(t=>t.priority===p).length);
+    charts.chartPriority = new Chart(document.getElementById('chartPriority'), {
+      type:'bar',
+      data:{
+        labels:['Critical','High','Medium','Low'],
+        datasets:[{data:pCounts,backgroundColor:['#ffe4e6','#ffedd5','#fef9c3','#f0fdf4'],borderColor:['#be123c','#9a3412','#78350f','#14532d'],borderWidth:1.5,borderRadius:7}]
+      },
+      options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{y:{beginAtZero:true,grid:{color:'#f0f2f8'},ticks:{font:{family:'Plus Jakarta Sans'}}},x:{grid:{display:false},ticks:{font:{family:'Plus Jakarta Sans'}}}}}
+    });
+    const cats=['Bug','Task','Feature Request','Performance Issue','Account Issue','Other'];
+    const cCounts=cats.map(c=>TICKETS.filter(t=>t.category===c).length);
+    charts.chartCategory = new Chart(document.getElementById('chartCategory'), {
+      type:'bar',
+      data:{labels:cats.map(c=>c.length>10?c.substring(0,10)+'…':c),datasets:[{data:cCounts,backgroundColor:'rgba(59,124,244,0.75)',borderRadius:7}]},
+      options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{y:{beginAtZero:true,grid:{color:'#f0f2f8'},ticks:{font:{family:'Plus Jakarta Sans'}}},x:{grid:{display:false},ticks:{font:{family:'Plus Jakarta Sans',size:10}}}}}
+    });
+  }, 60);
+}
+
+// ═══════════════════════════════════════════════════════
+// ALL TICKETS TABLE
+// ═══════════════════════════════════════════════════════
+function onSearch(v) { pmFSearch = v.trim().toLowerCase(); pmPage=1; pmRender(); }
+function pmSort(f) { pmSortDir = pmSortField===f ? -pmSortDir : 1; pmSortField=f; pmPage=1; pmRender(); }
+function pmGetFiltered() {
+  let list = [...TICKETS];
+  const sf = document.getElementById('pmFStatus')?.value||'';
+  const pf = document.getElementById('pmFPriority')?.value||'';
+  const cf = document.getElementById('pmFClient')?.value||'';
+  const af = document.getElementById('pmFAssignee')?.value||'';
+  if (sf) list = list.filter(t=>t.status===sf);
+  if (pf) list = list.filter(t=>t.priority===pf);
+  if (cf) list = list.filter(t=>t.reporter===cf);
+  if (af) list = list.filter(t=>t.assignee===af);
+  if (pmFSearch) list = list.filter(t=>
+    t.id.toLowerCase().includes(pmFSearch)||
+    t.title.toLowerCase().includes(pmFSearch)||
+    (t.reporter||'').toLowerCase().includes(pmFSearch)||
+    t.assignee.toLowerCase().includes(pmFSearch)
+  );
+  return list.sort((a,b)=>((a[pmSortField]||'').localeCompare(b[pmSortField]||''))*pmSortDir);
+}
+function pmGoPage(p) {
+  const total = Math.max(1, Math.ceil(pmGetFiltered().length/PAGE_SIZE));
+  if (p<1||p>total) return;
+  pmPage=p; pmRender();
+}
+function pmRender() {
+  const all = pmGetFiltered(), total = all.length;
+  const maxPage = Math.max(1, Math.ceil(total/PAGE_SIZE));
+  if (pmPage>maxPage) pmPage=maxPage;
+  const start = (pmPage-1)*PAGE_SIZE, slice = all.slice(start, start+PAGE_SIZE);
+  const tbody = document.getElementById('pmTableBody');
+  const empty = document.getElementById('pmEmptyState');
+  document.getElementById('pmTicketCount').textContent = total+' found';
+  document.getElementById('pmPageFrom').textContent  = total ? start+1 : 0;
+  document.getElementById('pmPageTo').textContent    = Math.min(start+PAGE_SIZE, total);
+  document.getElementById('pmPageTotal').textContent = total;
+  document.getElementById('pmPageControls').innerHTML = renderPagination(pmPage, total);
+  if (!slice.length) { tbody.innerHTML=''; empty.classList.remove('d-none'); return; }
+  empty.classList.add('d-none');
+  tbody.innerHTML = slice.map(t=>`
+    <tr>
+      <td onclick="openDetail('${t.id}')" style="cursor:pointer"><span class="ticket-id">${t.id}</span></td>
+      <td onclick="openDetail('${t.id}')" style="cursor:pointer" class="fw-medium" style="color:#1a2235">${t.title}</td>
+      <td>${statusBadge(t.status)}</td>
+      <td>${prioBadge(t.priority)}</td>
+      <td>${catBadge(t.category)}</td>
+      <td style="font-size:12.5px">
+        <div class="d-flex align-items-center gap-2">
+          <div class="avatar-sm" style="background:#e0e7ef;color:#3b3b4f;width:22px;height:22px;font-size:9px;border-radius:7px">${initials(t.reporter||'?')}</div>
+          ${t.reporter||'—'}
+        </div>
+      </td>
+      <td>
+        <select class="reassign-sel" onchange="quickReassign('${t.id}',this.value)">
+          ${AGENTS.map(a=>`<option value="${a}" ${a===t.assignee?'selected':''}>${a}</option>`).join('')}
+        </select>
+      </td>
+      <td class="text-muted" style="font-size:12px">${t.created}</td>
+    </tr>`).join('');
+  document.getElementById('sidebarOpenCount').textContent = TICKETS.filter(t=>t.status==='Open').length;
+}
+function renderPagination(page, total) {
+  const maxPage = Math.max(1, Math.ceil(total/PAGE_SIZE));
+  let h = `<button class="page-btn" onclick="pmGoPage(${page-1})" ${page===1?'disabled':''}><i class="bi bi-chevron-left"></i></button>`;
+  let s=Math.max(1,page-2), e=Math.min(maxPage,s+4); s=Math.max(1,e-4);
+  for(let i=s;i<=e;i++) h+=`<button class="page-btn ${i===page?'active':''}" onclick="pmGoPage(${i})">${i}</button>`;
+  h+=`<button class="page-btn" onclick="pmGoPage(${page+1})" ${page===maxPage?'disabled':''}><i class="bi bi-chevron-right"></i></button>`;
+  return h;
+}
+function quickReassign(id, agent) {
+  const t = TICKETS.find(t=>t.id===id); if(!t) return;
+  t.assignee = agent;
+  const time = new Date().toLocaleString('en-US',{month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'});
+  t.activity = t.activity||[];
+  t.activity.unshift({type:'assignee',author:PM_USER,action:'reassigned to',value:agent,time});
+  NOTIFS.unshift({id:Date.now(),icon:'bi-person-check-fill',bg:'#e0e7ff',fg:'#3730a3',title:'Reassigned: '+id,body:PM_USER+' assigned to '+agent,time,unread:true,ticketId:id});
+  saveTickets(); saveNotifs(); renderNotifList();
+  showToast({type:'info',title:'Reassigned',message:'Ticket '+id+' → '+agent});
+}
+
+// ═══════════════════════════════════════════════════════
+// TEAM WORKLOAD
+// ═══════════════════════════════════════════════════════
+function renderWorkload() {
+  const acEl = document.getElementById('agentCards');
+  const wlEl = document.getElementById('workloadTableBody');
+  acEl.innerHTML = AGENTS.map((agent,i)=>{
+    const my  = TICKETS.filter(t=>t.assignee===agent);
+    const op  = my.filter(t=>t.status==='Open').length;
+    const ip  = my.filter(t=>t.status==='In Progress').length;
+    const rs  = my.filter(t=>t.status==='Resolved').length;
+    const cl  = my.filter(t=>t.status==='Closed').length;
+    const util= Math.min(100, Math.round(((op+ip)/6)*100));
+    const uc  = util<40?'#16a34a':util<75?'#d97706':'#dc2626';
+    return `<div class="col-4">
+      <div class="agent-card">
+        <div class="d-flex align-items-center gap-3 mb-3">
+          <div class="agent-avatar" style="background:${AGENT_COLORS[i]}">${initials(agent)}</div>
+          <div>
+            <div class="fw-bold" style="font-size:14px;color:#1a2235">${agent}</div>
+            <div class="text-muted" style="font-size:11.5px">Support Agent</div>
+          </div>
+        </div>
+        <div class="row g-2 mb-3 text-center">
+          <div class="col-3"><div class="fw-bold" style="font-size:20px;color:#3b7cf4;font-family:'JetBrains Mono',monospace">${op}</div><div class="text-muted" style="font-size:10.5px">Open</div></div>
+          <div class="col-3"><div class="fw-bold" style="font-size:20px;color:#d97706;font-family:'JetBrains Mono',monospace">${ip}</div><div class="text-muted" style="font-size:10.5px">In Prog.</div></div>
+          <div class="col-3"><div class="fw-bold" style="font-size:20px;color:#16a34a;font-family:'JetBrains Mono',monospace">${rs}</div><div class="text-muted" style="font-size:10.5px">Resolved</div></div>
+          <div class="col-3"><div class="fw-bold" style="font-size:20px;color:#64748b;font-family:'JetBrains Mono',monospace">${cl}</div><div class="text-muted" style="font-size:10.5px">Closed</div></div>
+        </div>
+        <div class="d-flex justify-content-between mb-1"><span style="font-size:11.5px;color:#7a8599">Utilization</span><span style="font-size:11.5px;font-weight:700;color:${uc}">${util}%</span></div>
+        <div class="util-bar-wrap"><div class="util-bar" style="width:${util}%;background:${uc}"></div></div>
+      </div>
+    </div>`;
+  }).join('');
+
+  wlEl.innerHTML = AGENTS.map((agent,i)=>{
+    const my  = TICKETS.filter(t=>t.assignee===agent);
+    const op  = my.filter(t=>t.status==='Open').length;
+    const ip  = my.filter(t=>t.status==='In Progress').length;
+    const rs  = my.filter(t=>t.status==='Resolved').length;
+    const cl  = my.filter(t=>t.status==='Closed').length;
+    const util= Math.min(100, Math.round(((op+ip)/6)*100));
+    return `<tr>
+      <td><div class="d-flex align-items-center gap-2"><div class="avatar-sm" style="background:${AGENT_COLORS[i]};width:28px;height:28px;font-size:10px">${initials(agent)}</div><span class="fw-semibold" style="font-size:13px">${agent}</span></div></td>
+      <td><span class="wl-stat">${my.length}</span></td>
+      <td><span class="wl-stat" style="color:#3b7cf4">${op}</span></td>
+      <td><span class="wl-stat" style="color:#d97706">${ip}</span></td>
+      <td><span class="wl-stat" style="color:#16a34a">${rs}</span></td>
+      <td><span class="wl-stat" style="color:#64748b">${cl}</span></td>
+      <td>
+        <div class="d-flex align-items-center gap-2">
+          <div class="progress flex-grow-1" style="height:6px"><div class="progress-bar" style="width:${util}%;background:${AGENT_COLORS[i]}"></div></div>
+          <span style="font-size:12px;font-weight:700;min-width:36px">${util}%</span>
+        </div>
+      </td>
+    </tr>`;
+  }).join('');
+}
+
+// ═══════════════════════════════════════════════════════
+// ANALYTICS
+// ═══════════════════════════════════════════════════════
+function renderAnalytics() {
+  const total  = TICKETS.length;
+  const done   = TICKETS.filter(t=>['Resolved','Closed'].includes(t.status)).length;
+  const critOp = TICKETS.filter(t=>t.priority==='Critical'&&t.status==='Open').length;
+  document.getElementById('anTotal').textContent   = total;
+  document.getElementById('anRate').textContent    = total ? Math.round((done/total)*100)+'%' : '0%';
+  document.getElementById('anCritOpen').textContent= critOp;
+
+  setTimeout(()=>{
+    ['chartClient','chartAgent','chartTrend'].forEach(id=>destroyChart(id));
+    const clients = ['John Client','Maria Santos','Carlos Reyes','Ana Rivera','Ben Cruz'];
+    charts.chartClient = new Chart(document.getElementById('chartClient'), {
+      type:'bar',
+      data:{labels:clients.map(c=>c.split(' ')[0]),datasets:[{label:'Tickets',data:clients.map(c=>TICKETS.filter(t=>t.reporter===c).length),backgroundColor:AGENT_COLORS,borderRadius:7}]},
+      options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{y:{beginAtZero:true,grid:{color:'#f0f2f8'},ticks:{font:{family:'Plus Jakarta Sans'}}},x:{grid:{display:false},ticks:{font:{family:'Plus Jakarta Sans'}}}}}
+    });
+    charts.chartAgent = new Chart(document.getElementById('chartAgent'), {
+      type:'bar',
+      data:{labels:AGENTS.map(a=>a.split(' ')[0]),datasets:[{label:'Resolved/Closed',data:AGENTS.map(a=>TICKETS.filter(t=>t.assignee===a&&['Resolved','Closed'].includes(t.status)).length),backgroundColor:AGENT_COLORS,borderRadius:7}]},
+      options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{y:{beginAtZero:true,grid:{color:'#f0f2f8'},ticks:{font:{family:'Plus Jakarta Sans'}}},x:{grid:{display:false},ticks:{font:{family:'Plus Jakarta Sans'}}}}}
+    });
+    // trend line (last 14 days – synthetic)
+    const days=[], opened=[], resolved=[];
+    for(let i=13;i>=0;i--){ const d=new Date(); d.setDate(d.getDate()-i); days.push(d.toLocaleDateString('en-US',{month:'short',day:'numeric'})); }
+    const seed=[2,1,3,2,1,4,2,3,1,2,2,3,1,2];
+    const rseed=[0,1,1,2,1,1,2,1,2,1,1,2,1,1];
+    charts.chartTrend = new Chart(document.getElementById('chartTrend'), {
+      type:'line',
+      data:{labels:days,datasets:[
+        {label:'Opened',data:seed,borderColor:'#dc2626',backgroundColor:'rgba(220,38,38,0.07)',fill:true,tension:0.4,pointBackgroundColor:'#dc2626',pointRadius:4},
+        {label:'Resolved',data:rseed,borderColor:'#16a34a',backgroundColor:'rgba(22,163,74,0.07)',fill:true,tension:0.4,pointBackgroundColor:'#16a34a',pointRadius:4}
+      ]},
+      options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'top',labels:{font:{family:'Plus Jakarta Sans',size:12}}}},scales:{y:{beginAtZero:true,grid:{color:'#f0f2f8'},ticks:{font:{family:'Plus Jakarta Sans'},stepSize:1}},x:{grid:{display:false},ticks:{font:{family:'Plus Jakarta Sans',size:11}}}}}
+    });
+  },60);
+}
+
+function destroyChart(id) { if(charts[id]){ try{charts[id].destroy();}catch(e){} delete charts[id]; }}
+
+// ═══════════════════════════════════════════════════════
+// TICKET DETAIL OFFCANVAS
+// ═══════════════════════════════════════════════════════
+function openDetail(id) {
+  selectedTicket = TICKETS.find(t=>t.id===id);
+  if (!selectedTicket) return;
+  document.getElementById('detailTid').textContent      = selectedTicket.id;
+  document.getElementById('detailStatus').value         = selectedTicket.status;
+  document.getElementById('detailPriority').value       = selectedTicket.priority;
+  document.getElementById('newComment').value           = '';
+  renderDetail();
+  pmOffcanvas.show();
+}
+function renderDetail() {
+  const t   = selectedTicket;
+  const cms = commentsMap[t.id]||[];
+  const nts = NOTES[t.id]||[];
+
+  const commentsHTML = cms.length
+    ? cms.map(c=>`
+        <div class="d-flex gap-2 mb-3">
+          <div class="avatar-sm ${c.role==='support'?'green':''} flex-shrink-0">${initials(c.author)}</div>
+          <div class="flex-grow-1">
+            <div class="d-flex align-items-center gap-2 mb-1">
+              <span class="fw-bold" style="font-size:12.5px">${c.author}</span>
+              <span class="comment-role-badge ${c.role}">${c.role==='client'?'Client':'Support'}</span>
+              <span class="text-muted ms-auto" style="font-size:11px">${c.time}</span>
+            </div>
+            <p class="mb-0 comment-text" style="font-size:13px;color:#3a4560">${c.text}</p>
+          </div>
+        </div>`)
+      .join('')
+    : '<p class="text-muted mb-0" style="font-size:13px">No comments yet.</p>';
+
+  const notesHTML = nts.length
+    ? nts.map(n=>`<div class="internal-note mb-2"><div class="internal-note-meta">🔒 ${n.author} · ${n.time}</div><div class="internal-note-text">${n.text}</div></div>`).join('')
+    : '<p class="text-muted" style="font-size:13px">No internal notes yet.</p>';
+
+  const actHTML = t.activity&&t.activity.length
+    ? `<div class="mb-4"><h6 class="fw-bold mb-2" style="font-size:14px">Activity Log</h6>
+        ${t.activity.map(a=>`<div style="font-size:12.5px;color:#7a8599;margin-bottom:6px"><span style="font-weight:600;color:#3b7cf4">${a.author}</span> ${a.action} <b>${a.value||''}</b> <span style="font-size:11px;color:#bfc6d1">${a.time}</span></div>`).join('')}
+       </div>` : '';
+
+  document.getElementById('detailBody').innerHTML = `
+    <span class="ticket-id" style="font-family:'JetBrains Mono',monospace;margin-bottom:10px;display:inline-block">${t.id}</span>
+    <h5 class="fw-bold mb-3" style="font-size:18px;line-height:1.3">${t.title}</h5>
+    <div class="d-flex gap-2 mb-3">${statusBadge(t.status)} ${prioBadge(t.priority)}</div>
+    <div class="detail-desc p-3 mb-3 rounded-3">${t.desc}</div>
+    <div class="row g-3 mb-3">
+      <div class="col-6">
+        <p class="text-uppercase text-muted fw-semibold mb-1" style="font-size:10.5px;letter-spacing:.6px">Assignee</p>
+        <div class="d-flex align-items-center gap-2">
+          <div class="avatar-sm ${t.ac||''}" style="width:22px;height:22px;font-size:9px">${initials(t.assignee)}</div>
+          <select class="form-select form-select-sm" style="width:auto;min-width:130px;font-size:13px" onchange="quickReassign('${t.id}',this.value);selectedTicket.assignee=this.value;renderDetail()">
+            ${AGENTS.map(a=>`<option value="${a}" ${a===t.assignee?'selected':''}>${a}</option>`).join('')}
+          </select>
+        </div>
+      </div>
+      <div class="col-6">
+        <p class="text-uppercase text-muted fw-semibold mb-1" style="font-size:10.5px;letter-spacing:.6px">Created</p>
+        <div class="fw-semibold" style="font-size:13px">${t.created}</div>
+      </div>
+      <div class="col-6">
+        <p class="text-uppercase text-muted fw-semibold mb-1" style="font-size:10.5px;letter-spacing:.6px">Reporter</p>
+        <div class="fw-semibold d-flex align-items-center gap-2" style="font-size:13px">
+          <div class="avatar-sm" style="background:#e0e7ef;color:#3b3b4f;width:22px;height:22px;font-size:9px;border-radius:7px">${initials(t.reporter||'?')}</div>
+          ${t.reporter||'—'}
+        </div>
+      </div>
+      <div class="col-6">
+        <p class="text-uppercase text-muted fw-semibold mb-1" style="font-size:10.5px;letter-spacing:.6px">Category</p>
+        <div style="font-size:13px">${catBadge(t.category)}</div>
+      </div>
+    </div>
+    <ul class="nav nav-tabs mb-3" role="tablist">
+      <li class="nav-item"><button class="nav-link active" data-bs-toggle="tab" data-bs-target="#dtAll" type="button" style="font-size:13px">All</button></li>
+      <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#dtComments" type="button" style="font-size:13px">Comments</button></li>
+      <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#dtNotes" type="button" style="font-size:13px"><i class="bi bi-lock-fill me-1 text-warning" style="font-size:11px"></i>Internal Notes</button></li>
+      <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#dtEdit" type="button" style="font-size:13px"><i class="bi bi-pencil me-1"></i>Edit</button></li>
+    </ul>
+    <div class="tab-content">
+      <div class="tab-pane fade show active" id="dtAll">
+        ${actHTML}
+        <p class="fw-bold mb-2 mt-1" style="font-size:13px">Comments (${cms.length})</p>
+        ${commentsHTML}
+      </div>
+      <div class="tab-pane fade" id="dtComments">
+        <p class="fw-bold mb-2" style="font-size:13px">Comments (${cms.length})</p>
+        ${commentsHTML}
+      </div>
+      <div class="tab-pane fade" id="dtNotes">
+        <div class="internal-badge"><i class="bi bi-lock-fill me-1"></i>PM Only — Not visible to client</div>
+        ${notesHTML}
+        <div class="mt-3">
+          <label class="form-label">Add Internal Note</label>
+          <textarea class="form-control rounded-3 mb-2" id="newNote" rows="2" style="font-size:13px;font-family:inherit;resize:none" placeholder="Private note for the team..."></textarea>
+          <button class="btn btn-sm btn-outline-secondary rounded-2 fw-semibold" onclick="pmAddNote()"><i class="bi bi-plus me-1"></i>Add Note</button>
+        </div>
+      </div>
+      <div class="tab-pane fade" id="dtEdit">
+        <div class="row g-3 pm-edit-row">
+          <div class="col-12"><label class="form-label">Title</label><input class="form-control" id="editTitle" value="${t.title.replace(/"/g,'&quot;')}"></div>
+          <div class="col-6"><label class="form-label">Status</label>
+            <select class="form-select" id="editStatus">
+              ${['Open','In Progress','Resolved','Closed'].map(s=>`<option ${s===t.status?'selected':''}>${s}</option>`).join('')}
+            </select>
+          </div>
+          <div class="col-6"><label class="form-label">Priority</label>
+            <select class="form-select" id="editPriority">
+              ${['Critical','High','Medium','Low'].map(p=>`<option ${p===t.priority?'selected':''}>${p}</option>`).join('')}
+            </select>
+          </div>
+          <div class="col-6"><label class="form-label">Reporter</label>
+            <select class="form-select" id="editReporter">
+              ${['John Client','Maria Santos','Carlos Reyes','Ana Rivera','Ben Cruz'].map(r=>`<option ${r===t.reporter?'selected':''}>${r}</option>`).join('')}
+            </select>
+          </div>
+          <div class="col-6"><label class="form-label">Category</label>
+            <select class="form-select" id="editCategory">
+              ${['Bug','Task','Feature Request','Performance Issue','Account Issue','Other'].map(c=>`<option ${c===t.category?'selected':''}>${c}</option>`).join('')}
+            </select>
+          </div>
+          <div class="col-12"><label class="form-label">Description</label><textarea class="form-control" id="editDesc" rows="3" style="font-size:13px;font-family:inherit">${t.desc}</textarea></div>
+          <div class="col-12"><button class="btn btn-primary btn-sm px-4 rounded-2 fw-semibold" onclick="pmSaveEdit()"><i class="bi bi-check-lg me-1"></i>Save Changes</button></div>
+        </div>
+      </div>
+    </div>
+  `;
+  document.getElementById('detailStatus').value   = t.status;
+  document.getElementById('detailPriority').value = t.priority;
+}
+
+function pmUpdateStatus(v) {
+  if (!selectedTicket) return;
+  const t = TICKETS.find(x=>x.id===selectedTicket.id); if(!t) return;
+  t.status = selectedTicket.status = v;
+  const time = new Date().toLocaleString('en-US',{month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'});
+  t.activity = t.activity||[];
+  t.activity.unshift({type:'status',author:PM_USER,action:'set status to',value:v,time});
+  NOTIFS.unshift({id:Date.now(),icon:'bi-arrow-clockwise',bg:'#fef9c3',fg:'#92400e',title:'Status: '+t.id,body:PM_USER+' set status to '+v,time,unread:true,ticketId:t.id});
+  saveTickets(); saveNotifs(); renderDetail(); renderNotifList();
+  showToast({type:'info',title:'Status updated',message:PM_USER+' → '+v});
+  if (document.getElementById('sec-tickets').offsetParent!==null) pmRender();
+}
+function pmUpdatePriority(v) {
+  if (!selectedTicket) return;
+  const t = TICKETS.find(x=>x.id===selectedTicket.id); if(!t) return;
+  t.priority = selectedTicket.priority = v;
+  const time = new Date().toLocaleString('en-US',{month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'});
+  t.activity = t.activity||[];
+  t.activity.unshift({type:'priority',author:PM_USER,action:'set priority to',value:v,time});
+  NOTIFS.unshift({id:Date.now(),icon:'bi-flag-fill',bg:'#ffedd5',fg:'#9a3412',title:'Priority: '+t.id,body:PM_USER+' set priority to '+v,time,unread:true,ticketId:t.id});
+  saveTickets(); saveNotifs(); renderDetail(); renderNotifList();
+  showToast({type:'info',title:'Priority updated',message:PM_USER+' → '+v});
+}
+function pmAddNote() {
+  const txt = document.getElementById('newNote')?.value.trim(); if(!txt||!selectedTicket) return;
+  const time = new Date().toLocaleString('en-US',{month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'});
+  NOTES[selectedTicket.id] = NOTES[selectedTicket.id]||[];
+  NOTES[selectedTicket.id].unshift({author:PM_USER,time,text:txt});
+  saveNotes();
+  document.getElementById('newNote').value='';
+  renderDetail();
+  showToast({type:'success',title:'Note added',message:'Internal note saved'});
+}
+function pmSubmitComment() {
+  const txt = document.getElementById('newComment').value.trim();
+  if (!txt||!selectedTicket) return;
+  const time = new Date().toLocaleString('en-US',{month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'});
+  commentsMap[selectedTicket.id] = commentsMap[selectedTicket.id]||[];
+  commentsMap[selectedTicket.id].push({author:PM_USER,role:'support',time,text:txt});
+  const t = TICKETS.find(x=>x.id===selectedTicket.id);
+  if (t) { t.comments=[...commentsMap[selectedTicket.id]]; t.activity=t.activity||[]; t.activity.unshift({type:'comment',author:PM_USER,action:'commented',value:txt,time}); }
+  NOTIFS.unshift({id:Date.now(),icon:'bi-chat-left-text-fill',bg:'#f0fdf4',fg:'#16a34a',title:'Comment on '+selectedTicket.id,body:PM_USER+': '+txt,time,unread:true,ticketId:selectedTicket.id});
+  saveTickets(); saveNotifs(); renderNotifList();
+  document.getElementById('newComment').value='';
+  renderDetail();
+  showToast({type:'info',title:'Comment added',message:PM_USER+' commented'});
+}
+function pmSaveEdit() {
+  const t = TICKETS.find(x=>x.id===selectedTicket?.id); if(!t) return;
+  t.title    = selectedTicket.title    = document.getElementById('editTitle').value.trim()||t.title;
+  t.status   = selectedTicket.status   = document.getElementById('editStatus').value;
+  t.priority = selectedTicket.priority = document.getElementById('editPriority').value;
+  t.reporter = selectedTicket.reporter = document.getElementById('editReporter').value;
+  t.category = selectedTicket.category = document.getElementById('editCategory').value;
+  t.desc     = selectedTicket.desc     = document.getElementById('editDesc').value.trim()||t.desc;
+  const time = new Date().toLocaleString('en-US',{month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'});
+  t.activity = t.activity||[];
+  t.activity.unshift({type:'edit',author:PM_USER,action:'edited ticket',value:'',time});
+  NOTIFS.unshift({id:Date.now(),icon:'bi-pencil-fill',bg:'#e0e7ff',fg:'#3730a3',title:'Edited: '+t.id,body:PM_USER+' edited the ticket',time,unread:true,ticketId:t.id});
+  saveTickets(); saveNotifs();
+  document.getElementById('detailStatus').value   = t.status;
+  document.getElementById('detailPriority').value = t.priority;
+  renderDetail(); renderNotifList();
+  if (document.getElementById('sec-tickets').offsetParent!==null) pmRender();
+  showToast({type:'success',title:'Ticket updated',message:t.id+' saved successfully'});
+}
+function pmDeleteTicket() {
+  if (!selectedTicket) return;
+  document.getElementById('confirmDeleteMsg').textContent = `Delete "${selectedTicket.title}"? This cannot be undone.`;
+  const modal = new bootstrap.Modal(document.getElementById('confirmDeleteModal'));
+  modal.show();
+  document.getElementById('confirmDeleteBtn').onclick = () => {
+    const idx = TICKETS.findIndex(x=>x.id===selectedTicket.id);
+    if (idx>-1) TICKETS.splice(idx,1);
+    NOTIFS.unshift({id:Date.now(),icon:'bi-trash-fill',bg:'#fee2e2',fg:'#b91c1c',title:'Deleted: '+selectedTicket.id,body:PM_USER+' deleted the ticket',time:new Date().toLocaleString('en-US',{month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'}),unread:true});
+    saveTickets(); saveNotifs(); renderNotifList();
+    modal.hide();
+    pmOffcanvas.hide();
+    selectedTicket = null;
+    pmRender();
+    showToast({type:'error',title:'Ticket deleted',message:'Removed from system'});
+  };
+}
+
+// ═══════════════════════════════════════════════════════
+// CREATE TICKET
+// ═══════════════════════════════════════════════════════
+function openCreateModal() {
+  ['ctTitle','ctDesc'].forEach(id => document.getElementById(id).value='');
+  document.getElementById('ctPriority').value = 'Medium';
+  window.ctAttachments = [];
+  const preview = document.getElementById('ctPreview');
+  if (preview) preview.innerHTML = '';
+  new bootstrap.Modal(document.getElementById('createTicketModal')).show();
+}
+function pmSubmitTicket() {
+  const title = document.getElementById('ctTitle').value.trim();
+  const desc  = document.getElementById('ctDesc').value.trim();
+  if (!title||!desc) { alert('Title and Description are required.'); return; }
+  const maxId = TICKETS.reduce((max,t)=>{ const m=/TK-(\d+)/.exec(t.id); return m?Math.max(max,+m[1]):max; },0);
+  const id = 'TK-'+String(maxId+1).padStart(3,'0');
+  const time = new Date().toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'});
+  TICKETS.unshift({id,title,
+    status:   'Open',
+    priority: document.getElementById('ctPriority').value,
+    category: document.getElementById('ctCategory').value,
+    reporter: document.getElementById('ctReporter').value,
+    assignee: document.getElementById('ctAssignee').value,
+    ac:'', created:time, desc, comments:[], attachments:[...window.ctAttachments]
+  });
+  commentsMap[id]=[];
+  NOTIFS.unshift({id:Date.now(),icon:'bi-plus-lg',bg:'#e0f2fe',fg:'#0284c7',title:'Created: '+id,body:PM_USER+' created: '+title,time,unread:true,ticketId:id});
+  saveTickets(); saveNotifs(); renderNotifList();
+  bootstrap.Modal.getInstance(document.getElementById('createTicketModal')).hide();
+  window.ctAttachments = [];
+  document.getElementById('ctPreview').innerHTML = '';
+  pmRender(); renderOverview();
+  showToast({type:'success',title:'Ticket created',message:id+' — '+title});
+}
+
+// ═══════════════════════════════════════════════════════
+// NOTIFICATIONS
+// ═══════════════════════════════════════════════════════
+function renderNotifList() {
+  const unread = NOTIFS.filter(n=>n.unread).length;
+  document.getElementById('notifDot').style.display = unread>0?'block':'none';
+  document.getElementById('notifList').innerHTML = NOTIFS.length===0
+    ? '<p class="text-muted text-center py-3 mb-0" style="font-size:13px">No notifications</p>'
+    : NOTIFS.map(n=>`
+        <div class="notif-row ${n.unread?'unread':''}" onclick="openDetail('${n.ticketId||''}')">
+          <div class="notif-icon-sm" style="background:${n.bg};color:${n.fg}"><i class="bi ${n.icon}"></i></div>
+          <div class="flex-grow-1">
+            <div class="fw-semibold" style="font-size:12.5px;color:#1a2235">${n.title}</div>
+            <div class="text-muted" style="font-size:12px">${n.body}</div>
+            <div class="text-muted mt-1" style="font-size:11px"><i class="bi bi-clock me-1"></i>${n.time}</div>
+          </div>
+        </div>`).join('')
+    + `<div class="text-center py-2 border-top"><span class="text-muted" style="font-size:12px">${unread} unread · ${NOTIFS.length} total</span></div>`;
+}
+function markAllRead()    { NOTIFS.forEach(n=>n.unread=false); saveNotifs(); renderNotifList(); }
+function deleteAllNotifs(){ NOTIFS.length=0; saveNotifs(); renderNotifList(); }
+
+// ═══════════════════════════════════════════════════════
+// TOAST (same as main.js)
+// ═══════════════════════════════════════════════════════
+function showToast({type='info',title='',message=''}) {
+  const map={success:{bg:'#bbf7d0',fg:'#166534',icon:'bi-check-circle'},info:{bg:'#bae6fd',fg:'#075985',icon:'bi-info-circle'},warning:{bg:'#fef3c7',fg:'#92400e',icon:'bi-exclamation-circle'},error:{bg:'#fecaca',fg:'#b91c1c',icon:'bi-x-circle'}};
+  const {bg,fg,icon}=map[type]||map.info;
+  let c=document.getElementById('toastContainer');
+  if(!c){c=document.createElement('div');c.id='toastContainer';c.className='toast-container position-fixed bottom-0 start-0 p-3';c.style.zIndex=9999;document.body.appendChild(c);}
+  const el=document.createElement('div');
+  el.className='toast show d-flex align-items-center mb-2';
+  el.setAttribute('role','alert');
+  el.style.cssText=`background:${bg};color:${fg};border-radius:8px;box-shadow:0 2px 8px rgba(0,0,0,0.08);min-width:320px;max-width:450px`;
+  el.innerHTML=`<div class="d-flex align-items-center px-3 py-2 flex-grow-1"><i class="bi ${icon} me-2" style="font-size:20px;color:${fg}"></i><div><div class="fw-semibold" style="font-size:15px;color:${fg}">${title}</div><div style="font-size:13px;color:${fg}">${message}</div></div></div><button type="button" class="btn-close ms-3 me-2" style="filter:invert(0.7)" aria-label="Close"></button>`;
+  el.querySelector('.btn-close').onclick=()=>el.remove();
+  c.appendChild(el);
+  setTimeout(()=>{el.classList.remove('show');setTimeout(()=>el.remove(),500);},4000);
+}
+</script>
+<script src="js/bootstrap.bundle.min.js"></script>
+<script src="js/pm-view.js"></script>
+</body>
+</html>
