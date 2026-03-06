@@ -1192,3 +1192,9 @@ window.testToast = function() {
 };
 // You can now run testToast() in the browser console to verify toast appearance.
 
+// ── LOGOUT HANDLER ─────────────────────────
+window.doLogout = function doLogout() {
+  document.getElementById('clientApp').classList.add('d-none');
+  document.getElementById('loginPage').classList.remove('d-none');
+};
+

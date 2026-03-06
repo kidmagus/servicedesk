@@ -14,59 +14,9 @@
 <body>
 
 <!-- ═══════════════════════════════════════════════════════
-     LOGIN PAGE
-═══════════════════════════════════════════════════════ -->
-<div id="loginPage">
-  <div class="login-card">
-    <div class="login-brand">
-      <div class="brand-icon d-flex align-items-center justify-content-center" style="background:transparent;padding:0">
-        <svg width="32" height="32" viewBox="0 0 37 53.8" xmlns="http://www.w3.org/2000/svg"><path fill="#FFFFFF" d="M28.7,0c-4,0-6.1,7.7-14.8,11.9C10.7,13.4,0,15.9,0,19.4l0,0c0,4.9,5.2,2.5,8.2,2.5c11.4,0,11.6,7.1,1.3,11c-3.8,1.5-8.3,2.3-8.3,7.2c0,7.5,13.7,2.1,20.9,8.9c2.4,2.3,1.7,4.8,8.4,4.8c5.8,0,8.8-7.7,4.6-10.8c-3.4-2.6-6.3-0.9-11.6-0.9c-3,0-9.3-1.9-9.3-5.6c0-3.9,4.7-6.1,8.1-7c3.5-1,6.5-0.3,6.5-5c0-3.7-6.1-3-10-3.1c-3.1-0.1-9.1-1.7-9.7-3.4c-0.7-2.5,9.6-5.9,12.5-6.8c4.3-1.4,5.3-1,8.2-1.6C31,9.3,32.2,8.8,33,7.9c1.5-1.8,1.8-4.5-0.1-6.4C31.6,0.1,30.4,0,28.7,0"/></svg>
-      </div>
-      <div>
-        <div class="login-brand-name">E-Bureauet</div>
-        <div class="login-brand-sub">Service Desk</div>
-      </div>
-    </div>
-    <div class="login-title">Welcome back</div>
-    <div class="login-sub">Select your role to sign in</div>
-    <div class="role-grid">
-      <div class="role-card" id="roleCardClient" onclick="selectRole('client')">
-        <div class="ri">👤</div>
-        <div class="rn">Client</div>
-        <div class="rd">Submit & track tickets</div>
-      </div>
-      <div class="role-card active" id="roleCardPM" onclick="selectRole('pm')">
-        <div class="ri">🧭</div>
-        <div class="rn">Project Manager</div>
-        <div class="rd">Full team oversight</div>
-      </div>
-    </div>
-    <div class="login-field" id="fieldClient" style="display:none">
-      <label>Sign in as</label>
-      <select id="selClient">
-        <option>John Client</option>
-        <option>Maria Santos</option>
-        <option>Carlos Reyes</option>
-        <option>Ana Rivera</option>
-        <option>Ben Cruz</option>
-      </select>
-    </div>
-    <div class="login-field" id="fieldPM">
-      <label>Sign in as</label>
-      <select id="selPM">
-        <option>Rachel Morgan</option>
-        <option>James Tran</option>
-      </select>
-    </div>
-    <button class="login-btn" onclick="doLogin()"><i class="bi bi-arrow-right-circle me-2"></i>Sign In</button>
-    <div class="login-link">Going to client view? <a href="index.html">Client Portal →</a></div>
-  </div>
-</div>
-
-<!-- ═══════════════════════════════════════════════════════
      PM APP SHELL
 ═══════════════════════════════════════════════════════ -->
-<div id="pmApp" class="d-flex d-none" style="height:100vh;overflow:hidden">
+<div id="pmApp" class="d-flex" style="height:100vh;overflow:hidden">
 
   <!-- SIDEBAR -->
   <aside class="sidebar flex-shrink-0" id="sidebar">
@@ -582,37 +532,19 @@ function saveNotifs()  { localStorage.setItem(NOTIFS_KEY,  JSON.stringify(NOTIFS
 function saveNotes()   { localStorage.setItem(NOTES_KEY,   JSON.stringify(NOTES));   }
 
 // ═══════════════════════════════════════════════════════
-// LOGIN
+// INITIALIZATION
 // ═══════════════════════════════════════════════════════
-let loginRole = 'pm';
-function selectRole(r) {
-  loginRole = r;
-  document.getElementById('roleCardClient').classList.toggle('active', r==='client');
-  document.getElementById('roleCardPM').classList.toggle('active',    r==='pm');
-  document.getElementById('fieldClient').style.display = r==='client' ? 'block':'none';
-  document.getElementById('fieldPM').style.display     = r==='pm'     ? 'block':'none';
-}
-function doLogin() {
-  if (loginRole === 'client') {
-    window.location.href = 'index.html';
-    return;
-  }
-  PM_USER = document.getElementById('selPM').value;
-  document.getElementById('loginPage').classList.add('d-none');
-  document.getElementById('pmApp').classList.remove('d-none');
-  document.getElementById('pmName').textContent   = PM_USER;
-  document.getElementById('pmAvatar').textContent = initials(PM_USER);
-  document.getElementById('topbarSub').textContent = '· ' + PM_USER;
+document.addEventListener('DOMContentLoaded', function() {
   loadData();
   pmOffcanvas = new bootstrap.Offcanvas(document.getElementById('ticketOffcanvas'));
   initSidebar();
   initScreenshots();
   showSection('overview');
   renderNotifList();
-}
+});
+
 function doLogout() {
-  document.getElementById('pmApp').classList.add('d-none');
-  document.getElementById('loginPage').classList.remove('d-none');
+  window.location.href = 'index.html';
 }
 
 // ═══════════════════════════════════════════════════════
