@@ -139,7 +139,7 @@ function renderOverview() {
   document.getElementById('ovResolved').textContent = resolved;
   document.getElementById('ovClosed').textContent   = closed;
   document.getElementById('ovCritical').textContent = critical;
-  document.getElementById('sidebarOpenCount').textContent = open;
+  document.getElementById('sidebarOpenCount').textContent = total;
 
   // Urgent list
   const urgent = TICKETS.filter(t=>['Critical','High'].includes(t.priority)&&!['Resolved','Closed'].includes(t.status)).slice(0,6);
@@ -262,7 +262,7 @@ function pmRender() {
       </td>
       <td class="text-muted" style="font-size:12px">${t.created}</td>
     </tr>`).join('');
-  document.getElementById('sidebarOpenCount').textContent = TICKETS.filter(t=>t.status==='Open').length;
+  document.getElementById('sidebarOpenCount').textContent = TICKETS.length;
 }
 function renderPagination(page, total) {
   const maxPage = Math.max(1, Math.ceil(total/PAGE_SIZE));
@@ -610,20 +610,30 @@ function pmSaveEdit() {
 }
 function pmDeleteTicket() {
   if (!selectedTicket) return;
-  document.getElementById('confirmDeleteMsg').textContent = `Delete "${selectedTicket.title}"? This cannot be undone.`;
-  const modal = new bootstrap.Modal(document.getElementById('confirmDeleteModal'));
-  modal.show();
-  document.getElementById('confirmDeleteBtn').onclick = () => {
-    const idx = TICKETS.findIndex(x=>x.id===selectedTicket.id);
-    if (idx>-1) TICKETS.splice(idx,1);
-    NOTIFS.unshift({id:Date.now(),icon:'bi-trash-fill',bg:'#fee2e2',fg:'#b91c1c',title:'Deleted: '+selectedTicket.id,body:PM_USER+' deleted the ticket',time:new Date().toLocaleString('en-US',{month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'}),unread:true,ticketId:selectedTicket.id});
-    saveTickets(); saveNotifs(); renderNotifList();
-    modal.hide();
-    pmOffcanvas.hide();
-    selectedTicket = null;
-    pmRender();
-    showToast({type:'error',title:'Ticket deleted',message:'Removed from system'});
-  };
+  if (selectedTicket.status !== 'Resolved' && selectedTicket.status !== 'Closed') {
+    var msg = document.getElementById('removeTicketModalMsg');
+    if (msg) msg.textContent = 'Only Resolved or Closed tickets can be removed.';
+    var modal = new bootstrap.Modal(document.getElementById('removeTicketModal'));
+    modal.show();
+    return;
+  }
+  document.getElementById('confirmRemoveTicketModalMsg').textContent = `Are you sure you want to remove this ticket? This action cannot be undone.`;
+  var confirmModal = new bootstrap.Modal(document.getElementById('confirmRemoveTicketModal'));
+  confirmModal.show();
+  var confirmBtn = document.getElementById('confirmRemoveTicketBtn');
+  if (confirmBtn) {
+    confirmBtn.onclick = function() {
+      confirmModal.hide();
+      const idx = TICKETS.findIndex(x=>x.id===selectedTicket.id);
+      if (idx>-1) TICKETS.splice(idx,1);
+      NOTIFS.unshift({id:Date.now(),icon:'bi-trash-fill',bg:'#fee2e2',fg:'#b91c1c',title:'Deleted: '+selectedTicket.id,body:PM_USER+' deleted the ticket',time:new Date().toLocaleString('en-US',{month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'}),unread:true,ticketId:selectedTicket.id});
+      saveTickets(); saveNotifs(); renderNotifList();
+      pmOffcanvas.hide();
+      selectedTicket = null;
+      pmRender();
+      showToast({type:'error',title:'Ticket deleted',message:'Removed from system'});
+    };
+  }
 }
 
 // ═══════════════════════════════════════════════════════
