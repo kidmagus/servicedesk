@@ -255,10 +255,11 @@ function pmRender() {
           ${t.reporter||'—'}
         </div>
       </td>
-      <td>
-        <select class="reassign-sel" onchange="quickReassign('${t.id}',this.value);event.stopPropagation();">
-          ${AGENTS.map(a=>`<option value="${a}" ${a===t.assignee?'selected':''}>${a}</option>`).join('')}
-        </select>
+     <td style="font-size:13px">
+        <div class="d-flex align-items-center gap-2">
+          <div class="avatar-sm" style="background:#e0e7ef;color:#3b3b4f;width:22px;height:22px;font-size:9px;border-radius:7px">${initials(t.assignee||'?')}</div>
+          ${t.assignee || '—'}
+        </div>
       </td>
       <td class="text-muted" style="font-size:12px">${t.created}</td>
     </tr>`).join('');
@@ -280,6 +281,7 @@ function quickReassign(id, agent) {
   t.activity.unshift({type:'assignee',author:PM_USER,action:'reassigned to',value:agent,time});
   NOTIFS.unshift({id:Date.now(),icon:'bi-person-check-fill',bg:'#e0e7ff',fg:'#3730a3',title:'Reassigned: '+id,body:PM_USER+' assigned to '+agent,time,unread:true,ticketId:id});
   saveTickets(); saveNotifs(); renderNotifList();
+  pmRender();
   showToast({type:'info',title:'Reassigned',message:'Ticket '+id+' → '+agent});
 }
 
