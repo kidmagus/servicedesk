@@ -539,33 +539,49 @@ function updatePriority(val) {
 function removeTicket(dataSource) {
   if (!selectedTicket) return;
   if (selectedTicket.status !== 'Resolved' && selectedTicket.status !== 'Closed') {
-    alert('Only Resolved or Closed tickets can be removed.');
+    // Show modal instead of alert
+    var msg = document.getElementById('removeTicketModalMsg');
+    if (msg) msg.textContent = 'Only Resolved or Closed tickets can be removed.';
+    var modal = new bootstrap.Modal(document.getElementById('removeTicketModal'));
+    modal.show();
     return;
   }
-  const source = dataSource || TICKETS;
-  const idx = source.findIndex(t => t.id === selectedTicket.id);
-  if (idx > -1) source.splice(idx, 1);
-  // Remove from TICKETS array if not already
-  const mainIdx = TICKETS.findIndex(t => t.id === selectedTicket.id);
-  if (mainIdx > -1) TICKETS.splice(mainIdx, 1);
-  // Push notification for removal
-  NOTIFS.unshift({
-    id: Date.now(),
-    icon: 'bi-trash-fill',
-    bg: '#fee2e2',
-    fg: '#b91c1c',
-    title: `Ticket removed: ${selectedTicket.id}`,
-    body: `${CURRENT_USER} removed the ticket`,
-    time: new Date().toLocaleString('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' }),
-    unread: true,
-    ticketId: selectedTicket.id
-  });
-  showToast({type: 'error', title: `Ticket removed`, message: `${CURRENT_USER} removed the ticket`});
-  renderNotifList();
-  saveTicketsToStorage();
-  bootstrap.Offcanvas.getInstance(document.getElementById('ticketOffcanvas')).hide();
-  selectedTicket = null;
-  if (typeof window._pageRender === 'function') window._pageRender();
+  // Show confirmation modal for valid removals
+  var confirmModal = new bootstrap.Modal(document.getElementById('confirmRemoveTicketModal'));
+  confirmModal.show();
+  // Set up confirm button handler
+  var confirmBtn = document.getElementById('confirmRemoveTicketBtn');
+  if (confirmBtn) {
+    // Remove any previous handler
+    confirmBtn.onclick = function() {
+      confirmModal.hide();
+      // Actually remove the ticket
+      const source = dataSource || TICKETS;
+      const idx = source.findIndex(t => t.id === selectedTicket.id);
+      if (idx > -1) source.splice(idx, 1);
+      // Remove from TICKETS array if not already
+      const mainIdx = TICKETS.findIndex(t => t.id === selectedTicket.id);
+      if (mainIdx > -1) TICKETS.splice(mainIdx, 1);
+      // Push notification for removal
+      NOTIFS.unshift({
+        id: Date.now(),
+        icon: 'bi-trash-fill',
+        bg: '#fee2e2',
+        fg: '#b91c1c',
+        title: `Ticket removed: ${selectedTicket.id}`,
+        body: `${CURRENT_USER} removed the ticket`,
+        time: new Date().toLocaleString('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' }),
+        unread: true,
+        ticketId: selectedTicket.id
+      });
+      showToast({type: 'error', title: `Ticket removed`, message: `${CURRENT_USER} removed the ticket`});
+      renderNotifList();
+      saveTicketsToStorage();
+      bootstrap.Offcanvas.getInstance(document.getElementById('ticketOffcanvas')).hide();
+      selectedTicket = null;
+      if (typeof window._pageRender === 'function') window._pageRender();
+    };
+  }
 }
 
 // ── NOTIFICATIONS ──────────────────────────────
@@ -1020,19 +1036,34 @@ function initMyTicketsPage() {
   function doRemoveMyTicket() {
     if (!selectedTicket) return;
     if (selectedTicket.status !== 'Resolved' && selectedTicket.status !== 'Closed') {
-      alert('Only Resolved or Closed tickets can be removed.'); 
+      // Show modal instead of alert
+      var msg = document.getElementById('removeTicketModalMsg');
+      if (msg) msg.textContent = 'Only Resolved or Closed tickets can be removed.';
+      var modal = new bootstrap.Modal(document.getElementById('removeTicketModal'));
+      modal.show();
       return;
     }
-    const idx = ticketsData.findIndex(t => t.id === selectedTicket.id);
-    if (idx > -1) ticketsData.splice(idx, 1);
-    const mainIdx = TICKETS.findIndex(t => t.id === selectedTicket.id);
-    if (mainIdx > -1) TICKETS.splice(mainIdx, 1);
-    const idIdx = MY_TICKET_IDS.indexOf(selectedTicket.id);
-    if (idIdx > -1) MY_TICKET_IDS.splice(idIdx, 1);
-    bootstrap.Offcanvas.getInstance(document.getElementById('ticketOffcanvas')).hide();
-    selectedTicket = null;
-    updateMyStats();
-    renderMyTickets();
+    // Show confirmation modal for valid removals
+    var confirmModal = new bootstrap.Modal(document.getElementById('confirmRemoveTicketModal'));
+    confirmModal.show();
+    // Set up confirm button handler
+    var confirmBtn = document.getElementById('confirmRemoveTicketBtn');
+    if (confirmBtn) {
+      confirmBtn.onclick = function() {
+        confirmModal.hide();
+        // Actually remove the ticket
+        const idx = ticketsData.findIndex(t => t.id === selectedTicket.id);
+        if (idx > -1) ticketsData.splice(idx, 1);
+        const mainIdx = TICKETS.findIndex(t => t.id === selectedTicket.id);
+        if (mainIdx > -1) TICKETS.splice(mainIdx, 1);
+        const idIdx = MY_TICKET_IDS.indexOf(selectedTicket.id);
+        if (idIdx > -1) MY_TICKET_IDS.splice(idIdx, 1);
+        bootstrap.Offcanvas.getInstance(document.getElementById('ticketOffcanvas')).hide();
+        selectedTicket = null;
+        updateMyStats();
+        renderMyTickets();
+      };
+    }
   }
   window.doRemoveTicket = doRemoveMyTicket;
 
