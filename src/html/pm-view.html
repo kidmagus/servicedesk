@@ -249,6 +249,7 @@
                   <th onclick="pmSort('category')">Category <i class="bi bi-chevron-expand ms-1" style="font-size:10px;opacity:.4"></i></th>
                   <th onclick="pmSort('reporter')">Reporter <i class="bi bi-chevron-expand ms-1" style="font-size:10px;opacity:.4"></i></th>
                   <th>Manager</th>
+                  <th>Developer</th>
                   <th onclick="pmSort('created')">Created <i class="bi bi-chevron-expand ms-1" style="font-size:10px;opacity:.4"></i></th>
                 </tr>
               </thead>
@@ -274,7 +275,7 @@
         <p class="text-muted mb-0" style="font-size:13px">Agent assignment overview and capacity</p>
       </div>
       <div class="d-flex justify-content-start mb-2">
-        <button class="btn btn-outline-primary btn-sm" onclick="openAddAgentModal()"><i class="bi bi-person-plus"></i> Add Manager</button>
+          <button class="btn btn-outline-primary btn-sm" onclick="openAddAgentModal()"><i class="bi bi-person-plus"></i> Add Developer</button>
       </div>
       <div class="row g-3" id="agentCards"></div>
       <!-- Modal container for agent editing -->
@@ -289,7 +290,7 @@
           <table class="table table-hover mb-0">
             <thead>
               <tr>
-                <th>Agent</th><th>Total</th><th>Open</th><th>In Progress</th><th>Resolved</th><th>Closed</th><th style="min-width:140px">Utilization</th>
+                  <th>Developer</th><th>Total</th><th>Open</th><th>In Progress</th><th>Resolved</th><th>Closed</th><th style="min-width:140px">Utilization</th>
               </tr>
             </thead>
             <tbody id="workloadTableBody"></tbody>
@@ -411,9 +412,9 @@
             <input type="text" class="form-control" id="ctReporter" readonly>
           </div>
           <div class="col-3">
-            <label class="form-label">Manager <span class="text-danger">*</span></label>
-            <select class="form-select" id="ctManager">
-              <!-- Manager options will be rendered by JS -->
+            <label class="form-label">Developer <span class="text-danger">*</span></label>
+            <select class="form-select" id="ctDeveloper">
+              <!-- Developer options will be rendered by JS -->
             </select>
           </div>
         </div>

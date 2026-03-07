@@ -294,10 +294,16 @@ function pmRender() {
           ${t.reporter||'—'}
         </div>
       </td>
-     <td style="font-size:13px">
+      <td style="font-size:13px">
         <div class="d-flex align-items-center gap-2">
           <div class="avatar-sm" style="background:#e0e7ef;color:#3b3b4f;width:22px;height:22px;font-size:9px;border-radius:7px">${initials(t.manager||'?')}</div>
           ${t.manager || '—'}
+        </div>
+      </td>
+      <td style="font-size:13px">
+        <div class="d-flex align-items-center gap-2">
+          <div class="avatar-sm" style="background:#e0e7ef;color:#3b3b4f;width:22px;height:22px;font-size:9px;border-radius:7px">${initials(t.developer||'?')}</div>
+          ${t.developer || '—'}
         </div>
       </td>
       <td class="text-muted" style="font-size:12px">${t.created}</td>
@@ -352,9 +358,9 @@ window.addAgent = function(name) {
     AGENTS.push(name);
     saveAgents();
     renderWorkload();
-    showToast && showToast({type:'success',title:'Manager Added',message:`${name} added to team`});
+    showToast && showToast({type:'success',title:'Developer Added',message:`${name} added to team`});
   } else {
-    showToast && showToast({type:'warning',title:'Already Exists',message:`${name} is already a manager`});
+    showToast && showToast({type:'warning',title:'Already Exists',message:`${name} is already a developer`});
   }
 };
 
@@ -369,14 +375,14 @@ window.removeAgent = function(agentName) {
     saveTickets();
     pmRender();
     renderWorkload();
-    showToast && showToast({type:'info',title:'Manager Removed',message:`${agentName} removed from team`});
+    showToast && showToast({type:'info',title:'Developer Removed',message:`${agentName} removed from team`});
   }
 };
 function renderWorkload() {
   const acEl = document.getElementById('agentCards');
   const wlEl = document.getElementById('workloadTableBody');
   acEl.innerHTML = AGENTS.map((agent,i)=>{
-    const my  = TICKETS.filter(t=>t.manager===agent);
+    const my  = TICKETS.filter(t=>t.developer===agent);
     const op  = my.filter(t=>t.status==='Open').length;
     const ip  = my.filter(t=>t.status==='In Progress').length;
     const rs  = my.filter(t=>t.status==='Resolved').length;
@@ -389,7 +395,7 @@ function renderWorkload() {
          <div class="agent-avatar" style="background:${AGENT_COLORS[i%AGENT_COLORS.length]||'#7c3aed'}">${initials(agent)}</div>
           <div>
             <div class="fw-bold" style="font-size:14px;color:#1a2235">${agent}</div>
-            <div class="text-muted" style="font-size:11.5px">Support Agent</div>
+            <div class="text-muted" style="font-size:11.5px">Developer</div>
           </div>
         </div>
         <div class="row g-2 mb-3 text-center">
@@ -405,7 +411,7 @@ function renderWorkload() {
   }).join('');
 
   wlEl.innerHTML = AGENTS.map((agent,i)=>{
-    const my  = TICKETS.filter(t=>t.manager===agent);
+    const my  = TICKETS.filter(t=>t.developer===agent);
     const op  = my.filter(t=>t.status==='Open').length;
     const ip  = my.filter(t=>t.status==='In Progress').length;
     const rs  = my.filter(t=>t.status==='Resolved').length;
@@ -533,9 +539,19 @@ function renderDetail() {
         <p class="text-uppercase text-muted fw-semibold mb-1" style="font-size:10.5px;letter-spacing:.6px">Manager</p>
         <div class="d-flex align-items-center gap-2">
           <div class="avatar-sm ${t.ac||''}" style="width:22px;height:22px;font-size:9px">${initials(t.manager)}</div>
-          <span id="managerDisplay" style="cursor:pointer;text-decoration:underline dotted; font-size:13px;" title="Click to change">${t.manager}</span>
+          <span id="managerDisplay" style="cursor:pointer;text-decoration:underline dotted; font-size:13px;" title="Click to change">${t.manager||'—'}</span>
           <select id="managerSelect" class="form-select form-select-sm d-none" style="width:auto;min-width:130px;font-size:13px">
-            ${AGENTS.map(a=>`<option value="${a}" ${a===t.manager?'selected':''}>${a}</option>`).join('')}
+            ${getPMOptions(t.manager)}
+          </select>
+        </div>
+      </div>
+      <div class="col-6">
+        <p class="text-uppercase text-muted fw-semibold mb-1" style="font-size:10.5px;letter-spacing:.6px">Developer</p>
+        <div class="d-flex align-items-center gap-2">
+          <div class="avatar-sm" style="background:#e0e7ef;color:#3b3b4f;width:22px;height:22px;font-size:9px;border-radius:7px">${initials(t.developer||'?')}</div>
+          <span id="developerDisplay" style="cursor:pointer;text-decoration:underline dotted; font-size:13px;" title="Click to change">${t.developer||'—'}</span>
+          <select id="developerSelect" class="form-select form-select-sm d-none" style="width:auto;min-width:130px;font-size:13px">
+            ${AGENTS.map(a=>`<option value="${a}" ${a===t.developer?'selected':''}>${a}</option>`).join('')}
           </select>
         </div>
       </div>
@@ -595,30 +611,71 @@ function renderDetail() {
       </div>
     </div>
   `;
-  var managerDisplay = document.getElementById('managerDisplay');
-    var managerSelect = document.getElementById('managerSelect');
-      if (managerDisplay && managerSelect) {
-        managerDisplay.onclick = function() {
-          managerDisplay.classList.add('d-none');
-            managerSelect.classList.remove('d-none');
-            managerSelect.value = t.manager;
-            managerSelect.focus();
-          };
-          managerSelect.onblur = function() {
-            managerSelect.classList.add('d-none');
-            managerDisplay.classList.remove('d-none');
-          };
-          managerSelect.onchange = function() {
-            var newManager = managerSelect.value;
-            if (newManager !== t.manager) {
-              quickReassign(t.id, newManager);
-              selectedTicket.manager = newManager;
-              renderDetail();
-            }
-            managerSelect.classList.add('d-none');
-            managerDisplay.classList.remove('d-none');
-          };
+
+       // Returns <option> list for PMs (managers) from a static or localStorage list
+      function getPMOptions(selected) {
+        let pms = [];
+        try {
+          pms = JSON.parse(localStorage.getItem('servicedesk_pms')) || ['Rachel Morgan','James Tran'];
+        } catch(e) {
+          pms = ['Rachel Morgan','James Tran'];
         }
+        return pms.map(pm => `<option value="${pm}" ${pm===selected?'selected':''}>${pm}</option>`).join('');
+      }
+  // Manager field handlers
+  var managerDisplay = document.getElementById('managerDisplay');
+  var managerSelect = document.getElementById('managerSelect');
+  if (managerDisplay && managerSelect) {
+    managerDisplay.onclick = function() {
+      managerDisplay.classList.add('d-none');
+      managerSelect.classList.remove('d-none');
+      managerSelect.value = t.manager || '';
+      managerSelect.focus();
+    };
+    managerSelect.onblur = function() {
+      managerSelect.classList.add('d-none');
+      managerDisplay.classList.remove('d-none');
+    };
+    managerSelect.onchange = function() {
+      var newManager = managerSelect.value;
+      if (newManager !== t.manager) {
+        t.manager = selectedTicket.manager = newManager;
+        saveTickets();
+        renderDetail();
+        if (typeof pmRender === 'function') pmRender();
+      }
+      managerSelect.classList.add('d-none');
+      managerDisplay.classList.remove('d-none');
+    };
+  }
+  // Developer field handlers
+
+    // Developer field handlers
+    var developerDisplay = document.getElementById('developerDisplay');
+    var developerSelect = document.getElementById('developerSelect');
+    if (developerDisplay && developerSelect) {
+      developerDisplay.onclick = function() {
+        developerDisplay.classList.add('d-none');
+        developerSelect.classList.remove('d-none');
+        developerSelect.value = t.developer || '';
+        developerSelect.focus();
+      };
+      developerSelect.onblur = function() {
+        developerSelect.classList.add('d-none');
+        developerDisplay.classList.remove('d-none');
+      };
+      developerSelect.onchange = function() {
+        var newDeveloper = developerSelect.value;
+        if (newDeveloper !== t.developer) {
+          t.developer = selectedTicket.developer = newDeveloper;
+          saveTickets();
+          renderDetail();
+          if (typeof pmRender === 'function') pmRender();
+        }
+        developerSelect.classList.add('d-none');
+        developerDisplay.classList.remove('d-none');
+      };
+    }
   document.getElementById('detailStatus').value   = t.status;
   document.getElementById('detailPriority').value = t.priority;
 
@@ -855,10 +912,10 @@ function openCreateModal() {
   window.ctAttachments = [];
   const preview = document.getElementById('ctPreview');
   if (preview) preview.innerHTML = '';
-  // Render manager options dynamically
-  const ctManager = document.getElementById('ctManager');
-  if (ctManager) {
-    ctManager.innerHTML = AGENTS.map(a => `<option value="${a}">${a}</option>`).join('');
+  // Render developer options dynamically
+  const ctDeveloper = document.getElementById('ctDeveloper');
+  if (ctDeveloper) {
+    ctDeveloper.innerHTML = AGENTS.map(a => `<option value="${a}">${a}</option>`).join('');
   }
   // Set reporter field to PM_USER
   const ctReporter = document.getElementById('ctReporter');
@@ -879,7 +936,7 @@ function pmSubmitTicket() {
     priority: document.getElementById('ctPriority').value,
     category: document.getElementById('ctCategory').value,
     reporter: document.getElementById('ctReporter').value,
-    manager: document.getElementById('ctManager').value,
+    developer: document.getElementById('ctDeveloper').value,
     ac:'', created:time, desc, comments:[], attachments:[...window.ctAttachments]
   });
   commentsMap[id]=[];

@@ -507,16 +507,24 @@ document.addEventListener('DOMContentLoaded', function() {
         avatarEl.textContent = initials;
         avatarEl.title = CURRENT_USER + ' – Client';
       }
-    // Dynamically render manager options in create ticket modal
-    const ctManager = document.getElementById('ctManager');
-    if (ctManager) {
+    // Dynamically render developer options in create ticket modal
+    const ctDeveloper = document.getElementById('ctDeveloper');
+    if (ctDeveloper) {
       let agents = [];
       try {
         agents = JSON.parse(localStorage.getItem('servicedesk_agents')) || ['Sarah Johnson','Alex Lee','Priya Patel','David Kim','Emma Brown'];
       } catch(e) {
         agents = ['Sarah Johnson','Alex Lee','Priya Patel','David Kim','Emma Brown'];
       }
-      ctManager.innerHTML = agents.map(a => `<option value="${a}">${a}</option>`).join('');
+      ctDeveloper.innerHTML = agents.map(a => `<option value="${a}">${a}</option>`).join('');
+    }
+
+    // Dynamically render manager options in create ticket modal
+    const ctManager = document.getElementById('ctManager');
+    if (ctManager) {
+      // Use the same managers as in index.html
+      const managers = ['Rachel Morgan', 'James Tran'];
+      ctManager.innerHTML = managers.map(m => `<option value="${m}">${m}</option>`).join('');
     }
   var commentBox = document.getElementById('newComment');
   if (commentBox) {
