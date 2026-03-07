@@ -441,7 +441,8 @@ function renderAnalytics() {
 
   setTimeout(()=>{
     ['chartClient','chartAgent','chartTrend'].forEach(id=>destroyChart(id));
-    const clients = ['John Client','Maria Santos','Carlos Reyes','Ana Rivera','Ben Cruz'];
+    // Get unique clients from tickets
+    const clients = Array.from(new Set(TICKETS.map(t => t.reporter))).filter(Boolean);
     charts.chartClient = new Chart(document.getElementById('chartClient'), {
       type:'bar',
       data:{labels:clients.map(c=>c.split(' ')[0]),datasets:[{label:'Tickets',data:clients.map(c=>TICKETS.filter(t=>t.reporter===c).length),backgroundColor:AGENT_COLORS,borderRadius:7}]},
