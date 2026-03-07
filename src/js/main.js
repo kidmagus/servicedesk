@@ -491,6 +491,17 @@ function addComment() {
 
 // ── ENABLE ENTER TO SUBMIT COMMENT ───────────
 document.addEventListener('DOMContentLoaded', function() {
+      // Set reporter field to user context (use name from UI if available)
+      const ctReporter = document.getElementById('ctReporter');
+      if (ctReporter) {
+        // Try to get the client name from the sidebar
+        let clientName = '';
+        const nameEl = document.querySelector('.user-info .fw-semibold');
+        if (nameEl) {
+          clientName = nameEl.textContent.trim();
+        }
+        ctReporter.value = clientName || 'John Client';
+      }
     // Dynamically render assignee options in create ticket modal
     const ctAssignee = document.getElementById('ctAssignee');
     if (ctAssignee) {

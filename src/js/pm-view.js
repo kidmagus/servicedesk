@@ -850,6 +850,11 @@ function openCreateModal() {
   if (ctAssignee) {
     ctAssignee.innerHTML = AGENTS.map(a => `<option value="${a}">${a}</option>`).join('');
   }
+  // Set reporter field to PM_USER
+  const ctReporter = document.getElementById('ctReporter');
+  if (ctReporter) {
+    ctReporter.value = PM_USER;
+  }
   new bootstrap.Modal(document.getElementById('createTicketModal')).show();
 }
 function pmSubmitTicket() {
