@@ -63,26 +63,26 @@ function loadTicketsFromStorage() {
 
 // Default tickets array
 const DEFAULT_TICKETS = [
-  { id:'TK-001', reporter:'John Client', category:'Bug', title:'Website login page not responding',         status:'Open',        priority:'Critical', assignee:'Sarah Johnson', ac:'',       created:'Jan 15, 2024', desc:'Users are unable to access the login page. The page loads but the login button becomes unresponsive after clicking.', comments:[{author:'John Client',role:'client',time:'Jan 15, 06:35 PM',text:'This is affecting all our users. Please prioritize.'},{author:'Sarah Johnson',role:'support',time:'Jan 15, 07:00 PM',text:"I've started investigating this issue. Will update you within 2 hours."}] },
-  { id:'TK-002', reporter:'John Client', category:'Bug', title:'Mobile app crashes on iOS devices',          status:'In Progress', priority:'High',     assignee:'Mike Torres',   ac:'orange', created:'Jan 15, 2024', desc:'The mobile application crashes upon launch on devices running iOS 17. Affects all iPhone 14 and 15 models.', comments:[{author:'Mike Torres',role:'support',time:'Jan 15, 05:00 PM',text:'Identified a memory leak in build 2.4.1. Patch incoming.'}] },
-  { id:'TK-003', reporter:'Maria Santos', category:'Bug', title:'Slow page load times on product catalog',    status:'Resolved',    priority:'Medium',   assignee:'Anna Lee',      ac:'purple', created:'Jan 14, 2024', desc:'Product catalog page took over 8 seconds to load. Optimized via CDN and lazy loading.', comments:[{author:'Anna Lee',role:'support',time:'Jan 14, 03:00 PM',text:'Issue resolved. Load time is now under 1.2s.'}] },
-  { id:'TK-004', reporter:'John Client', category:'Bug', title:'Payment gateway integration errors',         status:'Open',        priority:'Critical', assignee:'Sarah Johnson', ac:'',       created:'Jan 16, 2024', desc:'Payments via Stripe are failing with error code 402. Affects checkout for all product categories.', comments:[] },
-  { id:'TK-005', reporter:'John Client', category:'Task', title:'Email notifications not sending',            status:'In Progress', priority:'High',     assignee:'Mike Torres',   ac:'orange', created:'Jan 16, 2024', desc:'Transactional email service stopped delivering notifications. SMTP logs show 550 errors.', comments:[{author:'John Client',role:'client',time:'Jan 16, 09:00 AM',text:'This is blocking our onboarding flow.'}] },
-  { id:'TK-006', reporter:'Maria Santos', category:'Bug', title:'Dashboard analytics showing incorrect data', status:'Open',        priority:'Medium',   assignee:'Anna Lee',      ac:'purple', created:'Jan 16, 2024', desc:'Revenue and session metrics appear duplicated in the main analytics dashboard.', comments:[] },
-  { id:'TK-007', reporter:'Carlos Reyes', category:'Bug', title:'Search feature returning no results',        status:'In Progress', priority:'High',     assignee:'David Kim',     ac:'green',  created:'Jan 17, 2024', desc:'The site search returns 0 results for all queries despite items existing in the database.', comments:[{author:'David Kim',role:'support',time:'Jan 17, 10:00 AM',text:'Elasticsearch index appears corrupted. Re-indexing now.'}] },
-  { id:'TK-008', reporter:'Maria Santos', category:'Task', title:'User profile images not uploading',          status:'Resolved',    priority:'Low',      assignee:'Anna Lee',      ac:'purple', created:'Jan 12, 2024', desc:'Profile picture upload was failing due to incorrect S3 bucket permissions. Resolved.', comments:[] },
-  { id:'TK-009', reporter:'John Client', category:'Bug', title:'Two-factor auth codes not delivered',        status:'Open',        priority:'Critical', assignee:'Sarah Johnson', ac:'',       created:'Jan 17, 2024', desc:'SMS-based 2FA codes are not being sent. Users are locked out of their accounts.', comments:[{author:'John Client',role:'client',time:'Jan 17, 08:00 AM',text:'Multiple enterprise accounts affected. This is urgent.'}] },
-  { id:'TK-010', reporter:'Carlos Reyes', category:'Task', title:'API rate limits too restrictive',            status:'Closed',      priority:'Medium',   assignee:'David Kim',     ac:'green',  created:'Jan 10, 2024', desc:'Rate limits adjusted. Increased to 1000 req/min for enterprise plans.', comments:[] },
-  { id:'TK-011', reporter:'Carlos Reyes', category:'Bug', title:'CSV export corrupting special characters',   status:'In Progress', priority:'Medium',   assignee:'Mike Torres',   ac:'orange', created:'Jan 18, 2024', desc:'Exported CSV files show garbled text for accented characters or emojis.', comments:[] },
-  { id:'TK-012', reporter:'John Client', category:'Bug', title:'Admin panel inaccessible after update',      status:'Open',        priority:'High',     assignee:'Sarah Johnson', ac:'',       created:'Jan 18, 2024', desc:'Following the v3.2 deployment, admin users receive a 403 error on login.', comments:[] },
-  { id:'TK-013', reporter:'Carlos Reyes', category:'Task', title:'Webhook events not firing',                  status:'Resolved',    priority:'High',     assignee:'David Kim',     ac:'green',  created:'Jan 11, 2024', desc:'Webhook endpoints were not receiving events due to an incorrect URL in config. Fixed.', comments:[] },
-  { id:'TK-014', reporter:'Maria Santos', category:'Task', title:'Onboarding wizard skipping steps',           status:'In Progress', priority:'Low',      assignee:'Anna Lee',      ac:'purple', created:'Jan 19, 2024', desc:'New users report the wizard skips from step 2 to step 5, missing critical setup.', comments:[] },
-  { id:'TK-015', reporter:'Carlos Reyes', category:'Bug', title:'Dark mode flickering on refresh',            status:'Closed',      priority:'Low',      assignee:'Mike Torres',   ac:'orange', created:'Jan 9, 2024',  desc:'White flash on page load in dark mode. Fixed by persisting theme in localStorage.', comments:[] },
-  { id:'TK-016', reporter:'John Client', category:'Task', title:'Subscription renewal emails missing',        status:'Open',        priority:'High',     assignee:'Sarah Johnson', ac:'',       created:'Jan 19, 2024', desc:'Customers are not receiving renewal reminder emails 7 days before billing date.', comments:[] },
-  { id:'TK-017', reporter:'Carlos Reyes', category:'Bug', title:'SSO login loop with SAML provider',          status:'In Progress', priority:'Critical', assignee:'David Kim',     ac:'green',  created:'Jan 20, 2024', desc:'Enterprise SAML SSO users are caught in an authentication redirect loop.', comments:[{author:'David Kim',role:'support',time:'Jan 20, 11:00 AM',text:'Working with the IdP team to debug the SAML assertion.'}] },
-  { id:'TK-018', reporter:'Maria Santos', category:'Task', title:'Bulk user import failing above 500 rows',    status:'Resolved',    priority:'Medium',   assignee:'Anna Lee',      ac:'purple', created:'Jan 13, 2024', desc:'CSV imports over 500 rows timed out. Resolved with 200-row batch processing.', comments:[] },
-  { id:'TK-019', reporter:'John Client', category:'Bug', title:'Audit log timestamps incorrect',             status:'Open',        priority:'Medium',   assignee:'Mike Torres',   ac:'orange', created:'Jan 20, 2024', desc:'Audit logs recorded in UTC but displayed without timezone conversion.', comments:[] },
-  { id:'TK-020', reporter:'John Client', category:'Bug', title:'Password reset link expiring instantly',     status:'In Progress', priority:'High',     assignee:'Sarah Johnson', ac:'',       created:'Jan 21, 2024', desc:'Password reset links expire before users can click them.', comments:[{author:'John Client',role:'client',time:'Jan 21, 07:00 AM',text:'This is blocking our new employee accounts.'}] },
+  { id:'TK-001', reporter:'John Client', category:'Bug', title:'Website login page not responding',         status:'Open',        priority:'Critical', manager:'Sarah Johnson', ac:'',       created:'Jan 15, 2024', desc:'Users are unable to access the login page. The page loads but the login button becomes unresponsive after clicking.', comments:[{author:'John Client',role:'client',time:'Jan 15, 06:35 PM',text:'This is affecting all our users. Please prioritize.'},{author:'Sarah Johnson',role:'support',time:'Jan 15, 07:00 PM',text:"I've started investigating this issue. Will update you within 2 hours."}] },
+  { id:'TK-002', reporter:'John Client', category:'Bug', title:'Mobile app crashes on iOS devices',          status:'In Progress', priority:'High',     manager:'Mike Torres',   ac:'orange', created:'Jan 15, 2024', desc:'The mobile application crashes upon launch on devices running iOS 17. Affects all iPhone 14 and 15 models.', comments:[{author:'Mike Torres',role:'support',time:'Jan 15, 05:00 PM',text:'Identified a memory leak in build 2.4.1. Patch incoming.'}] },
+  { id:'TK-003', reporter:'Maria Santos', category:'Bug', title:'Slow page load times on product catalog',    status:'Resolved',    priority:'Medium',   manager:'Anna Lee',      ac:'purple', created:'Jan 14, 2024', desc:'Product catalog page took over 8 seconds to load. Optimized via CDN and lazy loading.', comments:[{author:'Anna Lee',role:'support',time:'Jan 14, 03:00 PM',text:'Issue resolved. Load time is now under 1.2s.'}] },
+  { id:'TK-004', reporter:'John Client', category:'Bug', title:'Payment gateway integration errors',         status:'Open',        priority:'Critical', manager:'Sarah Johnson', ac:'',       created:'Jan 16, 2024', desc:'Payments via Stripe are failing with error code 402. Affects checkout for all product categories.', comments:[] },
+  { id:'TK-005', reporter:'John Client', category:'Task', title:'Email notifications not sending',            status:'In Progress', priority:'High',     manager:'Mike Torres',   ac:'orange', created:'Jan 16, 2024', desc:'Transactional email service stopped delivering notifications. SMTP logs show 550 errors.', comments:[{author:'John Client',role:'client',time:'Jan 16, 09:00 AM',text:'This is blocking our onboarding flow.'}] },
+  { id:'TK-006', reporter:'Maria Santos', category:'Bug', title:'Dashboard analytics showing incorrect data', status:'Open',        priority:'Medium',   manager:'Anna Lee',      ac:'purple', created:'Jan 16, 2024', desc:'Revenue and session metrics appear duplicated in the main analytics dashboard.', comments:[] },
+  { id:'TK-007', reporter:'Carlos Reyes', category:'Bug', title:'Search feature returning no results',        status:'In Progress', priority:'High',     manager:'David Kim',     ac:'green',  created:'Jan 17, 2024', desc:'The site search returns 0 results for all queries despite items existing in the database.', comments:[{author:'David Kim',role:'support',time:'Jan 17, 10:00 AM',text:'Elasticsearch index appears corrupted. Re-indexing now.'}] },
+  { id:'TK-008', reporter:'Maria Santos', category:'Task', title:'User profile images not uploading',          status:'Resolved',    priority:'Low',      manager:'Anna Lee',      ac:'purple', created:'Jan 12, 2024', desc:'Profile picture upload was failing due to incorrect S3 bucket permissions. Resolved.', comments:[] },
+  { id:'TK-009', reporter:'John Client', category:'Bug', title:'Two-factor auth codes not delivered',        status:'Open',        priority:'Critical', manager:'Sarah Johnson', ac:'',       created:'Jan 17, 2024', desc:'SMS-based 2FA codes are not being sent. Users are locked out of their accounts.', comments:[{author:'John Client',role:'client',time:'Jan 17, 08:00 AM',text:'Multiple enterprise accounts affected. This is urgent.'}] },
+  { id:'TK-010', reporter:'Carlos Reyes', category:'Task', title:'API rate limits too restrictive',            status:'Closed',      priority:'Medium',   manager:'David Kim',     ac:'green',  created:'Jan 10, 2024', desc:'Rate limits adjusted. Increased to 1000 req/min for enterprise plans.', comments:[] },
+  { id:'TK-011', reporter:'Carlos Reyes', category:'Bug', title:'CSV export corrupting special characters',   status:'In Progress', priority:'Medium',   manager:'Mike Torres',   ac:'orange', created:'Jan 18, 2024', desc:'Exported CSV files show garbled text for accented characters or emojis.', comments:[] },
+  { id:'TK-012', reporter:'John Client', category:'Bug', title:'Admin panel inaccessible after update',      status:'Open',        priority:'High',     manager:'Sarah Johnson', ac:'',       created:'Jan 18, 2024', desc:'Following the v3.2 deployment, admin users receive a 403 error on login.', comments:[] },
+  { id:'TK-013', reporter:'Carlos Reyes', category:'Task', title:'Webhook events not firing',                  status:'Resolved',    priority:'High',     manager:'David Kim',     ac:'green',  created:'Jan 11, 2024', desc:'Webhook endpoints were not receiving events due to an incorrect URL in config. Fixed.', comments:[] },
+  { id:'TK-014', reporter:'Maria Santos', category:'Task', title:'Onboarding wizard skipping steps',           status:'In Progress', priority:'Low',      manager:'Anna Lee',      ac:'purple', created:'Jan 19, 2024', desc:'New users report the wizard skips from step 2 to step 5, missing critical setup.', comments:[] },
+  { id:'TK-015', reporter:'Carlos Reyes', category:'Bug', title:'Dark mode flickering on refresh',            status:'Closed',      priority:'Low',      manager:'Mike Torres',   ac:'orange', created:'Jan 9, 2024',  desc:'White flash on page load in dark mode. Fixed by persisting theme in localStorage.', comments:[] },
+  { id:'TK-016', reporter:'John Client', category:'Task', title:'Subscription renewal emails missing',        status:'Open',        priority:'High',     manager:'Sarah Johnson', ac:'',       created:'Jan 19, 2024', desc:'Customers are not receiving renewal reminder emails 7 days before billing date.', comments:[] },
+  { id:'TK-017', reporter:'Carlos Reyes', category:'Bug', title:'SSO login loop with SAML provider',          status:'In Progress', priority:'Critical', manager:'David Kim',     ac:'green',  created:'Jan 20, 2024', desc:'Enterprise SAML SSO users are caught in an authentication redirect loop.', comments:[{author:'David Kim',role:'support',time:'Jan 20, 11:00 AM',text:'Working with the IdP team to debug the SAML assertion.'}] },
+  { id:'TK-018', reporter:'Maria Santos', category:'Task', title:'Bulk user import failing above 500 rows',    status:'Resolved',    priority:'Medium',   manager:'Anna Lee',      ac:'purple', created:'Jan 13, 2024', desc:'CSV imports over 500 rows timed out. Resolved with 200-row batch processing.', comments:[] },
+  { id:'TK-019', reporter:'John Client', category:'Bug', title:'Audit log timestamps incorrect',             status:'Open',        priority:'Medium',   manager:'Mike Torres',   ac:'orange', created:'Jan 20, 2024', desc:'Audit logs recorded in UTC but displayed without timezone conversion.', comments:[] },
+  { id:'TK-020', reporter:'John Client', category:'Bug', title:'Password reset link expiring instantly',     status:'In Progress', priority:'High',     manager:'Sarah Johnson', ac:'',       created:'Jan 21, 2024', desc:'Password reset links expire before users can click them.', comments:[{author:'John Client',role:'client',time:'Jan 21, 07:00 AM',text:'This is blocking our new employee accounts.'}] },
 ];
 
 // Initialize TICKETS from storage or default
@@ -187,16 +187,16 @@ function openDetail(id, dataSource) {
 }
 
 function renderDetail() {
-    // Assignee and Category click-to-edit logic (script only, not in template)
+    // Manager and Category click-to-edit logic (script only, not in template)
     setTimeout(function() {
-      // Assignee
-      var display = document.getElementById('assigneeDisplay');
-      var select = document.getElementById('assigneeSelect');
+      // Manager
+      var display = document.getElementById('managerDisplay');
+      var select = document.getElementById('managerSelect');
       if (display && select) {
         display.onclick = function() {
           display.classList.add('d-none');
           select.classList.remove('d-none');
-          select.value = t.assignee;
+          select.value = t.manager;
           select.focus();
         };
         select.onblur = function() {
@@ -204,32 +204,32 @@ function renderDetail() {
           display.classList.remove('d-none');
         };
         select.onchange = function() {
-          var newAssignee = select.value;
-          if (newAssignee !== t.assignee) {
-            t.assignee = newAssignee;
+          var newManager = select.value;
+          if (newManager !== t.manager) {
+            t.manager = newManager;
             if (commentsMap[t.id]) {
               t.activity = t.activity || [];
               t.activity.unshift({
-                type: 'assignee',
+                type: 'manager',
                 author: CURRENT_USER,
-                action: 'changed assignee to',
-                value: newAssignee,
+                action: 'changed manager to',
+                value: newManager,
                 time: new Date().toLocaleString('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })
               });
             }
-            // Push notification for assignee change
+            // Push notification for manager change
             NOTIFS.unshift({
               id: Date.now(),
               icon: 'bi-person-check-fill',
               bg: '#e0e7ff',
               fg: '#3730a3',
-              title: `Assignee changed: ${t.id}`,
-              body: `${CURRENT_USER} assigned ticket to ${newAssignee}`,
+              title: `Manager changed: ${t.id}`,
+              body: `${CURRENT_USER} assigned ticket to ${newManager}`,
               time: new Date().toLocaleString('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' }),
               unread: true,
               ticketId: t.id
             });
-            showToast({type: 'info', title: 'Assignee changed', message: `${CURRENT_USER} assigned ticket to ${newAssignee}`});
+            showToast({type: 'info', title: 'Manager changed', message: `${CURRENT_USER} assigned ticket to ${newManager}`});
             saveNotifsToStorage();
             renderNotifList && renderNotifList();
             saveTicketsToStorage();
@@ -349,11 +349,11 @@ function renderDetail() {
     ${attachmentsHTML}
     <div class="row g-3 mb-3">
       <div class="col-6">
-        <p class="text-uppercase text-muted fw-semibold mb-1" style="font-size:10.5px;letter-spacing:.6px">Assignee</p>
+        <p class="text-uppercase text-muted fw-semibold mb-1" style="font-size:10.5px;letter-spacing:.6px">Manager</p>
         <div class="d-flex align-items-center gap-2 fw-semibold" style="font-size:13px">
-          <div class="avatar-sm ${t.ac}" style="width:22px;height:22px;font-size:9px">${initials(t.assignee)}</div>
-          <span id="assigneeDisplay" style="cursor:pointer;text-decoration:underline dotted;">${t.assignee}</span>
-          <select id="assigneeSelect" class="form-select form-select-sm d-none" style="width:auto;min-width:120px;font-size:13px;">
+          <div class="avatar-sm ${t.ac}" style="width:22px;height:22px;font-size:9px">${initials(t.manager)}</div>
+          <span id="managerDisplay" style="cursor:pointer;text-decoration:underline dotted;">${t.manager}</span>
+          <select id="managerSelect" class="form-select form-select-sm d-none" style="width:auto;min-width:120px;font-size:13px;">
             <option value="Sarah Johnson">Sarah Johnson</option>
             <option value="Alex Lee">Alex Lee</option>
             <option value="Priya Patel">Priya Patel</option>
@@ -507,16 +507,16 @@ document.addEventListener('DOMContentLoaded', function() {
         avatarEl.textContent = initials;
         avatarEl.title = CURRENT_USER + ' – Client';
       }
-    // Dynamically render assignee options in create ticket modal
-    const ctAssignee = document.getElementById('ctAssignee');
-    if (ctAssignee) {
+    // Dynamically render manager options in create ticket modal
+    const ctManager = document.getElementById('ctManager');
+    if (ctManager) {
       let agents = [];
       try {
         agents = JSON.parse(localStorage.getItem('servicedesk_agents')) || ['Sarah Johnson','Alex Lee','Priya Patel','David Kim','Emma Brown'];
       } catch(e) {
         agents = ['Sarah Johnson','Alex Lee','Priya Patel','David Kim','Emma Brown'];
       }
-      ctAssignee.innerHTML = agents.map(a => `<option value="${a}">${a}</option>`).join('');
+      ctManager.innerHTML = agents.map(a => `<option value="${a}">${a}</option>`).join('');
     }
   var commentBox = document.getElementById('newComment');
   if (commentBox) {
@@ -746,7 +746,7 @@ function getFiltered() {
     t.id.toLowerCase().includes(fSearch) ||
     t.title.toLowerCase().includes(fSearch) ||
     (t.reporter||'').toLowerCase().includes(fSearch) ||
-    t.assignee.toLowerCase().includes(fSearch)
+    t.manager.toLowerCase().includes(fSearch)
   );
   list.sort((a,b) => (a[sortField]||'').localeCompare(b[sortField]||'') * sortDir);
   return list;
@@ -812,8 +812,8 @@ function render() {
           </div>
         </td>
         <td><div class="d-flex align-items-center gap-2">
-          <div class="avatar-sm ${t.ac}">${initials(t.assignee)}</div>
-          <span style="font-size:12.5px">${t.assignee}</span>
+          <div class="avatar-sm ${t.ac}">${initials(t.manager)}</div>
+          <span style="font-size:12.5px">${t.manager}</span>
         </div></td>
         <td class="text-muted" style="font-size:12px">${t.created}</td>
       </tr>`).join('');
@@ -843,12 +843,12 @@ function submitTicket() {
   const priority = document.getElementById('ctPriority').value;
   const category = document.getElementById('ctCategory').value;
   const reporter = document.getElementById('ctReporter').value;
-  const assignee = document.getElementById('ctAssignee') ? document.getElementById('ctAssignee').value : 'Sarah Johnson';
+  const manager = document.getElementById('ctManager') ? document.getElementById('ctManager').value : 'Sarah Johnson';
   const desc     = document.getElementById('ctDesc').value.trim();
   if (!title || !desc) { alert('Title and Description are required.'); return; }
   const id  = getNextTicketId();
   const now = new Date().toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'});
-  TICKETS.unshift({ id, title, status:'Open', priority, category, reporter, assignee, ac:'', created:now, desc, comments:[], attachments:[...ctAttachments] });
+  TICKETS.unshift({ id, title, status:'Open', priority, category, reporter, manager, ac:'', created:now, desc, comments:[], attachments:[...ctAttachments] });
   commentsMap[id] = [];
   // Add notification for ticket creation
   NOTIFS.unshift({
@@ -943,8 +943,8 @@ function submitComment() {
 function doRemoveTicket() { removeTicket(TICKETS); }
 
 function exportCSV(){
-  const rows=getFiltered().map(t=>[t.id,`"${t.title}"`,t.status,t.priority,t.assignee,t.created]);
-  const csv=[['Ticket ID','Title','Status','Priority','Assignee','Created'],...rows].map(r=>r.join(',')).join('\n');
+  const rows=getFiltered().map(t=>[t.id,`"${t.title}"`,t.status,t.priority,t.manager,t.created]);
+  const csv=[['Ticket ID','Title','Status','Priority','Manager','Created'],...rows].map(r=>r.join(',')).join('\n');
   const a=document.createElement('a'); a.href='data:text/csv,'+encodeURIComponent(csv); a.download='support-tickets.csv'; a.click();
 }
 
@@ -1038,8 +1038,8 @@ function initMyTicketsPage() {
           <p class="text-muted mb-3" style="font-size:12px;line-height:1.5">${t.desc.substring(0,80)}...</p>
           <div class="d-flex align-items-center justify-content-between">
             <div class="d-flex align-items-center gap-2">
-              <div class="avatar-sm ${t.ac}" style="width:22px;height:22px;font-size:9px;display:flex;align-items:center;justify-content:center;border-radius:7px;">${initials(t.assignee)}</div>
-              <span class="text-muted" style="font-size:11.5px">${t.assignee}</span>
+              <div class="avatar-sm ${t.ac}" style="width:22px;height:22px;font-size:9px;display:flex;align-items:center;justify-content:center;border-radius:7px;">${initials(t.manager)}</div>
+              <span class="text-muted" style="font-size:11.5px">${t.manager}</span>
             </div>
             ${prioBadgeHTML(t.priority)}
           </div>
@@ -1078,14 +1078,14 @@ function initMyTicketsPage() {
   function submitNewTicket() {
     const title    = document.getElementById('newTitle').value.trim();
     const priority = document.getElementById('newPriority').value;
-    const assignee = document.getElementById('newAssignee') ? document.getElementById('newAssignee').value : 'Sarah Johnson';
+    const manager = document.getElementById('newManager') ? document.getElementById('newManager').value : 'Sarah Johnson';
     const desc     = document.getElementById('newDesc').value.trim();
     if (!title || !desc) return;
     const id  = getNextTicketId();
     const now = new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
     const newTicket = { 
       id, title, status: 'Open', priority, 
-      assignee, ac: '', created: now, 
+      manager, ac: '', created: now, 
       desc, comments: [] 
     };
     ticketsData.unshift(newTicket);

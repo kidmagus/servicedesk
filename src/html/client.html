@@ -190,7 +190,7 @@
                 <th onclick="sortBy('priority')">Priority <i class="bi bi-chevron-expand ms-1" style="font-size:10px;opacity:.4"></i></th>
                 <th onclick="sortBy('category')">Category <i class="bi bi-chevron-expand ms-1" style="font-size:10px;opacity:.4"></i></th>
                 <th onclick="sortBy('reporter')">Reporter <i class="bi bi-chevron-expand ms-1" style="font-size:10px;opacity:.4"></i></th>
-                <th onclick="sortBy('assignee')">Assignee <i class="bi bi-chevron-expand ms-1" style="font-size:10px;opacity:.4"></i></th>
+                <th onclick="sortBy('manager')">Manager <i class="bi bi-chevron-expand ms-1" style="font-size:10px;opacity:.4"></i></th>
                 <th onclick="sortBy('created')">Created <i class="bi bi-chevron-expand ms-1" style="font-size:10px;opacity:.4"></i></th>
               </tr>
             </thead>
@@ -253,9 +253,9 @@
             <input type="text" class="form-control" id="ctReporter" readonly>
           </div>
           <div class="col-3">
-            <label class="form-label">Assignee <span class="text-danger">*</span></label>
-            <select class="form-select" id="ctAssignee">
-              <!-- Assignee options will be rendered by JS -->
+            <label class="form-label">Manager <span class="text-danger">*</span></label>
+            <select class="form-select" id="ctManager">
+              <!-- Manager options will be rendered by JS -->
             </select>
           </div>
         </div>

@@ -232,8 +232,8 @@
                 <option value="">All Clients</option>
                 <option>John Client</option><option>Maria Santos</option><option>Carlos Reyes</option><option>Ana Rivera</option><option>Ben Cruz</option>
               </select>
-              <select class="filter-select" id="pmFAssignee" onchange="pmRender()">
-                <option value="">All Assignees</option>
+              <select class="filter-select" id="pmFManager" onchange="pmRender()">
+                <option value="">All Managers</option>
                 <option>Sarah Johnson</option><option>Alex Lee</option><option>Priya Patel</option><option>David Kim</option><option>Emma Brown</option>
               </select>
             </div>
@@ -248,7 +248,7 @@
                   <th onclick="pmSort('priority')">Priority <i class="bi bi-chevron-expand ms-1" style="font-size:10px;opacity:.4"></i></th>
                   <th onclick="pmSort('category')">Category <i class="bi bi-chevron-expand ms-1" style="font-size:10px;opacity:.4"></i></th>
                   <th onclick="pmSort('reporter')">Reporter <i class="bi bi-chevron-expand ms-1" style="font-size:10px;opacity:.4"></i></th>
-                  <th>Assignee</th>
+                  <th>Manager</th>
                   <th onclick="pmSort('created')">Created <i class="bi bi-chevron-expand ms-1" style="font-size:10px;opacity:.4"></i></th>
                 </tr>
               </thead>
@@ -274,7 +274,7 @@
         <p class="text-muted mb-0" style="font-size:13px">Agent assignment overview and capacity</p>
       </div>
       <div class="d-flex justify-content-start mb-2">
-        <button class="btn btn-outline-primary btn-sm" onclick="openAddAgentModal()"><i class="bi bi-person-plus"></i> Add Assignee</button>
+        <button class="btn btn-outline-primary btn-sm" onclick="openAddAgentModal()"><i class="bi bi-person-plus"></i> Add Manager</button>
       </div>
       <div class="row g-3" id="agentCards"></div>
       <!-- Modal container for agent editing -->
@@ -411,9 +411,9 @@
             <input type="text" class="form-control" id="ctReporter" readonly>
           </div>
           <div class="col-3">
-            <label class="form-label">Assignee <span class="text-danger">*</span></label>
-            <select class="form-select" id="ctAssignee">
-              <!-- Assignee options will be rendered by JS -->
+            <label class="form-label">Manager <span class="text-danger">*</span></label>
+            <select class="form-select" id="ctManager">
+              <!-- Manager options will be rendered by JS -->
             </select>
           </div>
         </div>
@@ -527,7 +527,7 @@
 <script src="js/bootstrap.bundle.min.js"></script>
 <script src="js/pm-view.js"></script>
 <script>
-// Modal HTML for editing/removing assignee (injected dynamically)
+// Modal HTML for editing/removing manager (injected dynamically)
 function renderAgentModal(agentName) {
   const modalId = 'editAgentModal';
   const modalHtml = `
@@ -535,7 +535,7 @@ function renderAgentModal(agentName) {
       <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content rounded-3 border-0 shadow">
           <div class="modal-header">
-            <h6 class="modal-title fw-bold" id="editAgentModalLabel">Edit Assignee</h6>
+            <h6 class="modal-title fw-bold" id="editAgentModalLabel">Edit Manager</h6>
             <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
           </div>
           <div class="modal-body">
@@ -544,7 +544,7 @@ function renderAgentModal(agentName) {
               <input type="text" class="form-control" id="editAgentName" value="${agentName}">
             </div>
             <div class="d-flex justify-content-between">
-              <button class="btn btn-danger" id="removeAgentBtn">Remove Assignee</button>
+              <button class="btn btn-danger" id="removeAgentBtn">Remove Manager</button>
               <button class="btn btn-primary" id="saveAgentBtn">Save Changes</button>
             </div>
           </div>
@@ -569,7 +569,7 @@ function renderAgentModal(agentName) {
 }
 window.openAgentModal = renderAgentModal;
 
-// Modal HTML for adding a new assignee
+// Modal HTML for adding a new manager
 function renderAddAgentModal() {
   const modalId = 'addAgentModal';
   const modalHtml = `
@@ -577,13 +577,13 @@ function renderAddAgentModal() {
       <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content rounded-3 border-0 shadow">
           <div class="modal-header">
-            <h6 class="modal-title fw-bold" id="addAgentModalLabel">Add Assignee</h6>
+            <h6 class="modal-title fw-bold" id="addAgentModalLabel">Add Manager</h6>
             <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
           </div>
           <div class="modal-body">
             <div class="mb-3">
               <label class="form-label">Name</label>
-              <input type="text" class="form-control" id="addAgentName" placeholder="Enter assignee name">
+              <input type="text" class="form-control" id="addAgentName" placeholder="Enter manager name">
             </div>
             <div class="d-flex justify-content-end">
               <button class="btn btn-primary" id="addAgentBtn">Add</button>

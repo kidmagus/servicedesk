@@ -33,7 +33,7 @@ let commentsMap = {};
 let selectedTicket = null;
 let pmOffcanvas    = null;
 let pmPage = 1, pmSortField = 'id', pmSortDir = 1;
-let pmFStatus='', pmFPriority='', pmFClient='', pmFAssignee='', pmFSearch='';
+let pmFStatus='', pmFPriority='', pmFClient='', pmFManager='', pmFSearch='';
 let charts = {};
 
 const initials = n => n.split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,2);
@@ -189,7 +189,7 @@ function renderOverview() {
           <div class="flex-grow-1">
             <div class="d-flex gap-2 mb-1">${prioBadge(t.priority)} ${statusBadge(t.status)}</div>
             <div class="fw-semibold" style="font-size:13px;color:#1a2235">${t.title}</div>
-            <div class="text-muted mt-1" style="font-size:11.5px"><i class="bi bi-person me-1"></i>${t.reporter} · <i class="bi bi-person-fill-check me-1"></i>${t.assignee}</div>
+            <div class="text-muted mt-1" style="font-size:11.5px"><i class="bi bi-person me-1"></i>${t.reporter} · <i class="bi bi-person-fill-check me-1"></i>${t.manager}</div>
           </div>
         </div>`).join('');
 
@@ -249,16 +249,16 @@ function pmGetFiltered() {
   const sf = document.getElementById('pmFStatus')?.value||'';
   const pf = document.getElementById('pmFPriority')?.value||'';
   const cf = document.getElementById('pmFClient')?.value||'';
-  const af = document.getElementById('pmFAssignee')?.value||'';
+  const af = document.getElementById('pmFManager')?.value||'';
   if (sf) list = list.filter(t=>t.status===sf);
   if (pf) list = list.filter(t=>t.priority===pf);
   if (cf) list = list.filter(t=>t.reporter===cf);
-  if (af) list = list.filter(t=>t.assignee===af);
+  if (af) list = list.filter(t=>t.manager===af);
   if (pmFSearch) list = list.filter(t=>
     t.id.toLowerCase().includes(pmFSearch)||
     t.title.toLowerCase().includes(pmFSearch)||
     (t.reporter||'').toLowerCase().includes(pmFSearch)||
-    t.assignee.toLowerCase().includes(pmFSearch)
+    t.manager.toLowerCase().includes(pmFSearch)
   );
   return list.sort((a,b)=>((a[pmSortField]||'').localeCompare(b[pmSortField]||''))*pmSortDir);
 }
@@ -296,8 +296,8 @@ function pmRender() {
       </td>
      <td style="font-size:13px">
         <div class="d-flex align-items-center gap-2">
-          <div class="avatar-sm" style="background:#e0e7ef;color:#3b3b4f;width:22px;height:22px;font-size:9px;border-radius:7px">${initials(t.assignee||'?')}</div>
-          ${t.assignee || '—'}
+          <div class="avatar-sm" style="background:#e0e7ef;color:#3b3b4f;width:22px;height:22px;font-size:9px;border-radius:7px">${initials(t.manager||'?')}</div>
+          ${t.manager || '—'}
         </div>
       </td>
       <td class="text-muted" style="font-size:12px">${t.created}</td>
@@ -314,10 +314,10 @@ function renderPagination(page, total) {
 }
 function quickReassign(id, agent) {
   const t = TICKETS.find(t=>t.id===id); if(!t) return;
-  t.assignee = agent;
+  t.manager = agent;
   const time = new Date().toLocaleString('en-US',{month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'});
   t.activity = t.activity||[];
-  t.activity.unshift({type:'assignee',author:PM_USER,action:'reassigned to',value:agent,time});
+  t.activity.unshift({type:'manager',author:PM_USER,action:'reassigned to',value:agent,time});
   NOTIFS.unshift({id:Date.now(),icon:'bi-person-check-fill',bg:'#e0e7ff',fg:'#3730a3',title:'Reassigned: '+id,body:PM_USER+' assigned to '+agent,time,unread:true,ticketId:id});
   saveTickets(); saveNotifs(); renderNotifList();
   pmRender();
@@ -337,12 +337,12 @@ window.saveAgentName = function(oldName, newName) {
   if (idx !== -1) {
     AGENTS[idx] = newName;
     // Update tickets assigned to this agent
-    TICKETS.forEach(t => { if (t.assignee === oldName) t.assignee = newName; });
+    TICKETS.forEach(t => { if (t.manager === oldName) t.manager = newName; });
     saveTickets();
     saveAgents();
     pmRender();
     renderWorkload();
-    showToast && showToast({type:'success',title:'Assignee Updated',message:`${oldName} renamed to ${newName}`});
+    showToast && showToast({type:'success',title:'Manager Updated',message:`${oldName} renamed to ${newName}`});
   }
 };
 
@@ -352,9 +352,9 @@ window.addAgent = function(name) {
     AGENTS.push(name);
     saveAgents();
     renderWorkload();
-    showToast && showToast({type:'success',title:'Assignee Added',message:`${name} added to team`});
+    showToast && showToast({type:'success',title:'Manager Added',message:`${name} added to team`});
   } else {
-    showToast && showToast({type:'warning',title:'Already Exists',message:`${name} is already an assignee`});
+    showToast && showToast({type:'warning',title:'Already Exists',message:`${name} is already a manager`});
   }
 };
 
@@ -365,18 +365,18 @@ window.removeAgent = function(agentName) {
     AGENTS.splice(idx, 1);
     saveAgents();
     // Unassign tickets
-    TICKETS.forEach(t => { if (t.assignee === agentName) t.assignee = ''; });
+    TICKETS.forEach(t => { if (t.manager === agentName) t.manager = ''; });
     saveTickets();
     pmRender();
     renderWorkload();
-    showToast && showToast({type:'info',title:'Assignee Removed',message:`${agentName} removed from team`});
+    showToast && showToast({type:'info',title:'Manager Removed',message:`${agentName} removed from team`});
   }
 };
 function renderWorkload() {
   const acEl = document.getElementById('agentCards');
   const wlEl = document.getElementById('workloadTableBody');
   acEl.innerHTML = AGENTS.map((agent,i)=>{
-    const my  = TICKETS.filter(t=>t.assignee===agent);
+    const my  = TICKETS.filter(t=>t.manager===agent);
     const op  = my.filter(t=>t.status==='Open').length;
     const ip  = my.filter(t=>t.status==='In Progress').length;
     const rs  = my.filter(t=>t.status==='Resolved').length;
@@ -405,7 +405,7 @@ function renderWorkload() {
   }).join('');
 
   wlEl.innerHTML = AGENTS.map((agent,i)=>{
-    const my  = TICKETS.filter(t=>t.assignee===agent);
+    const my  = TICKETS.filter(t=>t.manager===agent);
     const op  = my.filter(t=>t.status==='Open').length;
     const ip  = my.filter(t=>t.status==='In Progress').length;
     const rs  = my.filter(t=>t.status==='Resolved').length;
@@ -450,7 +450,7 @@ function renderAnalytics() {
     });
     charts.chartAgent = new Chart(document.getElementById('chartAgent'), {
       type:'bar',
-      data:{labels:AGENTS.map(a=>a.split(' ')[0]),datasets:[{label:'Resolved/Closed',data:AGENTS.map(a=>TICKETS.filter(t=>t.assignee===a&&['Resolved','Closed'].includes(t.status)).length),backgroundColor:AGENT_COLORS,borderRadius:7}]},
+      data:{labels:AGENTS.map(a=>a.split(' ')[0]),datasets:[{label:'Resolved/Closed',data:AGENTS.map(a=>TICKETS.filter(t=>t.manager===a&&['Resolved','Closed'].includes(t.status)).length),backgroundColor:AGENT_COLORS,borderRadius:7}]},
       options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{y:{beginAtZero:true,grid:{color:'#f0f2f8'},ticks:{font:{family:'Plus Jakarta Sans'}}},x:{grid:{display:false},ticks:{font:{family:'Plus Jakarta Sans'}}}}}
     });
     // trend line (last 14 days – synthetic)
@@ -530,12 +530,12 @@ function renderDetail() {
     <div class="detail-desc p-3 mb-3 rounded-3">${t.desc}</div>
     <div class="row g-3 mb-3">
       <div class="col-6">
-        <p class="text-uppercase text-muted fw-semibold mb-1" style="font-size:10.5px;letter-spacing:.6px">Assignee</p>
+        <p class="text-uppercase text-muted fw-semibold mb-1" style="font-size:10.5px;letter-spacing:.6px">Manager</p>
         <div class="d-flex align-items-center gap-2">
-          <div class="avatar-sm ${t.ac||''}" style="width:22px;height:22px;font-size:9px">${initials(t.assignee)}</div>
-          <span id="assigneeDisplay" style="cursor:pointer;text-decoration:underline dotted; font-size:13px;" title="Click to change">${t.assignee}</span>
-          <select id="assigneeSelect" class="form-select form-select-sm d-none" style="width:auto;min-width:130px;font-size:13px">
-            ${AGENTS.map(a=>`<option value="${a}" ${a===t.assignee?'selected':''}>${a}</option>`).join('')}
+          <div class="avatar-sm ${t.ac||''}" style="width:22px;height:22px;font-size:9px">${initials(t.manager)}</div>
+          <span id="managerDisplay" style="cursor:pointer;text-decoration:underline dotted; font-size:13px;" title="Click to change">${t.manager}</span>
+          <select id="managerSelect" class="form-select form-select-sm d-none" style="width:auto;min-width:130px;font-size:13px">
+            ${AGENTS.map(a=>`<option value="${a}" ${a===t.manager?'selected':''}>${a}</option>`).join('')}
           </select>
         </div>
       </div>
@@ -595,28 +595,28 @@ function renderDetail() {
       </div>
     </div>
   `;
-  var assigneeDisplay = document.getElementById('assigneeDisplay');
-    var assigneeSelect = document.getElementById('assigneeSelect');
-      if (assigneeDisplay && assigneeSelect) {
-        assigneeDisplay.onclick = function() {
-          assigneeDisplay.classList.add('d-none');
-            assigneeSelect.classList.remove('d-none');
-            assigneeSelect.value = t.assignee;
-            assigneeSelect.focus();
+  var managerDisplay = document.getElementById('managerDisplay');
+    var managerSelect = document.getElementById('managerSelect');
+      if (managerDisplay && managerSelect) {
+        managerDisplay.onclick = function() {
+          managerDisplay.classList.add('d-none');
+            managerSelect.classList.remove('d-none');
+            managerSelect.value = t.manager;
+            managerSelect.focus();
           };
-          assigneeSelect.onblur = function() {
-            assigneeSelect.classList.add('d-none');
-            assigneeDisplay.classList.remove('d-none');
+          managerSelect.onblur = function() {
+            managerSelect.classList.add('d-none');
+            managerDisplay.classList.remove('d-none');
           };
-          assigneeSelect.onchange = function() {
-            var newAssignee = assigneeSelect.value;
-            if (newAssignee !== t.assignee) {
-              quickReassign(t.id, newAssignee);
-              selectedTicket.assignee = newAssignee;
+          managerSelect.onchange = function() {
+            var newManager = managerSelect.value;
+            if (newManager !== t.manager) {
+              quickReassign(t.id, newManager);
+              selectedTicket.manager = newManager;
               renderDetail();
             }
-            assigneeSelect.classList.add('d-none');
-            assigneeDisplay.classList.remove('d-none');
+            managerSelect.classList.add('d-none');
+            managerDisplay.classList.remove('d-none');
           };
         }
   document.getElementById('detailStatus').value   = t.status;
@@ -855,10 +855,10 @@ function openCreateModal() {
   window.ctAttachments = [];
   const preview = document.getElementById('ctPreview');
   if (preview) preview.innerHTML = '';
-  // Render assignee options dynamically
-  const ctAssignee = document.getElementById('ctAssignee');
-  if (ctAssignee) {
-    ctAssignee.innerHTML = AGENTS.map(a => `<option value="${a}">${a}</option>`).join('');
+  // Render manager options dynamically
+  const ctManager = document.getElementById('ctManager');
+  if (ctManager) {
+    ctManager.innerHTML = AGENTS.map(a => `<option value="${a}">${a}</option>`).join('');
   }
   // Set reporter field to PM_USER
   const ctReporter = document.getElementById('ctReporter');
@@ -879,7 +879,7 @@ function pmSubmitTicket() {
     priority: document.getElementById('ctPriority').value,
     category: document.getElementById('ctCategory').value,
     reporter: document.getElementById('ctReporter').value,
-    assignee: document.getElementById('ctAssignee').value,
+    manager: document.getElementById('ctManager').value,
     ac:'', created:time, desc, comments:[], attachments:[...window.ctAttachments]
   });
   commentsMap[id]=[];
