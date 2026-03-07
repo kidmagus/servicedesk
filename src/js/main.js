@@ -491,6 +491,17 @@ function addComment() {
 
 // ── ENABLE ENTER TO SUBMIT COMMENT ───────────
 document.addEventListener('DOMContentLoaded', function() {
+    // Dynamically render assignee options in create ticket modal
+    const ctAssignee = document.getElementById('ctAssignee');
+    if (ctAssignee) {
+      let agents = [];
+      try {
+        agents = JSON.parse(localStorage.getItem('servicedesk_agents')) || ['Sarah Johnson','Alex Lee','Priya Patel','David Kim','Emma Brown'];
+      } catch(e) {
+        agents = ['Sarah Johnson','Alex Lee','Priya Patel','David Kim','Emma Brown'];
+      }
+      ctAssignee.innerHTML = agents.map(a => `<option value="${a}">${a}</option>`).join('');
+    }
   var commentBox = document.getElementById('newComment');
   if (commentBox) {
     commentBox.addEventListener('keydown', function(e) {
