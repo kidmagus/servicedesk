@@ -86,14 +86,26 @@ function doLogout() {
 // SIDEBAR COLLAPSE (same logic as main.js)
 // ═══════════════════════════════════════════════════════
 function initSidebar() {
-  const sb  = document.getElementById('sidebar');
-  const btn = document.getElementById('sidebarToggle');
-  if (!sb || !btn) return;
-  if (localStorage.getItem('servicedesk_sidebar_collapsed') === 'true') sb.classList.add('collapsed');
-  btn.addEventListener('click', () => {
-    sb.classList.toggle('collapsed');
-    localStorage.setItem('servicedesk_sidebar_collapsed', sb.classList.contains('collapsed'));
+  const sidebar = document.getElementById('sidebar');
+  const toggleBtn = document.getElementById('sidebarToggle');
+  const brandIcon = document.querySelector('.brand-icon');
+  if (!sidebar || !toggleBtn) return;
+  if (localStorage.getItem('servicedesk_sidebar_collapsed') === 'true') {
+    sidebar.classList.add('collapsed');
+  }
+  toggleBtn.addEventListener('click', function() {
+    sidebar.classList.toggle('collapsed');
+    const isCollapsed = sidebar.classList.contains('collapsed');
+    localStorage.setItem('servicedesk_sidebar_collapsed', isCollapsed);
   });
+  if (brandIcon) {
+    brandIcon.addEventListener('click', function() {
+      if (sidebar.classList.contains('collapsed')) {
+        sidebar.classList.remove('collapsed');
+        localStorage.setItem('servicedesk_sidebar_collapsed', false);
+      }
+    });
+  }
 }
 
 // ═══════════════════════════════════════════════════════
