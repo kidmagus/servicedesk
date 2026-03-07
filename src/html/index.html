@@ -76,9 +76,16 @@ function selectRole(r) {
 }
 
 function doLogin() {
+  let user = '';
   if (loginRole === 'client') {
+    user = document.getElementById('selClient').value;
+    localStorage.setItem('servicedesk_current_user', user);
+    localStorage.setItem('servicedesk_current_role', 'client');
     window.location.href = 'client.html';
   } else if (loginRole === 'pm') {
+    user = document.getElementById('selPM').value;
+    localStorage.setItem('servicedesk_current_user', user);
+    localStorage.setItem('servicedesk_current_role', 'pm');
     window.location.href = 'pm-view.html';
   }
 }

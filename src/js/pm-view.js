@@ -25,7 +25,7 @@ const STATUS_CLASS= {Open:'primary text-white','In Progress':'warning text-dark'
 const PRIO_STYLE  = {Critical:'background:#ffe4e6;color:#be123c',High:'background:#ffedd5;color:#9a3412',Medium:'background:#fef9c3;color:#78350f',Low:'background:#f0fdf4;color:#14532d'};
 const PAGE_SIZE   = 8;
 
-let PM_USER  = 'Rachel Morgan';
+let PM_USER = localStorage.getItem('servicedesk_current_user') || 'Rachel Morgan';
 let TICKETS  = [];
 let NOTIFS   = [];
 let NOTES    = {}; // { ticketId: [{author,time,text}] }
@@ -58,6 +58,15 @@ function saveNotes()   { localStorage.setItem(NOTES_KEY,   JSON.stringify(NOTES)
 // INITIALIZATION
 // ═══════════════════════════════════════════════════════
 document.addEventListener('DOMContentLoaded', function() {
+    // Set PM sidebar name and avatar to signed-in user
+    const pmNameEl = document.getElementById('pmName');
+    if (pmNameEl) pmNameEl.textContent = PM_USER;
+    const pmAvatarEl = document.getElementById('pmAvatar');
+    if (pmAvatarEl && PM_USER) {
+      const pmInitials = PM_USER.split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,2);
+      pmAvatarEl.textContent = pmInitials;
+      pmAvatarEl.title = PM_USER + ' – Project Manager';
+    }
   loadData();
   // Ensure NOTIFS is loaded from storage if not already
   if (!Array.isArray(NOTIFS) || !NOTIFS.length) {

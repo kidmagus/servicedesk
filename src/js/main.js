@@ -1,5 +1,5 @@
 // Dynamic user (frontend-only)
-let CURRENT_USER = 'Matthew Samson'; // Set from sidebar or user selection
+let CURRENT_USER = localStorage.getItem('servicedesk_current_user') || 'Matthew Samson';
 
 // ── SIDEBAR COLLAPSE ─────────────────────────
 const SIDEBAR_STORAGE_KEY = 'servicedesk_sidebar_collapsed';
@@ -491,16 +491,21 @@ function addComment() {
 
 // ── ENABLE ENTER TO SUBMIT COMMENT ───────────
 document.addEventListener('DOMContentLoaded', function() {
-      // Set reporter field to user context (use name from UI if available)
+      // Set reporter field to user context (from localStorage)
       const ctReporter = document.getElementById('ctReporter');
       if (ctReporter) {
-        // Try to get the client name from the sidebar
-        let clientName = '';
-        const nameEl = document.querySelector('.user-info .fw-semibold');
-        if (nameEl) {
-          clientName = nameEl.textContent.trim();
-        }
-        ctReporter.value = clientName || 'John Client';
+        ctReporter.value = CURRENT_USER;
+      }
+      // Set sidebar name/avatar if present
+      const nameEl = document.querySelector('.user-info .fw-semibold');
+      if (nameEl) {
+        nameEl.textContent = CURRENT_USER;
+      }
+      const avatarEl = document.getElementById('clientAvatar');
+      if (avatarEl && CURRENT_USER) {
+        const initials = CURRENT_USER.split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,2);
+        avatarEl.textContent = initials;
+        avatarEl.title = CURRENT_USER + ' – Client';
       }
     // Dynamically render assignee options in create ticket modal
     const ctAssignee = document.getElementById('ctAssignee');
