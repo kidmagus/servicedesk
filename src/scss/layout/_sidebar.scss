@@ -1,3 +1,34 @@
+// Sidebar user chip collapse behavior for client and pm view
+.sidebar.collapsed .user-chip .user-info,
+.sidebar.collapsed .user-chip .logout-icon {
+	display: none !important;
+}
+.sidebar .user-chip .user-avatar {
+	transition: border-radius 0.2s;
+}
+.sidebar.collapsed .user-chip .user-avatar {
+	margin: 0 auto;
+}
+// Show floating logout icon below avatar when collapsed
+.sidebar.collapsed .user-chip .user-avatar-wrap .logout-icon-collapsed {
+	display: block !important;
+	position: static;
+	margin-top: 4px;
+	margin-bottom: 0;
+	left: 0;
+	right: 0;
+	text-align: center;
+}
+.sidebar .user-chip .user-avatar-wrap {
+	position: relative;
+}
+// Show floating logout icon on avatar when collapsed
+.sidebar.collapsed .user-chip .user-avatar-wrap .logout-icon-collapsed {
+	display: block !important;
+}
+.sidebar .user-chip .user-avatar-wrap {
+	position: relative;
+}
 .sidebar.collapsed {
 	width: 70px;
 	min-width: 70px;

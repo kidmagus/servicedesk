@@ -1194,7 +1194,6 @@ window.testToast = function() {
 
 // ── LOGOUT HANDLER ─────────────────────────
 window.doLogout = function doLogout() {
-  document.getElementById('clientApp').classList.add('d-none');
-  document.getElementById('loginPage').classList.remove('d-none');
+  window.location.href = 'index.html';
 };
 

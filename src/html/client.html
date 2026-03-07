@@ -42,12 +42,15 @@
     </nav>
     <div class="px-2 py-3 border-top border-white border-opacity-10">
       <div class="user-chip d-flex align-items-center gap-2 px-2 py-2">
-        <div class="user-avatar d-flex align-items-center justify-content-center text-white flex-shrink-0">MS</div>
-        <div>
-          <div class="text-white fw-semibold" style="font-size:12.5px; ">Matthew Samson</div>
-          <div class="text-white-50" style="font-size:10.5px; white-space: nowrap;">Client Account</div>
+        <div class="user-avatar-wrap d-flex flex-column align-items-center position-relative">
+          <div class="user-avatar d-flex align-items-center justify-content-center text-white flex-shrink-0 mb-1" id="clientAvatar" style="background:#3b7cf4" title="Matthew Samson – Client">MS</div>
+          <i class="bi bi-box-arrow-right logout-icon-collapsed text-white-50 mt-1" style="cursor:pointer; display:none; font-size:18px; background:#23293a; border-radius:50%; padding:4px; z-index:2;" onclick="doLogout()" title="Sign out"></i>
         </div>
-        <i class="bi bi-box-arrow-right ms-auto text-white-50" style="cursor:pointer" onclick="window.location.href='index.html'" title="Sign out"></i>
+        <div class="user-info flex-grow-1">
+          <div class="text-white fw-semibold" style="font-size:12.5px">Matthew Samson</div>
+          <div class="text-white-50" style="font-size:10.5px;white-space:nowrap">Client Account</div>
+        </div>
+        <i class="bi bi-box-arrow-right ms-auto text-white-50 logout-icon" style="cursor:pointer" onclick="doLogout()" title="Sign out"></i>
       </div>
     </div>
   </aside>
