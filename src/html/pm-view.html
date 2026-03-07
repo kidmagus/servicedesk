@@ -273,7 +273,13 @@
         <p class="fw-bold mb-1" style="font-size:16px;color:#1a2235">Team Workload</p>
         <p class="text-muted mb-0" style="font-size:13px">Agent assignment overview and capacity</p>
       </div>
+      <div class="d-flex justify-content-end mb-2">
+        <button class="btn btn-outline-primary btn-sm" onclick="openAddAgentModal()"><i class="bi bi-person-plus"></i> Add Assignee</button>
+      </div>
       <div class="row g-3" id="agentCards"></div>
+      <!-- Modal container for agent editing -->
+      <div id="agentModalContainer"></div>
+        <div id="addAgentModalContainer"></div>
       <!-- Workload table -->
       <div class="card border-0 shadow-sm rounded-3">
         <div class="card-header bg-white border-bottom px-4 py-3">
@@ -413,11 +419,7 @@
           <div class="col-3">
             <label class="form-label">Assignee <span class="text-danger">*</span></label>
             <select class="form-select" id="ctAssignee">
-              <option value="Sarah Johnson">Sarah Johnson</option>
-              <option value="Alex Lee">Alex Lee</option>
-              <option value="Priya Patel">Priya Patel</option>
-              <option value="David Kim">David Kim</option>
-              <option value="Emma Brown">Emma Brown</option>
+              <!-- Assignee options will be rendered by JS -->
             </select>
           </div>
         </div>
@@ -530,5 +532,93 @@
 
 <script src="js/bootstrap.bundle.min.js"></script>
 <script src="js/pm-view.js"></script>
+<script>
+// Modal HTML for editing/removing assignee (injected dynamically)
+function renderAgentModal(agentName) {
+  const modalId = 'editAgentModal';
+  const modalHtml = `
+    <div class="modal fade" id="${modalId}" tabindex="-1" aria-labelledby="editAgentModalLabel" aria-hidden="true">
+      <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content rounded-3 border-0 shadow">
+          <div class="modal-header">
+            <h6 class="modal-title fw-bold" id="editAgentModalLabel">Edit Assignee</h6>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <div class="modal-body">
+            <div class="mb-3">
+              <label class="form-label">Name</label>
+              <input type="text" class="form-control" id="editAgentName" value="${agentName}">
+            </div>
+            <div class="d-flex justify-content-between">
+              <button class="btn btn-danger" id="removeAgentBtn">Remove Assignee</button>
+              <button class="btn btn-primary" id="saveAgentBtn">Save Changes</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  `;
+  document.getElementById('agentModalContainer').innerHTML = modalHtml;
+  const modal = new bootstrap.Modal(document.getElementById(modalId));
+  modal.show();
+  document.getElementById('saveAgentBtn').onclick = function() {
+    const newName = document.getElementById('editAgentName').value.trim();
+    if (newName && newName !== agentName) {
+      window.saveAgentName(agentName, newName);
+      modal.hide();
+    }
+  };
+  document.getElementById('removeAgentBtn').onclick = function() {
+    window.removeAgent(agentName);
+    modal.hide();
+  };
+}
+window.openAgentModal = renderAgentModal;
+
+// Modal HTML for adding a new assignee
+function renderAddAgentModal() {
+  const modalId = 'addAgentModal';
+  const modalHtml = `
+    <div class="modal fade" id="${modalId}" tabindex="-1" aria-labelledby="addAgentModalLabel" aria-hidden="true">
+      <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content rounded-3 border-0 shadow">
+          <div class="modal-header">
+            <h6 class="modal-title fw-bold" id="addAgentModalLabel">Add Assignee</h6>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <div class="modal-body">
+            <div class="mb-3">
+              <label class="form-label">Name</label>
+              <input type="text" class="form-control" id="addAgentName" placeholder="Enter assignee name">
+            </div>
+            <div class="d-flex justify-content-end">
+              <button class="btn btn-primary" id="addAgentBtn">Add</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  `;
+  document.getElementById('addAgentModalContainer').innerHTML = modalHtml;
+  const modal = new bootstrap.Modal(document.getElementById(modalId));
+  modal.show();
+  const addInput = document.getElementById('addAgentName');
+  const addBtn = document.getElementById('addAgentBtn');
+  addBtn.onclick = function() {
+    const name = addInput.value.trim();
+    if (name) {
+      window.addAgent(name);
+      modal.hide();
+    }
+  };
+  addInput.addEventListener('keydown', function(e) {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      addBtn.click();
+    }
+  });
+}
+window.openAddAgentModal = renderAddAgentModal;
+</script>
 </body>
 </html>

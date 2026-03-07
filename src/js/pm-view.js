@@ -19,7 +19,7 @@ function pmUpdateCategory(newCategory) {
 const TICKETS_KEY = 'servicedesk_tickets';
 const NOTIFS_KEY  = 'servicedesk_notifs';
 const NOTES_KEY   = 'servicedesk_internal_notes'; // PM-only
-const AGENTS      = ['Sarah Johnson','Alex Lee','Priya Patel','David Kim','Emma Brown'];
+let AGENTS = [];
 const AGENT_COLORS= ['#3b7cf4','#16a34a','#ea580c','#7c3aed','#dc2626'];
 const STATUS_CLASS= {Open:'primary text-white','In Progress':'warning text-dark',Resolved:'success text-white',Closed:'secondary text-white'};
 const PRIO_STYLE  = {Critical:'background:#ffe4e6;color:#be123c',High:'background:#ffedd5;color:#9a3412',Medium:'background:#fef9c3;color:#78350f',Low:'background:#f0fdf4;color:#14532d'};
@@ -42,9 +42,15 @@ function loadData() {
   try { TICKETS = JSON.parse(localStorage.getItem(TICKETS_KEY)) || []; } catch(e){ TICKETS=[]; }
   try { NOTIFS  = JSON.parse(localStorage.getItem(NOTIFS_KEY))  || []; } catch(e){ NOTIFS=[];  }
   try { NOTES   = JSON.parse(localStorage.getItem(NOTES_KEY))   || {}; } catch(e){ NOTES={};   }
+  try {
+    AGENTS = JSON.parse(localStorage.getItem('servicedesk_agents')) || ['Sarah Johnson','Alex Lee','Priya Patel','David Kim','Emma Brown'];
+  } catch(e) {
+    AGENTS = ['Sarah Johnson','Alex Lee','Priya Patel','David Kim','Emma Brown'];
+  }
   TICKETS.forEach(t => commentsMap[t.id] = [...(t.comments||[])]);
 }
 function saveTickets() { localStorage.setItem(TICKETS_KEY, JSON.stringify(TICKETS)); }
+function saveAgents() { localStorage.setItem('servicedesk_agents', JSON.stringify(AGENTS)); }
 function saveNotifs()  { localStorage.setItem(NOTIFS_KEY,  JSON.stringify(NOTIFS));  }
 function saveNotes()   { localStorage.setItem(NOTES_KEY,   JSON.stringify(NOTES));   }
 
@@ -316,6 +322,47 @@ function quickReassign(id, agent) {
 // ═══════════════════════════════════════════════════════
 // TEAM WORKLOAD
 // ═══════════════════════════════════════════════════════
+// Save agent name (edit)
+window.saveAgentName = function(oldName, newName) {
+  const idx = AGENTS.indexOf(oldName);
+  if (idx !== -1) {
+    AGENTS[idx] = newName;
+    // Update tickets assigned to this agent
+    TICKETS.forEach(t => { if (t.assignee === oldName) t.assignee = newName; });
+    saveTickets();
+    saveAgents();
+    pmRender();
+    renderWorkload();
+    showToast && showToast({type:'success',title:'Assignee Updated',message:`${oldName} renamed to ${newName}`});
+  }
+};
+
+// Add new agent
+window.addAgent = function(name) {
+  if (!AGENTS.includes(name)) {
+    AGENTS.push(name);
+    saveAgents();
+    renderWorkload();
+    showToast && showToast({type:'success',title:'Assignee Added',message:`${name} added to team`});
+  } else {
+    showToast && showToast({type:'warning',title:'Already Exists',message:`${name} is already an assignee`});
+  }
+};
+
+// Remove agent
+window.removeAgent = function(agentName) {
+  const idx = AGENTS.indexOf(agentName);
+  if (idx !== -1) {
+    AGENTS.splice(idx, 1);
+    saveAgents();
+    // Unassign tickets
+    TICKETS.forEach(t => { if (t.assignee === agentName) t.assignee = ''; });
+    saveTickets();
+    pmRender();
+    renderWorkload();
+    showToast && showToast({type:'info',title:'Assignee Removed',message:`${agentName} removed from team`});
+  }
+};
 function renderWorkload() {
   const acEl = document.getElementById('agentCards');
   const wlEl = document.getElementById('workloadTableBody');
@@ -328,9 +375,9 @@ function renderWorkload() {
     const util= Math.min(100, Math.round(((op+ip)/6)*100));
     const uc  = util<40?'#16a34a':util<75?'#d97706':'#dc2626';
     return `<div class="col-4">
-      <div class="agent-card">
+      <div class="agent-card agent-card-clickable" data-agent="${agent}" style="cursor:pointer" onclick="openAgentModal('${agent}')">
         <div class="d-flex align-items-center gap-3 mb-3">
-          <div class="agent-avatar" style="background:${AGENT_COLORS[i]}">${initials(agent)}</div>
+         <div class="agent-avatar" style="background:${AGENT_COLORS[i%AGENT_COLORS.length]||'#7c3aed'}">${initials(agent)}</div>
           <div>
             <div class="fw-bold" style="font-size:14px;color:#1a2235">${agent}</div>
             <div class="text-muted" style="font-size:11.5px">Support Agent</div>
@@ -798,6 +845,11 @@ function openCreateModal() {
   window.ctAttachments = [];
   const preview = document.getElementById('ctPreview');
   if (preview) preview.innerHTML = '';
+  // Render assignee options dynamically
+  const ctAssignee = document.getElementById('ctAssignee');
+  if (ctAssignee) {
+    ctAssignee.innerHTML = AGENTS.map(a => `<option value="${a}">${a}</option>`).join('');
+  }
   new bootstrap.Modal(document.getElementById('createTicketModal')).show();
 }
 function pmSubmitTicket() {
