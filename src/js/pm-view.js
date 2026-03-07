@@ -294,7 +294,11 @@ function quickReassign(id, agent) {
   NOTIFS.unshift({id:Date.now(),icon:'bi-person-check-fill',bg:'#e0e7ff',fg:'#3730a3',title:'Reassigned: '+id,body:PM_USER+' assigned to '+agent,time,unread:true,ticketId:id});
   saveTickets(); saveNotifs(); renderNotifList();
   pmRender();
-  showToast({type:'info',title:'Reassigned',message:'Ticket '+id+' → '+agent});
+  showToast({
+    type: 'info',
+    title: 'Reassigned',
+    message: id + ': ' + PM_USER + ' reassign the ticket to ' + agent
+  });
 }
 
 // ═══════════════════════════════════════════════════════
@@ -460,7 +464,8 @@ function renderDetail() {
         <p class="text-uppercase text-muted fw-semibold mb-1" style="font-size:10.5px;letter-spacing:.6px">Assignee</p>
         <div class="d-flex align-items-center gap-2">
           <div class="avatar-sm ${t.ac||''}" style="width:22px;height:22px;font-size:9px">${initials(t.assignee)}</div>
-          <select class="form-select form-select-sm" style="width:auto;min-width:130px;font-size:13px" onchange="quickReassign('${t.id}',this.value);selectedTicket.assignee=this.value;renderDetail()">
+          <span id="assigneeDisplay" style="cursor:pointer;text-decoration:underline dotted; font-size:13px;" title="Click to change">${t.assignee}</span>
+          <select id="assigneeSelect" class="form-select form-select-sm d-none" style="width:auto;min-width:130px;font-size:13px">
             ${AGENTS.map(a=>`<option value="${a}" ${a===t.assignee?'selected':''}>${a}</option>`).join('')}
           </select>
         </div>
@@ -521,6 +526,30 @@ function renderDetail() {
       </div>
     </div>
   `;
+  var assigneeDisplay = document.getElementById('assigneeDisplay');
+    var assigneeSelect = document.getElementById('assigneeSelect');
+      if (assigneeDisplay && assigneeSelect) {
+        assigneeDisplay.onclick = function() {
+          assigneeDisplay.classList.add('d-none');
+            assigneeSelect.classList.remove('d-none');
+            assigneeSelect.value = t.assignee;
+            assigneeSelect.focus();
+          };
+          assigneeSelect.onblur = function() {
+            assigneeSelect.classList.add('d-none');
+            assigneeDisplay.classList.remove('d-none');
+          };
+          assigneeSelect.onchange = function() {
+            var newAssignee = assigneeSelect.value;
+            if (newAssignee !== t.assignee) {
+              quickReassign(t.id, newAssignee);
+              selectedTicket.assignee = newAssignee;
+              renderDetail();
+            }
+            assigneeSelect.classList.add('d-none');
+            assigneeDisplay.classList.remove('d-none');
+          };
+        }
   document.getElementById('detailStatus').value   = t.status;
   document.getElementById('detailPriority').value = t.priority;
 
@@ -548,6 +577,25 @@ function renderDetail() {
           TICKETS[idx].category = newCategory;
           saveTickets();
         }
+        // Add notification for category change
+        const time = new Date().toLocaleString('en-US',{month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'});
+        NOTIFS.unshift({
+          id: Date.now(),
+          icon: 'bi-tags-fill',
+          bg: '#ede9fe',
+          fg: '#6d28d9',
+          title: 'Category: ' + selectedTicket.id,
+          body: PM_USER + ' set category to ' + newCategory,
+          time,
+          unread: true,
+          ticketId: selectedTicket.id
+        });
+        renderNotifList && renderNotifList();
+        showToast({
+          type: 'info',
+          title: 'Category updated',
+          message: selectedTicket.id + ': ' + PM_USER + ' set category to ' + newCategory
+        });
         if (typeof pmRender === 'function') pmRender();
         renderDetail();
       } else {
@@ -573,25 +621,36 @@ function renderDetail() {
 function pmUpdateStatus(v) {
   if (!selectedTicket) return;
   const t = TICKETS.find(x=>x.id===selectedTicket.id); if(!t) return;
+  const prevStatus = selectedTicket.status;
   t.status = selectedTicket.status = v;
   const time = new Date().toLocaleString('en-US',{month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'});
   t.activity = t.activity||[];
   t.activity.unshift({type:'status',author:PM_USER,action:'set status to',value:v,time});
   NOTIFS.unshift({id:Date.now(),icon:'bi-arrow-clockwise',bg:'#fef9c3',fg:'#92400e',title:'Status: '+t.id,body:PM_USER+' set status to '+v,time,unread:true,ticketId:t.id});
   saveTickets(); saveNotifs(); renderDetail(); renderNotifList();
-  showToast({type:'info',title:'Status updated',message:PM_USER+' → '+v});
+  showToast({
+    type: 'info',
+    title: 'Status updated',
+    message: t.id + ' ' + PM_USER + ' changed status from ' + prevStatus + ' to ' + v
+  });
   if (document.getElementById('sec-tickets').offsetParent!==null) pmRender();
 }
 function pmUpdatePriority(v) {
   if (!selectedTicket) return;
   const t = TICKETS.find(x=>x.id===selectedTicket.id); if(!t) return;
+  const prevPriority = selectedTicket.priority;
   t.priority = selectedTicket.priority = v;
   const time = new Date().toLocaleString('en-US',{month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'});
   t.activity = t.activity||[];
   t.activity.unshift({type:'priority',author:PM_USER,action:'set priority to',value:v,time});
   NOTIFS.unshift({id:Date.now(),icon:'bi-flag-fill',bg:'#ffedd5',fg:'#9a3412',title:'Priority: '+t.id,body:PM_USER+' set priority to '+v,time,unread:true,ticketId:t.id});
   saveTickets(); saveNotifs(); renderDetail(); renderNotifList();
-  showToast({type:'info',title:'Priority updated',message:PM_USER+' → '+v});
+  showToast({
+    type: 'info',
+    title: 'Priority updated',
+    message: t.id + ' ' + PM_USER + ' changed priority from ' + prevPriority + ' to ' + v
+  });
+  if (document.getElementById('sec-tickets')?.offsetParent !== null) pmRender();
 }
 function pmAddNote() {
   const txt = document.getElementById('newNote')?.value.trim();
@@ -665,7 +724,11 @@ function pmSubmitComment() {
   saveTickets(); saveNotifs(); renderNotifList();
   document.getElementById('newComment').value='';
   renderDetail();
-  showToast({type:'info',title:'Comment added',message:PM_USER+' commented'});
+  showToast({
+    type: 'info',
+    title: 'Comment added',
+    message: PM_USER + ' commented to ' + selectedTicket.id
+  });
 }
 function pmSaveEdit() {
   const t = TICKETS.find(x=>x.id===selectedTicket?.id); if(!t) return;
