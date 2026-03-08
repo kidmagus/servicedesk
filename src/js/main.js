@@ -661,10 +661,20 @@ function removeTicket(dataSource) {
 
 // ── NOTIFICATIONS ──────────────────────────────
 function renderNotifList() {
-  const unread = NOTIFS.filter(n => n.unread).length;
+  let visibleNotifs = NOTIFS;
+  // Only show notifications for the current client user (not PM)
+  if (localStorage.getItem('servicedesk_current_role') !== 'pm') {
+    visibleNotifs = NOTIFS.filter(n => {
+      // Try to match ticketId to a ticket and check reporter
+      if (!n.ticketId) return false;
+      const t = TICKETS.find(t => t.id === n.ticketId);
+      return t && t.reporter === CURRENT_USER;
+    });
+  }
+  const unread = visibleNotifs.filter(n => n.unread).length;
   document.getElementById('notifDot').style.display = unread > 0 ? 'block' : 'none';
   document.getElementById('notifList').innerHTML =
-    NOTIFS.map(n => `
+    visibleNotifs.map(n => `
       <div class="notif-row ${n.unread ? 'unread' : ''}" onclick="openDetail('${n.ticketId || (n.title && n.title.match(/TK-\d{3}/) ? n.title.match(/TK-\d{3}/)[0] : '')}')">
         <div class="notif-icon-sm" style="background:${n.bg};color:${n.fg}"><i class="bi ${n.icon}"></i></div>
         <div class="flex-grow-1">
@@ -673,7 +683,7 @@ function renderNotifList() {
           <div class="text-muted mt-1" style="font-size:11px"><i class="bi bi-clock me-1"></i>${n.time}</div>
         </div>
       </div>`).join('') +
-    `<div class="text-center py-2 border-top"><span class="text-muted" style="font-size:12px">${unread} unread · ${NOTIFS.length} total</span></div>`;
+    `<div class="text-center py-2 border-top"><span class="text-muted" style="font-size:12px">${unread} unread · ${visibleNotifs.length} total</span></div>`;
   saveNotifsToStorage();
 }
 
