@@ -522,8 +522,8 @@ document.addEventListener('DOMContentLoaded', function() {
     // Dynamically render manager options in create ticket modal
     const ctManager = document.getElementById('ctManager');
     if (ctManager) {
-      // Use the same managers as in index.html
-      const managers = ['Rachel Morgan', 'James Tran'];
+      // Use the same PMs as in the login page
+      const managers = JSON.parse(localStorage.getItem('servicedesk_pms')) || ['Matthew Samson', 'John Doe'];
       ctManager.innerHTML = managers.map(m => `<option value="${m}">${m}</option>`).join('');
     }
   var commentBox = document.getElementById('newComment');
@@ -748,6 +748,10 @@ window.addEventListener('DOMContentLoaded', () => {
 // ── TABLE ──────────────────────────────────────
 function getFiltered() {
   let list = [...TICKETS];
+  // Only show tickets for the current client user (not PM)
+  if (localStorage.getItem('servicedesk_current_role') !== 'pm') {
+    list = list.filter(t => t.reporter === CURRENT_USER);
+  }
   if (fStatus)   list = list.filter(t => t.status   === fStatus);
   if (fPriority) list = list.filter(t => t.priority === fPriority);
   if (fSearch)   list = list.filter(t =>
@@ -774,12 +778,22 @@ function render() {
   const from  = (page-1) * PAGE_SIZE;
   const items = filtered.slice(from, from + PAGE_SIZE);
 
-  document.getElementById('statTotal').textContent    = TICKETS.length;
-  document.getElementById('statOpen').textContent     = TICKETS.filter(t=>t.status==='Open').length;
-  document.getElementById('statProgress').textContent = TICKETS.filter(t=>t.status==='In Progress').length;
-  document.getElementById('statResolved').textContent = TICKETS.filter(t=>t.status==='Resolved').length;
+  // Only count tickets for the current client user (not PM)
+  let visibleTickets = TICKETS;
+  if (localStorage.getItem('servicedesk_current_role') !== 'pm') {
+    visibleTickets = TICKETS.filter(t => t.reporter === CURRENT_USER);
+  }
+  document.getElementById('statTotal').textContent    = visibleTickets.length;
+  document.getElementById('statOpen').textContent     = visibleTickets.filter(t=>t.status==='Open').length;
+  document.getElementById('statProgress').textContent = visibleTickets.filter(t=>t.status==='In Progress').length;
+  document.getElementById('statResolved').textContent = visibleTickets.filter(t=>t.status==='Resolved').length;
   document.getElementById('ticketCountBadge').textContent = `${total} found`;
-  document.getElementById('sidebarCount').textContent     = TICKETS.length;
+  // Only show sidebar count for the current client user (not PM)
+  if (localStorage.getItem('servicedesk_current_role') !== 'pm') {
+    document.getElementById('sidebarCount').textContent = visibleTickets.length;
+  } else {
+    document.getElementById('sidebarCount').textContent = TICKETS.length;
+  }
 
   const tbody = document.getElementById('ticketTableBody');
   const empty = document.getElementById('emptyState');
@@ -856,8 +870,15 @@ function submitTicket() {
   if (!title || !desc) { alert('Title and Description are required.'); return; }
   const id  = getNextTicketId();
   const now = new Date().toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'});
-  TICKETS.unshift({ id, title, status:'Open', priority, category, reporter, manager, ac:'', created:now, desc, comments:[], attachments:[...ctAttachments] });
+  // Only add the ticket if the reporter matches the CURRENT_USER (client)
+  const newTicket = { id, title, status:'Open', priority, category, reporter, manager, ac:'', created:now, desc, comments:[], attachments:[...ctAttachments] };
+  TICKETS.unshift(newTicket);
   commentsMap[id] = [];
+  // If not PM, only update the UI for the current client
+  if (localStorage.getItem('servicedesk_current_role') !== 'pm') {
+    // Optionally, you could filter TICKETS here, but getFiltered() already does this
+    // So just ensure the ticket is created with the correct reporter
+  }
   // Add notification for ticket creation
   NOTIFS.unshift({
     id: Date.now(),
