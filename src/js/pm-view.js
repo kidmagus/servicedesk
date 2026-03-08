@@ -279,6 +279,20 @@ function pmRender() {
   document.getElementById('pmPageTo').textContent    = Math.min(start+PAGE_SIZE, total);
   document.getElementById('pmPageTotal').textContent = total;
   document.getElementById('pmPageControls').innerHTML = renderPagination(pmPage, total);
+
+  // Update client and manager dropdowns with correct lists
+  const clientSelect = document.getElementById('pmFClient');
+  if (clientSelect) {
+    // Get unique clients from tickets
+    const clients = Array.from(new Set(TICKETS.map(t => t.reporter))).filter(Boolean);
+    clientSelect.innerHTML = '<option value="">All Clients</option>' + clients.map(c => `<option value="${c}">${c}</option>`).join('');
+  }
+  const managerSelect = document.getElementById('pmFManager');
+  if (managerSelect) {
+    // Use PMs from localStorage or fallback
+    const pms = JSON.parse(localStorage.getItem('servicedesk_pms')) || ['Matthew Samson', 'John Doe'];
+    managerSelect.innerHTML = '<option value="">All Managers</option>' + pms.map(pm => `<option value="${pm}">${pm}</option>`).join('');
+  }
   if (!slice.length) { tbody.innerHTML=''; empty.classList.remove('d-none'); return; }
   empty.classList.add('d-none');
   tbody.innerHTML = slice.map(t=>`
