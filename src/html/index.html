@@ -32,29 +32,29 @@
       <div class="role-card active" id="roleCardClient" onclick="selectRole('client')">
         <div class="ri">👤</div>
         <div class="rn">Client</div>
-        <div class="rd">Submit & track tickets</div>
+        <!-- <div class="rd">Submit & track tickets</div> -->
       </div>
       <div class="role-card" id="roleCardPM" onclick="selectRole('pm')">
-        <div class="ri">🧭</div>
+          <div class="ri">👔</div>
         <div class="rn">Project Manager</div>
-        <div class="rd">Full team oversight</div>
+        <!-- <div class="rd">Full team oversight</div> -->
       </div>
     </div>
     <div class="login-field" id="fieldClient">
       <label>Sign in as</label>
       <select id="selClient">
-        <option>John Client</option>
-        <option>Maria Santos</option>
-        <option>Carlos Reyes</option>
-        <option>Ana Rivera</option>
-        <option>Ben Cruz</option>
+        <option>E-Bureauet</option>
+        <option>Insatech</option>
+        <option>Roskilde</option>
+        <option>Dansk Standard</option>
+        <option>Imerco</option>
       </select>
     </div>
     <div class="login-field" id="fieldPM" style="display:none">
       <label>Sign in as</label>
       <select id="selPM">
-        <option>Rachel Morgan</option>
-        <option>James Tran</option>
+        <option>Matthew Samson</option>
+        <option>John Doe</option>
       </select>
     </div>
     <button class="login-btn" onclick="doLogin()">
@@ -86,6 +86,8 @@ function doLogin() {
     user = document.getElementById('selPM').value;
     localStorage.setItem('servicedesk_current_user', user);
     localStorage.setItem('servicedesk_current_role', 'pm');
+    // Sync PM list for manager dropdown
+    localStorage.setItem('servicedesk_pms', JSON.stringify(['Matthew Samson', 'John Doe']));
     window.location.href = 'pm-view.html';
   }
 }

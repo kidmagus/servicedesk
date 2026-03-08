@@ -616,9 +616,9 @@ function renderDetail() {
       function getPMOptions(selected) {
         let pms = [];
         try {
-          pms = JSON.parse(localStorage.getItem('servicedesk_pms')) || ['Rachel Morgan','James Tran'];
+          pms = JSON.parse(localStorage.getItem('servicedesk_pms')) || ['Matthew Samson','John Doe'];
         } catch(e) {
-          pms = ['Rachel Morgan','James Tran'];
+          pms = ['Matthew Samson','John Doe'];
         }
         return pms.map(pm => `<option value="${pm}" ${pm===selected?'selected':''}>${pm}</option>`).join('');
       }
@@ -643,6 +643,26 @@ function renderDetail() {
         saveTickets();
         renderDetail();
         if (typeof pmRender === 'function') pmRender();
+        // Add notification and toast
+        const time = new Date().toLocaleString('en-US', {month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'});
+        NOTIFS.unshift({
+          id: Date.now(),
+          icon: 'bi-person-check-fill',
+          bg: '#e0e7ff',
+          fg: '#3730a3',
+          title: 'Manager Changed',
+          body: PM_USER + ' changed manager to ' + newManager + ' for ' + t.id,
+          time,
+          unread: true,
+          ticketId: t.id
+        });
+        saveNotifs();
+        renderNotifList();
+        showToast({
+          type: 'info',
+          title: 'Manager Changed',
+          message: PM_USER + ' changed manager to ' + newManager + ' for ' + t.id
+        });
       }
       managerSelect.classList.add('d-none');
       managerDisplay.classList.remove('d-none');
@@ -671,6 +691,26 @@ function renderDetail() {
           saveTickets();
           renderDetail();
           if (typeof pmRender === 'function') pmRender();
+          // Add notification and toast
+          const time = new Date().toLocaleString('en-US', {month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'});
+          NOTIFS.unshift({
+            id: Date.now(),
+            icon: 'bi-person-badge',
+            bg: '#e0f2fe',
+            fg: '#0284c7',
+            title: 'Developer Changed',
+            body: PM_USER + ' changed developer to ' + newDeveloper + ' for ' + t.id,
+            time,
+            unread: true,
+            ticketId: t.id
+          });
+          saveNotifs();
+          renderNotifList();
+          showToast({
+            type: 'info',
+            title: 'Developer Changed',
+            message: PM_USER + ' changed developer to ' + newDeveloper + ' for ' + t.id
+          });
         }
         developerSelect.classList.add('d-none');
         developerDisplay.classList.remove('d-none');
@@ -931,13 +971,20 @@ function pmSubmitTicket() {
   const maxId = TICKETS.reduce((max,t)=>{ const m=/TK-(\d+)/.exec(t.id); return m?Math.max(max,+m[1]):max; },0);
   const id = 'TK-'+String(maxId+1).padStart(3,'0');
   const time = new Date().toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'});
-  TICKETS.unshift({id,title,
+  TICKETS.unshift({
+    id,
+    title,
     status:   'Open',
     priority: document.getElementById('ctPriority').value,
     category: document.getElementById('ctCategory').value,
     reporter: document.getElementById('ctReporter').value,
+    manager: PM_USER, // Always set manager for PM-created tickets
     developer: document.getElementById('ctDeveloper').value,
-    ac:'', created:time, desc, comments:[], attachments:[...window.ctAttachments]
+    ac:'',
+    created:time,
+    desc,
+    comments:[],
+    attachments:[...window.ctAttachments]
   });
   commentsMap[id]=[];
   NOTIFS.unshift({id:Date.now(),icon:'bi-plus-lg',bg:'#e0f2fe',fg:'#0284c7',title:'Created: '+id,body:PM_USER+' created: '+title,time,unread:true,ticketId:id});
@@ -946,7 +993,11 @@ function pmSubmitTicket() {
   window.ctAttachments = [];
   document.getElementById('ctPreview').innerHTML = '';
   pmRender(); renderOverview();
-  showToast({type:'success',title:'Ticket created',message:id+' — '+title});
+  showToast({
+    type: 'success',
+    title: 'Ticket created',
+    message: PM_USER + ' created ' + id
+  });
 }
 
 // ═══════════════════════════════════════════════════════
