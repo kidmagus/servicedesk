@@ -1,3 +1,16 @@
+// Unified color palette for agents and clients
+const PALETTE_COLORS = [
+  '#3b7cf4','#16a34a','#ea580c','#7c3aed','#dc2626',
+  '#f59e42','#0ea5e9','#eab308','#f43f5e','#6366f1',
+  '#14b8a6','#f472b6','#facc15','#a21caf','#059669'
+];
+function paletteColor(name) {
+  let hash = 0;
+  for (let i = 0; i < name.length; i++) {
+    hash = name.charCodeAt(i) + ((hash << 5) - hash);
+  }
+  return PALETTE_COLORS[Math.abs(hash) % PALETTE_COLORS.length];
+}
 // Update category from detail view
 function pmUpdateCategory(newCategory) {
   if (!selectedTicket) return;
@@ -20,7 +33,7 @@ const NOTIFS_KEY  = 'servicedesk_notifs';
 const NOTES_KEY   = 'servicedesk_internal_notes'; // PM-only
 let AGENTS = [];
 let CLIENTS = [];
-const AGENT_COLORS= ['#3b7cf4','#16a34a','#ea580c','#7c3aed','#dc2626'];
+// (removed AGENT_COLORS, use PALETTE_COLORS and paletteColor)
 const STATUS_CLASS= {Open:'primary text-white','In Progress':'warning text-dark',Resolved:'success text-white',Closed:'secondary text-white'};
 const PRIO_STYLE  = {Critical:'background:#ffe4e6;color:#be123c',High:'background:#ffedd5;color:#9a3412',Medium:'background:#fef9c3;color:#78350f',Low:'background:#f0fdf4;color:#14532d'};
 const PAGE_SIZE   = 8;
@@ -236,7 +249,7 @@ function renderClients() {
       return `<div class="col-4">
         <div class="agent-card client-card-clickable" style="background:#f8fafc; cursor:pointer;" onclick="openClientModal('${encodeURIComponent(client)}')">
           <div class="d-flex align-items-center gap-3 mb-3">
-            <div class="agent-avatar" style="background:#3b7cf4">${initials(client)}</div>
+            <div class="agent-avatar" style="background:${paletteColor(client)}">${initials(client)}</div>
             <div>
               <div class="fw-bold" style="font-size:14px;color:#1a2235">${client}</div>
               <div class="text-muted" style="font-size:11.5px">Client</div>
@@ -262,7 +275,7 @@ function renderClients() {
       const rs = my.filter(t => t.status === 'Resolved').length;
       const cl = my.filter(t => t.status === 'Closed').length;
       return `<tr style="cursor:pointer" onclick="openClientModal('${encodeURIComponent(client)}')">
-        <td><div class="d-flex align-items-center gap-2"><div class="avatar-sm" style="background:#3b7cf4;width:28px;height:28px;font-size:10px">${initials(client)}</div><span class="fw-semibold" style="font-size:13px">${client}</span></div></td>
+        <td><div class="d-flex align-items-center gap-2"><div class="avatar-sm" style="background:${paletteColor(client)};width:28px;height:28px;font-size:10px">${initials(client)}</div><span class="fw-semibold" style="font-size:13px">${client}</span></div></td>
         <td><span class="wl-stat">${my.length}</span></td>
         <td><span class="wl-stat" style="color:#3b7cf4">${op}</span></td>
         <td><span class="wl-stat" style="color:#d97706">${ip}</span></td>
@@ -298,6 +311,23 @@ function renderOverview() {
   const inprog   = TICKETS.filter(t => t.status === 'In Progress').length;
   const resolved = TICKETS.filter(t => t.status === 'Resolved').length;
   const closed   = TICKETS.filter(t => t.status === 'Closed').length;
+
+  // Update dashboard ticket stats
+  const ovTotalEl = document.getElementById('ovTotal');
+  if (ovTotalEl) ovTotalEl.textContent = TICKETS.length;
+  const ovOpenEl = document.getElementById('ovOpen');
+  if (ovOpenEl) ovOpenEl.textContent = open;
+  const ovInProgEl = document.getElementById('ovInProg');
+  if (ovInProgEl) ovInProgEl.textContent = inprog;
+  const ovResolvedEl = document.getElementById('ovResolved');
+  if (ovResolvedEl) ovResolvedEl.textContent = resolved;
+  const ovClosedEl = document.getElementById('ovClosed');
+  if (ovClosedEl) ovClosedEl.textContent = closed;
+  const ovCriticalEl = document.getElementById('ovCritical');
+  if (ovCriticalEl) ovCriticalEl.textContent = TICKETS.filter(t => t.priority === 'Critical' && t.status === 'Open').length;
+  // Update sidebar ticket count
+  const sidebarOpenCountEl = document.getElementById('sidebarOpenCount');
+  if (sidebarOpenCountEl) sidebarOpenCountEl.textContent = TICKETS.length;
 
   const activities = [
     {icon:'bi-plus-lg',bg:'#e0f2fe',fg:'#0284c7',text:`<b>${PM_USER}</b> opened PM Dashboard`,time:'Just now'},
@@ -502,7 +532,7 @@ function renderWorkload() {
     return `<div class="col-4">
       <div class="agent-card agent-card-clickable" data-agent="${agent}" style="cursor:pointer" onclick="openAgentModal('${agent}')">
         <div class="d-flex align-items-center gap-3 mb-3">
-          <div class="agent-avatar" style="background:${AGENT_COLORS[i%AGENT_COLORS.length]||'#7c3aed'}">${initials(agent)}</div>
+          <div class="agent-avatar" style="background:${paletteColor(agent)}">${initials(agent)}</div>
           <div>
             <div class="fw-bold" style="font-size:14px;color:#1a2235">${agent}</div>
             <div class="text-muted" style="font-size:11.5px">Developer</div>
@@ -528,7 +558,7 @@ function renderWorkload() {
     const cl  = my.filter(t=>t.status==='Closed').length;
     const util= Math.min(100, Math.round(((op+ip)/6)*100));
     return `<tr>
-      <td><div class="d-flex align-items-center gap-2"><div class="avatar-sm" style="background:${AGENT_COLORS[i]};width:28px;height:28px;font-size:10px">${initials(agent)}</div><span class="fw-semibold" style="font-size:13px">${agent}</span></div></td>
+      <td><div class="d-flex align-items-center gap-2"><div class="avatar-sm" style="background:${paletteColor(agent)};width:28px;height:28px;font-size:10px">${initials(agent)}</div><span class="fw-semibold" style="font-size:13px">${agent}</span></div></td>
       <td><span class="wl-stat">${my.length}</span></td>
       <td><span class="wl-stat" style="color:#3b7cf4">${op}</span></td>
       <td><span class="wl-stat" style="color:#d97706">${ip}</span></td>
@@ -536,7 +566,7 @@ function renderWorkload() {
       <td><span class="wl-stat" style="color:#64748b">${cl}</span></td>
       <td>
         <div class="d-flex align-items-center gap-2">
-          <div class="progress flex-grow-1" style="height:6px"><div class="progress-bar" style="width:${util}%;background:${AGENT_COLORS[i]}"></div></div>
+          <div class="progress flex-grow-1" style="height:6px"><div class="progress-bar" style="width:${util}%;background:${paletteColor(agent)}"></div></div>
           <span style="font-size:12px;font-weight:700;min-width:36px">${util}%</span>
         </div>
       </td>
@@ -560,12 +590,12 @@ function renderAnalytics() {
     const clients = Array.from(new Set(TICKETS.map(t => t.reporter))).filter(Boolean);
     charts.chartClient = new Chart(document.getElementById('chartClient'), {
       type:'bar',
-      data:{labels:clients.map(c=>c.split(' ')[0]),datasets:[{label:'Tickets',data:clients.map(c=>TICKETS.filter(t=>t.reporter===c).length),backgroundColor:AGENT_COLORS,borderRadius:7}]},
+      data:{labels:clients.map(c=>c.split(' ')[0]),datasets:[{label:'Tickets',data:clients.map(c=>TICKETS.filter(t=>t.reporter===c).length),backgroundColor:clients.map(c=>paletteColor(c)),borderRadius:7}]},
       options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{y:{beginAtZero:true,grid:{color:'#f0f2f8'},ticks:{font:{family:'Plus Jakarta Sans'}}},x:{grid:{display:false},ticks:{font:{family:'Plus Jakarta Sans'}}}}}
     });
     charts.chartAgent = new Chart(document.getElementById('chartAgent'), {
       type:'bar',
-      data:{labels:AGENTS.map(a=>a.split(' ')[0]),datasets:[{label:'Resolved/Closed',data:AGENTS.map(a=>TICKETS.filter(t=>t.manager===a&&['Resolved','Closed'].includes(t.status)).length),backgroundColor:AGENT_COLORS,borderRadius:7}]},
+      data:{labels:AGENTS.map(a=>a.split(' ')[0]),datasets:[{label:'Resolved/Closed',data:AGENTS.map(a=>TICKETS.filter(t=>t.manager===a&&['Resolved','Closed'].includes(t.status)).length),backgroundColor:AGENTS.map(a=>paletteColor(a)),borderRadius:7}]},
       options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{y:{beginAtZero:true,grid:{color:'#f0f2f8'},ticks:{font:{family:'Plus Jakarta Sans'}}},x:{grid:{display:false},ticks:{font:{family:'Plus Jakarta Sans'}}}}}
     });
     const days = [];
