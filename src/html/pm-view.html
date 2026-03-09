@@ -48,6 +48,12 @@
           </a>
         </li>
         <li class="nav-item">
+          <a class="nav-link d-flex align-items-center gap-2" onclick="showSection('clients')" href="#" id="nav-clients">
+            <i class="bi bi-person-badge"></i>
+            <span class="sidebar-link-text">Clients</span>
+          </a>
+        </li>
+        <li class="nav-item">
           <a class="nav-link d-flex align-items-center gap-2" onclick="showSection('workload')" href="#" id="nav-workload">
             <i class="bi bi-people"></i>
             <span class="sidebar-link-text">Team Workload</span>
@@ -264,6 +270,35 @@
             <div class="text-muted" style="font-size:12.5px">Showing <strong class="text-dark" id="pmPageFrom">1</strong>–<strong class="text-dark" id="pmPageTo">8</strong> of <strong class="text-dark" id="pmPageTotal">0</strong> tickets</div>
             <div class="d-flex gap-1" id="pmPageControls"></div>
           </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── SECTION: CLIENTS ────────────────────────── -->
+    <div id="sec-clients" class="content-scroll d-flex flex-column gap-3 d-none">
+      <div>
+        <p class="fw-bold mb-1" style="font-size:16px;color:#1a2235">Clients</p>
+        <p class="text-muted mb-0" style="font-size:13px">Overview of all clients and their tickets</p>
+      </div>
+      <div class="d-flex justify-content-start mb-2">
+        <button class="btn btn-outline-primary btn-sm" onclick="openAddClientModal()"><i class="bi bi-person-plus"></i> Add Client</button>
+      </div>
+      <div class="row g-3" id="clientCards"></div>
+      <div id="addClientModalContainer"></div>
+      <div id="clientModalContainer"></div>
+      <div class="card border-0 shadow-sm rounded-3">
+        <div class="card-header bg-white border-bottom px-4 py-3">
+          <span class="fw-bold" style="font-size:14px;color:#1a2235">Client Ticket Summary</span>
+        </div>
+        <div>
+          <table class="table table-hover mb-0">
+            <thead>
+              <tr>
+                <th>Client</th><th>Total</th><th>Open</th><th>In Progress</th><th>Resolved</th><th>Closed</th>
+              </tr>
+            </thead>
+            <tbody id="clientTableBody"></tbody>
+          </table>
         </div>
       </div>
     </div>
@@ -528,6 +563,49 @@
 <script src="js/bootstrap.bundle.min.js"></script>
 <script src="js/pm-view.js"></script>
 <script>
+// Modal HTML for editing/removing client (injected dynamically)
+function renderClientModal(clientName) {
+  const modalId = 'editClientModal';
+  const modalHtml = `
+    <div class="modal fade" id="${modalId}" tabindex="-1" aria-labelledby="editClientModalLabel" aria-hidden="true">
+      <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content rounded-3 border-0 shadow">
+          <div class="modal-header">
+            <h6 class="modal-title fw-bold" id="editClientModalLabel">Edit Client</h6>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <div class="modal-body">
+            <div class="mb-3">
+              <label class="form-label">Name</label>
+              <input type="text" class="form-control" id="editClientName" value="${clientName}">
+            </div>
+            <div class="d-flex justify-content-between">
+              <button class="btn btn-danger" id="removeClientBtn">Delete Client</button>
+              <button class="btn btn-primary" id="saveClientBtn">Save Changes</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  `;
+  document.getElementById('clientModalContainer').innerHTML = modalHtml;
+  const modal = new bootstrap.Modal(document.getElementById(modalId));
+  modal.show();
+  document.getElementById('saveClientBtn').onclick = function() {
+    const newName = document.getElementById('editClientName').value.trim();
+    if (newName && newName !== clientName) {
+      window.saveClientName(clientName, newName);
+      modal.hide();
+    }
+  };
+  document.getElementById('removeClientBtn').onclick = function() {
+    window.openDeleteClientModal(clientName);
+    modal.hide();
+  };
+}
+window.openClientModal = renderClientModal;
+</script>
+<script>
 // Modal HTML for editing/removing manager (injected dynamically)
 function renderAgentModal(agentName) {
   const modalId = 'editAgentModal';
@@ -536,7 +614,7 @@ function renderAgentModal(agentName) {
       <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content rounded-3 border-0 shadow">
           <div class="modal-header">
-            <h6 class="modal-title fw-bold" id="editAgentModalLabel">Edit Manager</h6>
+            <h6 class="modal-title fw-bold" id="editAgentModalLabel">Edit Developer</h6>
             <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
           </div>
           <div class="modal-body">
@@ -545,7 +623,7 @@ function renderAgentModal(agentName) {
               <input type="text" class="form-control" id="editAgentName" value="${agentName}">
             </div>
             <div class="d-flex justify-content-between">
-              <button class="btn btn-danger" id="removeAgentBtn">Remove Manager</button>
+              <button class="btn btn-danger" id="removeAgentBtn">Remove Developer</button>
               <button class="btn btn-primary" id="saveAgentBtn">Save Changes</button>
             </div>
           </div>

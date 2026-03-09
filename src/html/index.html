@@ -42,13 +42,7 @@
     </div>
     <div class="login-field" id="fieldClient">
       <label>Sign in as</label>
-      <select id="selClient">
-        <option>E-Bureauet</option>
-        <option>Insatech</option>
-        <option>Roskilde</option>
-        <option>Dansk Standard</option>
-        <option>Imerco</option>
-      </select>
+      <select id="selClient"></select>
     </div>
     <div class="login-field" id="fieldPM" style="display:none">
       <label>Sign in as</label>
@@ -81,6 +75,15 @@ function doLogin() {
     user = document.getElementById('selClient').value;
     localStorage.setItem('servicedesk_current_user', user);
     localStorage.setItem('servicedesk_current_role', 'client');
+    // Add client to CLIENTS array in localStorage if not present
+    let clients = [];
+    try {
+      clients = JSON.parse(localStorage.getItem('servicedesk_clients')) || [];
+    } catch (e) { clients = []; }
+    if (!clients.includes(user)) {
+      clients.push(user);
+      localStorage.setItem('servicedesk_clients', JSON.stringify(clients));
+    }
     window.location.href = 'client.html';
   } else if (loginRole === 'pm') {
     user = document.getElementById('selPM').value;
@@ -91,6 +94,22 @@ function doLogin() {
     window.location.href = 'pm-view.html';
   }
 }
+
+// Populate client dropdown dynamically from localStorage CLIENTS
+function populateClientDropdown() {
+  let clients = [];
+  try {
+    clients = JSON.parse(localStorage.getItem('servicedesk_clients')) || [];
+  } catch (e) { clients = []; }
+  // If no clients, use default demo list
+  if (clients.length === 0) {
+    clients = ['E-Bureauet', 'Insatech', 'Roskilde', 'Dansk Standard', 'Imerco'];
+  }
+  const sel = document.getElementById('selClient');
+  sel.innerHTML = clients.map(c => `<option>${c}</option>`).join('');
+}
+
+window.addEventListener('DOMContentLoaded', populateClientDropdown);
 </script>
 
 </body>

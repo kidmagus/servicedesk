@@ -2,7 +2,6 @@
 function pmUpdateCategory(newCategory) {
   if (!selectedTicket) return;
   selectedTicket.category = newCategory;
-  // Update in TICKETS array
   const idx = TICKETS.findIndex(t => t.id === selectedTicket.id);
   if (idx !== -1) {
     TICKETS[idx].category = newCategory;
@@ -20,6 +19,7 @@ const TICKETS_KEY = 'servicedesk_tickets';
 const NOTIFS_KEY  = 'servicedesk_notifs';
 const NOTES_KEY   = 'servicedesk_internal_notes'; // PM-only
 let AGENTS = [];
+let CLIENTS = [];
 const AGENT_COLORS= ['#3b7cf4','#16a34a','#ea580c','#7c3aed','#dc2626'];
 const STATUS_CLASS= {Open:'primary text-white','In Progress':'warning text-dark',Resolved:'success text-white',Closed:'secondary text-white'};
 const PRIO_STYLE  = {Critical:'background:#ffe4e6;color:#be123c',High:'background:#ffedd5;color:#9a3412',Medium:'background:#fef9c3;color:#78350f',Low:'background:#f0fdf4;color:#14532d'};
@@ -47,41 +47,41 @@ function loadData() {
   } catch(e) {
     AGENTS = ['Sarah Johnson','Alex Lee','Priya Patel','David Kim','Emma Brown'];
   }
+  try {
+    CLIENTS = JSON.parse(localStorage.getItem('servicedesk_clients')) || [];
+  } catch(e) {
+    CLIENTS = [];
+  }
   TICKETS.forEach(t => commentsMap[t.id] = [...(t.comments||[])]);
 }
 function saveTickets() { localStorage.setItem(TICKETS_KEY, JSON.stringify(TICKETS)); }
-function saveAgents() { localStorage.setItem('servicedesk_agents', JSON.stringify(AGENTS)); }
+function saveAgents()  { localStorage.setItem('servicedesk_agents', JSON.stringify(AGENTS)); }
 function saveNotifs()  { localStorage.setItem(NOTIFS_KEY,  JSON.stringify(NOTIFS));  }
 function saveNotes()   { localStorage.setItem(NOTES_KEY,   JSON.stringify(NOTES));   }
+function saveClients() { localStorage.setItem('servicedesk_clients', JSON.stringify(CLIENTS)); }
 
 // ═══════════════════════════════════════════════════════
 // INITIALIZATION
 // ═══════════════════════════════════════════════════════
 document.addEventListener('DOMContentLoaded', function() {
-    // Set PM sidebar name and avatar to signed-in user
-    const pmNameEl = document.getElementById('pmName');
-    if (pmNameEl) pmNameEl.textContent = PM_USER;
-    const pmAvatarEl = document.getElementById('pmAvatar');
-    if (pmAvatarEl && PM_USER) {
-      const pmInitials = PM_USER.split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,2);
-      pmAvatarEl.textContent = pmInitials;
-      pmAvatarEl.title = PM_USER + ' – Project Manager';
-    }
+  const pmNameEl = document.getElementById('pmName');
+  if (pmNameEl) pmNameEl.textContent = PM_USER;
+  const pmAvatarEl = document.getElementById('pmAvatar');
+  if (pmAvatarEl && PM_USER) {
+    const pmInitials = PM_USER.split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,2);
+    pmAvatarEl.textContent = pmInitials;
+    pmAvatarEl.title = PM_USER + ' – Project Manager';
+  }
   loadData();
-  // Ensure NOTIFS is loaded from storage if not already
   if (!Array.isArray(NOTIFS) || !NOTIFS.length) {
     try { NOTIFS = JSON.parse(localStorage.getItem(NOTIFS_KEY)) || []; } catch(e){ NOTIFS=[]; }
   }
-
-  // For compatibility with client view
-  function saveNotifsToStorage() { localStorage.setItem(NOTIFS_KEY, JSON.stringify(NOTIFS)); }
   pmOffcanvas = new bootstrap.Offcanvas(document.getElementById('ticketOffcanvas'));
   initSidebar();
   initScreenshots();
   showSection('overview');
   renderNotifList();
-  
-  // Allow Enter to submit comment, Shift+Enter for newline
+
   var commentBox = document.getElementById('newComment');
   if (commentBox) {
     commentBox.addEventListener('keydown', function(e) {
@@ -98,7 +98,7 @@ function doLogout() {
 }
 
 // ═══════════════════════════════════════════════════════
-// SIDEBAR COLLAPSE (same logic as main.js)
+// SIDEBAR COLLAPSE
 // ═══════════════════════════════════════════════════════
 function initSidebar() {
   const sidebar = document.getElementById('sidebar');
@@ -110,8 +110,7 @@ function initSidebar() {
   }
   toggleBtn.addEventListener('click', function() {
     sidebar.classList.toggle('collapsed');
-    const isCollapsed = sidebar.classList.contains('collapsed');
-    localStorage.setItem('servicedesk_sidebar_collapsed', isCollapsed);
+    localStorage.setItem('servicedesk_sidebar_collapsed', sidebar.classList.contains('collapsed'));
   });
   if (brandIcon) {
     brandIcon.addEventListener('click', function() {
@@ -127,22 +126,151 @@ function initSidebar() {
 // SECTION NAV
 // ═══════════════════════════════════════════════════════
 const SECTIONS = ['overview','tickets','workload','analytics'];
+const EXT_SECTIONS = [...SECTIONS, 'clients'];
 function showSection(id, e) {
   if (e) e.preventDefault();
-  SECTIONS.forEach(s => {
-    document.getElementById('sec-'+s).classList.add('d-none');
+  EXT_SECTIONS.forEach(s => {
+    const sec = document.getElementById('sec-'+s);
+    if (sec) sec.classList.add('d-none');
     document.getElementById('nav-'+s)?.classList.remove('active');
   });
-  document.getElementById('sec-'+id).classList.remove('d-none');
+  const sec = document.getElementById('sec-'+id);
+  if (sec) sec.classList.remove('d-none');
   document.getElementById('nav-'+id)?.classList.add('active');
-  const titles = {overview:'Dashboard',tickets:'All Tickets',workload:'Team Workload',analytics:'Analytics'};
+  const titles = {overview:'Dashboard',tickets:'All Tickets',workload:'Team Workload',analytics:'Analytics',clients:'Clients'};
   document.getElementById('topbarTitle').textContent = titles[id]||id;
-  // Render section content
   if (id==='overview')  renderOverview();
   if (id==='tickets')   pmRender();
   if (id==='workload')  renderWorkload();
   if (id==='analytics') renderAnalytics();
+  if (id==='clients')   renderClients();
   return false;
+}
+
+// ═══════════════════════════════════════════════════════
+// CLIENTS
+// ═══════════════════════════════════════════════════════
+window.openAddClientModal = function() {
+  const modalId = 'addClientModal';
+  let html = `<div class="modal fade" id="${modalId}" tabindex="-1"><div class="modal-dialog"><div class="modal-content">
+    <div class="modal-header"><h5 class="modal-title">Add Client</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+    <div class="modal-body"><input type="text" id="newClientName" class="form-control" placeholder="Client name"></div>
+    <div class="modal-footer"><button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button><button type="button" class="btn btn-primary" onclick="addClient()">Add Client</button></div>
+  </div></div></div>`;
+  document.getElementById('addClientModalContainer').innerHTML = html;
+  new bootstrap.Modal(document.getElementById(modalId)).show();
+};
+
+window.addClient = function() {
+  const name = document.getElementById('newClientName').value.trim();
+  if (!name) return showToast && showToast({type:'warning',title:'Missing Name',message:'Client name required'});
+  if (CLIENTS.includes(name)) {
+    showToast && showToast({type:'warning',title:'Already Exists',message:`${name} is already a client`});
+    return;
+  }
+  CLIENTS.push(name);
+  saveClients();
+  renderClients();
+  const modal = bootstrap.Modal.getInstance(document.getElementById('addClientModal'));
+  if (modal) modal.hide();
+  showToast && showToast({type:'success',title:'Client Added',message:`${name} added`});
+};
+
+window.saveClientName = function(oldNameEncoded, newName) {
+  const oldName = decodeURIComponent(oldNameEncoded);
+  newName = newName.trim();
+  if (!newName) {
+    showToast && showToast({type:'warning',title:'Missing Name',message:'Client name required'});
+    return;
+  }
+  if (CLIENTS.includes(newName)) {
+    showToast && showToast({type:'warning',title:'Already Exists',message:`${newName} is already a client`});
+    return;
+  }
+  const idx = CLIENTS.indexOf(oldName);
+  if (idx !== -1) {
+    CLIENTS[idx] = newName;
+    TICKETS.forEach(t => { if (t.reporter === oldName) t.reporter = newName; });
+    saveClients();
+    saveTickets();
+    renderClients();
+    showToast && showToast({type:'success',title:'Client Updated',message:`${oldName} renamed to ${newName}`});
+  }
+};
+
+window.openDeleteClientModal = function(clientEncoded) {
+  const client = decodeURIComponent(clientEncoded);
+  const modalId = 'deleteClientModal';
+  let html = `<div class="modal fade" id="${modalId}" tabindex="-1"><div class="modal-dialog"><div class="modal-content">
+    <div class="modal-header"><h5 class="modal-title">Delete Client</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+    <div class="modal-body">Are you sure you want to delete <b>${client}</b>?</div>
+    <div class="modal-footer"><button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button><button type="button" class="btn btn-danger" onclick="removeClientConfirmed('${encodeURIComponent(client)}')">Delete</button></div>
+  </div></div></div>`;
+  document.getElementById('addClientModalContainer').innerHTML = html;
+  new bootstrap.Modal(document.getElementById(modalId)).show();
+};
+
+window.removeClientConfirmed = function(clientEncoded) {
+  const client = decodeURIComponent(clientEncoded);
+  const idx = CLIENTS.indexOf(client);
+  if (idx !== -1) {
+    CLIENTS.splice(idx, 1);
+    saveClients();
+    renderClients();
+    showToast && showToast({type:'info',title:'Client Removed',message:`${client} removed from client list`});
+  }
+  const modal = bootstrap.Modal.getInstance(document.getElementById('deleteClientModal'));
+  if (modal) modal.hide();
+};
+
+function renderClients() {
+  // Cards
+  const ccEl = document.getElementById('clientCards');
+  if (ccEl) {
+    ccEl.innerHTML = CLIENTS.map((client) => {
+      const my = TICKETS.filter(t => t.reporter === client);
+      const op = my.filter(t => t.status === 'Open').length;
+      const ip = my.filter(t => t.status === 'In Progress').length;
+      const rs = my.filter(t => t.status === 'Resolved').length;
+      const cl = my.filter(t => t.status === 'Closed').length;
+      return `<div class="col-4">
+        <div class="agent-card client-card-clickable" style="background:#f8fafc; cursor:pointer;" onclick="openClientModal('${encodeURIComponent(client)}')">
+          <div class="d-flex align-items-center gap-3 mb-3">
+            <div class="agent-avatar" style="background:#3b7cf4">${initials(client)}</div>
+            <div>
+              <div class="fw-bold" style="font-size:14px;color:#1a2235">${client}</div>
+              <div class="text-muted" style="font-size:11.5px">Client</div>
+            </div>
+          </div>
+          <div class="row g-2 mb-3 text-center">
+            <div class="col-3"><div class="fw-bold" style="font-size:20px;color:#3b7cf4;font-family:'JetBrains Mono',monospace">${op}</div><div class="text-muted" style="font-size:10.5px">Open</div></div>
+            <div class="col-3"><div class="fw-bold" style="font-size:20px;color:#d97706;font-family:'JetBrains Mono',monospace">${ip}</div><div class="text-muted" style="font-size:10.5px">In Prog.</div></div>
+            <div class="col-3"><div class="fw-bold" style="font-size:20px;color:#16a34a;font-family:'JetBrains Mono',monospace">${rs}</div><div class="text-muted" style="font-size:10.5px">Resolved</div></div>
+            <div class="col-3"><div class="fw-bold" style="font-size:20px;color:#64748b;font-family:'JetBrains Mono',monospace">${cl}</div><div class="text-muted" style="font-size:10.5px">Closed</div></div>
+          </div>
+        </div>
+      </div>`;
+    }).join('');
+  }
+  // Table
+  const wlEl = document.getElementById('clientTableBody');
+  if (wlEl) {
+    wlEl.innerHTML = CLIENTS.map((client) => {
+      const my = TICKETS.filter(t => t.reporter === client);
+      const op = my.filter(t => t.status === 'Open').length;
+      const ip = my.filter(t => t.status === 'In Progress').length;
+      const rs = my.filter(t => t.status === 'Resolved').length;
+      const cl = my.filter(t => t.status === 'Closed').length;
+      return `<tr style="cursor:pointer" onclick="openClientModal('${encodeURIComponent(client)}')">
+        <td><div class="d-flex align-items-center gap-2"><div class="avatar-sm" style="background:#3b7cf4;width:28px;height:28px;font-size:10px">${initials(client)}</div><span class="fw-semibold" style="font-size:13px">${client}</span></div></td>
+        <td><span class="wl-stat">${my.length}</span></td>
+        <td><span class="wl-stat" style="color:#3b7cf4">${op}</span></td>
+        <td><span class="wl-stat" style="color:#d97706">${ip}</span></td>
+        <td><span class="wl-stat" style="color:#16a34a">${rs}</span></td>
+        <td><span class="wl-stat" style="color:#64748b">${cl}</span></td>
+      </tr>`;
+    }).join('');
+  }
 }
 
 // ═══════════════════════════════════════════════════════
@@ -166,48 +294,27 @@ function catBadge(c) {
 // OVERVIEW
 // ═══════════════════════════════════════════════════════
 function renderOverview() {
-  const total    = TICKETS.length;
-  const open     = TICKETS.filter(t=>t.status==='Open').length;
-  const inprog   = TICKETS.filter(t=>t.status==='In Progress').length;
-  const resolved = TICKETS.filter(t=>t.status==='Resolved').length;
-  const closed   = TICKETS.filter(t=>t.status==='Closed').length;
-  const critical = TICKETS.filter(t=>t.priority==='Critical').length;
-  document.getElementById('ovTotal').textContent    = total;
-  document.getElementById('ovOpen').textContent     = open;
-  document.getElementById('ovInProg').textContent   = inprog;
-  document.getElementById('ovResolved').textContent = resolved;
-  document.getElementById('ovClosed').textContent   = closed;
-  document.getElementById('ovCritical').textContent = critical;
-  document.getElementById('sidebarOpenCount').textContent = total;
+  const open     = TICKETS.filter(t => t.status === 'Open').length;
+  const inprog   = TICKETS.filter(t => t.status === 'In Progress').length;
+  const resolved = TICKETS.filter(t => t.status === 'Resolved').length;
+  const closed   = TICKETS.filter(t => t.status === 'Closed').length;
 
-  // Urgent list
-  const urgent = TICKETS.filter(t=>['Critical','High'].includes(t.priority)&&!['Resolved','Closed'].includes(t.status)).slice(0,6);
-  document.getElementById('urgentList').innerHTML = urgent.length===0
-    ? '<p class="text-muted text-center py-4 mb-0" style="font-size:13px">No urgent tickets 🎉</p>'
-    : urgent.map(t=>`
-        <div class="d-flex align-items-start gap-3 px-4 py-3 border-bottom" style="cursor:pointer" onclick="openDetail('${t.id}')">
-          <div class="flex-grow-1">
-            <div class="d-flex gap-2 mb-1">${prioBadge(t.priority)} ${statusBadge(t.status)}</div>
-            <div class="fw-semibold" style="font-size:13px;color:#1a2235">${t.title}</div>
-            <div class="text-muted mt-1" style="font-size:11.5px"><i class="bi bi-person me-1"></i>${t.reporter} · <i class="bi bi-person-fill-check me-1"></i>${t.manager}</div>
-          </div>
-        </div>`).join('');
-
-  // Activity feed (static + recent)
   const activities = [
     {icon:'bi-plus-lg',bg:'#e0f2fe',fg:'#0284c7',text:`<b>${PM_USER}</b> opened PM Dashboard`,time:'Just now'},
     ...NOTIFS.slice(0,7).map(n=>({icon:n.icon,bg:n.bg,fg:n.fg,text:n.body,time:n.time}))
   ];
-  document.getElementById('activityFeed').innerHTML = activities.map(a=>`
-    <div class="d-flex align-items-start gap-3 px-4 py-3 border-bottom">
-      <div style="width:30px;height:30px;border-radius:8px;background:${a.bg};color:${a.fg};display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:13px"><i class="bi ${a.icon}"></i></div>
-      <div>
-        <div style="font-size:12.5px;color:#1a2235">${a.text}</div>
-        <div class="text-muted" style="font-size:11px">${a.time}</div>
-      </div>
-    </div>`).join('');
+  const activityFeedEl = document.getElementById('activityFeed');
+  if (activityFeedEl) {
+    activityFeedEl.innerHTML = activities.map(a=>`
+      <div class="d-flex align-items-start gap-3 px-4 py-3 border-bottom">
+        <div style="width:30px;height:30px;border-radius:8px;background:${a.bg};color:${a.fg};display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:13px"><i class="bi ${a.icon}"></i></div>
+        <div>
+          <div style="font-size:12.5px;color:#1a2235">${a.text}</div>
+          <div class="text-muted" style="font-size:11px">${a.time}</div>
+        </div>
+      </div>`).join('');
+  }
 
-  // Charts
   setTimeout(() => {
     destroyChart('chartStatus');
     destroyChart('chartPriority');
@@ -280,16 +387,13 @@ function pmRender() {
   document.getElementById('pmPageTotal').textContent = total;
   document.getElementById('pmPageControls').innerHTML = renderPagination(pmPage, total);
 
-  // Update client and manager dropdowns with correct lists
   const clientSelect = document.getElementById('pmFClient');
   if (clientSelect) {
-    // Get unique clients from tickets
     const clients = Array.from(new Set(TICKETS.map(t => t.reporter))).filter(Boolean);
     clientSelect.innerHTML = '<option value="">All Clients</option>' + clients.map(c => `<option value="${c}">${c}</option>`).join('');
   }
   const managerSelect = document.getElementById('pmFManager');
   if (managerSelect) {
-    // Use PMs from localStorage or fallback
     const pms = JSON.parse(localStorage.getItem('servicedesk_pms')) || ['Matthew Samson', 'John Doe'];
     managerSelect.innerHTML = '<option value="">All Managers</option>' + pms.map(pm => `<option value="${pm}">${pm}</option>`).join('');
   }
@@ -341,22 +445,16 @@ function quickReassign(id, agent) {
   NOTIFS.unshift({id:Date.now(),icon:'bi-person-check-fill',bg:'#e0e7ff',fg:'#3730a3',title:'Reassigned: '+id,body:PM_USER+' assigned to '+agent,time,unread:true,ticketId:id});
   saveTickets(); saveNotifs(); renderNotifList();
   pmRender();
-  showToast({
-    type: 'info',
-    title: 'Reassigned',
-    message: id + ': ' + PM_USER + ' reassign the ticket to ' + agent
-  });
+  showToast({type:'info',title:'Reassigned',message:`${id}: ${PM_USER} reassign the ticket to ${agent}`});
 }
 
 // ═══════════════════════════════════════════════════════
 // TEAM WORKLOAD
 // ═══════════════════════════════════════════════════════
-// Save agent name (edit)
 window.saveAgentName = function(oldName, newName) {
   const idx = AGENTS.indexOf(oldName);
   if (idx !== -1) {
     AGENTS[idx] = newName;
-    // Update tickets assigned to this agent
     TICKETS.forEach(t => { if (t.manager === oldName) t.manager = newName; });
     saveTickets();
     saveAgents();
@@ -366,7 +464,6 @@ window.saveAgentName = function(oldName, newName) {
   }
 };
 
-// Add new agent
 window.addAgent = function(name) {
   if (!AGENTS.includes(name)) {
     AGENTS.push(name);
@@ -378,13 +475,11 @@ window.addAgent = function(name) {
   }
 };
 
-// Remove agent
 window.removeAgent = function(agentName) {
   const idx = AGENTS.indexOf(agentName);
   if (idx !== -1) {
     AGENTS.splice(idx, 1);
     saveAgents();
-    // Unassign tickets
     TICKETS.forEach(t => { if (t.manager === agentName) t.manager = ''; });
     saveTickets();
     pmRender();
@@ -392,6 +487,7 @@ window.removeAgent = function(agentName) {
     showToast && showToast({type:'info',title:'Developer Removed',message:`${agentName} removed from team`});
   }
 };
+
 function renderWorkload() {
   const acEl = document.getElementById('agentCards');
   const wlEl = document.getElementById('workloadTableBody');
@@ -406,7 +502,7 @@ function renderWorkload() {
     return `<div class="col-4">
       <div class="agent-card agent-card-clickable" data-agent="${agent}" style="cursor:pointer" onclick="openAgentModal('${agent}')">
         <div class="d-flex align-items-center gap-3 mb-3">
-         <div class="agent-avatar" style="background:${AGENT_COLORS[i%AGENT_COLORS.length]||'#7c3aed'}">${initials(agent)}</div>
+          <div class="agent-avatar" style="background:${AGENT_COLORS[i%AGENT_COLORS.length]||'#7c3aed'}">${initials(agent)}</div>
           <div>
             <div class="fw-bold" style="font-size:14px;color:#1a2235">${agent}</div>
             <div class="text-muted" style="font-size:11.5px">Developer</div>
@@ -455,13 +551,12 @@ function renderAnalytics() {
   const total  = TICKETS.length;
   const done   = TICKETS.filter(t=>['Resolved','Closed'].includes(t.status)).length;
   const critOp = TICKETS.filter(t=>t.priority==='Critical'&&t.status==='Open').length;
-  document.getElementById('anTotal').textContent   = total;
-  document.getElementById('anRate').textContent    = total ? Math.round((done/total)*100)+'%' : '0%';
-  document.getElementById('anCritOpen').textContent= critOp;
+  document.getElementById('anTotal').textContent    = total;
+  document.getElementById('anRate').textContent     = total ? Math.round((done/total)*100)+'%' : '0%';
+  document.getElementById('anCritOpen').textContent = critOp;
 
   setTimeout(()=>{
     ['chartClient','chartAgent','chartTrend'].forEach(id=>destroyChart(id));
-    // Get unique clients from tickets
     const clients = Array.from(new Set(TICKETS.map(t => t.reporter))).filter(Boolean);
     charts.chartClient = new Chart(document.getElementById('chartClient'), {
       type:'bar',
@@ -473,20 +568,19 @@ function renderAnalytics() {
       data:{labels:AGENTS.map(a=>a.split(' ')[0]),datasets:[{label:'Resolved/Closed',data:AGENTS.map(a=>TICKETS.filter(t=>t.manager===a&&['Resolved','Closed'].includes(t.status)).length),backgroundColor:AGENT_COLORS,borderRadius:7}]},
       options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{y:{beginAtZero:true,grid:{color:'#f0f2f8'},ticks:{font:{family:'Plus Jakarta Sans'}}},x:{grid:{display:false},ticks:{font:{family:'Plus Jakarta Sans'}}}}}
     });
-    // trend line (last 14 days – synthetic)
-    const days=[], opened=[], resolved=[];
+    const days = [];
     for(let i=13;i>=0;i--){ const d=new Date(); d.setDate(d.getDate()-i); days.push(d.toLocaleDateString('en-US',{month:'short',day:'numeric'})); }
-    const seed=[2,1,3,2,1,4,2,3,1,2,2,3,1,2];
-    const rseed=[0,1,1,2,1,1,2,1,2,1,1,2,1,1];
+    const seed  = [2,1,3,2,1,4,2,3,1,2,2,3,1,2];
+    const rseed = [0,1,1,2,1,1,2,1,2,1,1,2,1,1];
     charts.chartTrend = new Chart(document.getElementById('chartTrend'), {
       type:'line',
       data:{labels:days,datasets:[
-        {label:'Opened',data:seed,borderColor:'#dc2626',backgroundColor:'rgba(220,38,38,0.07)',fill:true,tension:0.4,pointBackgroundColor:'#dc2626',pointRadius:4},
-        {label:'Resolved',data:rseed,borderColor:'#16a34a',backgroundColor:'rgba(22,163,74,0.07)',fill:true,tension:0.4,pointBackgroundColor:'#16a34a',pointRadius:4}
+        {label:'Opened',  data:seed,  borderColor:'#dc2626',backgroundColor:'rgba(220,38,38,0.07)',fill:true,tension:0.4,pointBackgroundColor:'#dc2626',pointRadius:4},
+        {label:'Resolved',data:rseed, borderColor:'#16a34a',backgroundColor:'rgba(22,163,74,0.07)', fill:true,tension:0.4,pointBackgroundColor:'#16a34a',pointRadius:4}
       ]},
       options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'top',labels:{font:{family:'Plus Jakarta Sans',size:12}}}},scales:{y:{beginAtZero:true,grid:{color:'#f0f2f8'},ticks:{font:{family:'Plus Jakarta Sans'},stepSize:1}},x:{grid:{display:false},ticks:{font:{family:'Plus Jakarta Sans',size:11}}}}}
     });
-  },60);
+  }, 60);
 }
 
 function destroyChart(id) { if(charts[id]){ try{charts[id].destroy();}catch(e){} delete charts[id]; }}
@@ -495,45 +589,37 @@ function destroyChart(id) { if(charts[id]){ try{charts[id].destroy();}catch(e){}
 // TICKET DETAIL OFFCANVAS
 // ═══════════════════════════════════════════════════════
 function openDetail(id) {
-  console.log('openDetail called with id:', id);
-  if (!id) {
-    console.warn('No ticket ID provided');
-    return;
-  }
+  if (!id) { console.warn('No ticket ID provided'); return; }
   selectedTicket = TICKETS.find(t=>t.id===id);
-  if (!selectedTicket) {
-    console.warn('Ticket not found:', id);
-    return;
-  }
-  
-  document.getElementById('detailTid').textContent      = selectedTicket.id;
-  document.getElementById('detailStatus').value         = selectedTicket.status;
-  document.getElementById('detailPriority').value       = selectedTicket.priority;
-  document.getElementById('newComment').value           = '';
+  if (!selectedTicket) { console.warn('Ticket not found:', id); return; }
+  document.getElementById('detailTid').textContent  = selectedTicket.id;
+  document.getElementById('detailStatus').value     = selectedTicket.status;
+  document.getElementById('detailPriority').value   = selectedTicket.priority;
+  document.getElementById('newComment').value       = '';
   renderDetail();
   pmOffcanvas.show();
 }
+
 function renderDetail() {
   const t   = selectedTicket;
   const cms = commentsMap[t.id]||[];
   const nts = NOTES[t.id]||[];
 
-
-    const commentsHTML = cms.length
-      ? cms.map(c=>`
-          <div class="d-flex gap-2 mb-3">
-            <div class="avatar-sm ${c.role==='support'?'green':''} flex-shrink-0">${initials(c.author)}</div>
-            <div class="flex-grow-1">
-              <div class="d-flex align-items-center gap-2 mb-1">
-                <span class="fw-bold" style="font-size:12.5px">${c.author}</span>
-                <span class="comment-role-badge ${c.role}">${c.role==='client'?'Client':'Support'}</span>
-                <span class="text-muted ms-auto" style="font-size:11px">${c.time}</span>
-              </div>
-              <p class="mb-0 comment-text" style="font-size:13px;color:#3a4560">${c.text}</p>
+  const commentsHTML = cms.length
+    ? cms.map(c=>`
+        <div class="d-flex gap-2 mb-3">
+          <div class="avatar-sm ${c.role==='support'?'green':''} flex-shrink-0">${initials(c.author)}</div>
+          <div class="flex-grow-1">
+            <div class="d-flex align-items-center gap-2 mb-1">
+              <span class="fw-bold" style="font-size:12.5px">${c.author}</span>
+              <span class="comment-role-badge ${c.role}">${c.role==='client'?'Client':'Support'}</span>
+              <span class="text-muted ms-auto" style="font-size:11px">${c.time}</span>
             </div>
-          </div>`)
-        .join('')
-      : '<p class="text-muted mb-0" style="font-size:13px">No comments yet.</p>';
+            <p class="mb-0 comment-text" style="font-size:13px;color:#3a4560">${c.text}</p>
+          </div>
+        </div>`).join('')
+    : '<p class="text-muted mb-0" style="font-size:13px">No comments yet.</p>';
+
   const notesHTML = nts.length
     ? nts.map(n=>`<div class="internal-note mb-2"><div class="internal-note-meta">🔒 ${n.author} · ${n.time}</div><div class="internal-note-text">${n.text}</div></div>`).join('')
     : '<p class="text-muted" style="font-size:13px">No internal notes yet.</p>';
@@ -542,6 +628,13 @@ function renderDetail() {
     ? `<div class="mb-4"><h6 class="fw-bold mb-2" style="font-size:14px">Activity Log</h6>
         ${t.activity.map(a=>`<div style="font-size:12.5px;color:#7a8599;margin-bottom:6px"><span style="font-weight:600;color:#3b7cf4">${a.author}</span> ${a.action} <b>${a.value||''}</b> <span style="font-size:11px;color:#bfc6d1">${a.time}</span></div>`).join('')}
        </div>` : '';
+
+  function getPMOptions(selected) {
+    let pms = [];
+    try { pms = JSON.parse(localStorage.getItem('servicedesk_pms')) || ['Matthew Samson','John Doe']; }
+    catch(e) { pms = ['Matthew Samson','John Doe']; }
+    return pms.map(pm => `<option value="${pm}" ${pm===selected?'selected':''}>${pm}</option>`).join('');
+  }
 
   document.getElementById('detailBody').innerHTML = `
     <span class="ticket-id" style="font-family:'JetBrains Mono',monospace;margin-bottom:10px;display:inline-block">${t.id}</span>
@@ -553,7 +646,7 @@ function renderDetail() {
         <p class="text-uppercase text-muted fw-semibold mb-1" style="font-size:10.5px;letter-spacing:.6px">Manager</p>
         <div class="d-flex align-items-center gap-2">
           <div class="avatar-sm ${t.ac||''}" style="width:22px;height:22px;font-size:9px">${initials(t.manager)}</div>
-          <span id="managerDisplay" style="cursor:pointer;text-decoration:underline dotted; font-size:13px;" title="Click to change">${t.manager||'—'}</span>
+          <span id="managerDisplay" style="cursor:pointer;text-decoration:underline dotted;font-size:13px;" title="Click to change">${t.manager||'—'}</span>
           <select id="managerSelect" class="form-select form-select-sm d-none" style="width:auto;min-width:130px;font-size:13px">
             ${getPMOptions(t.manager)}
           </select>
@@ -563,7 +656,7 @@ function renderDetail() {
         <p class="text-uppercase text-muted fw-semibold mb-1" style="font-size:10.5px;letter-spacing:.6px">Developer</p>
         <div class="d-flex align-items-center gap-2">
           <div class="avatar-sm" style="background:#e0e7ef;color:#3b3b4f;width:22px;height:22px;font-size:9px;border-radius:7px">${initials(t.developer||'?')}</div>
-          <span id="developerDisplay" style="cursor:pointer;text-decoration:underline dotted; font-size:13px;" title="Click to change">${t.developer||'—'}</span>
+          <span id="developerDisplay" style="cursor:pointer;text-decoration:underline dotted;font-size:13px;" title="Click to change">${t.developer||'—'}</span>
           <select id="developerSelect" class="form-select form-select-sm d-none" style="width:auto;min-width:130px;font-size:13px">
             ${AGENTS.map(a=>`<option value="${a}" ${a===t.developer?'selected':''}>${a}</option>`).join('')}
           </select>
@@ -573,27 +666,27 @@ function renderDetail() {
         <p class="text-uppercase text-muted fw-semibold mb-1" style="font-size:10.5px;letter-spacing:.6px">Created</p>
         <div class="fw-semibold" style="font-size:13px">${t.created}</div>
       </div>
-        <div class="col-6">
-          <p class="text-uppercase text-muted fw-semibold mb-1" style="font-size:10.5px;letter-spacing:.6px">Reporter</p>
-          <div class="fw-semibold d-flex align-items-center gap-2" style="font-size:13px">
-            <div class="avatar-sm" style="background:#e0e7ef;color:#3b3b4f;width:22px;height:22px;font-size:9px;border-radius:7px">${initials(t.reporter||'?')}</div>
-            ${t.reporter||'—'}
-          </div>
+      <div class="col-6">
+        <p class="text-uppercase text-muted fw-semibold mb-1" style="font-size:10.5px;letter-spacing:.6px">Reporter</p>
+        <div class="fw-semibold d-flex align-items-center gap-2" style="font-size:13px">
+          <div class="avatar-sm" style="background:#e0e7ef;color:#3b3b4f;width:22px;height:22px;font-size:9px;border-radius:7px">${initials(t.reporter||'?')}</div>
+          ${t.reporter||'—'}
         </div>
-        <div class="col-6">
-          <p class="text-uppercase text-muted fw-semibold mb-1" style="font-size:10.5px;letter-spacing:.6px">Category</p>
-          <div class="fw-semibold" style="font-size:13px">
-            <span id="categoryDisplay" style="cursor:pointer;text-decoration:underline dotted;">${t.category || '—'}</span>
-            <select id="categorySelect" class="form-select form-select-sm d-none" style="width:auto;min-width:120px;font-size:13px;">
-              <option value="Bug">Bug</option>
-              <option value="Task">Task</option>
-              <option value="Feature Request">Feature Request</option>
-              <option value="Performance Issue">Performance Issue</option>
-              <option value="Account Issue">Account Issue</option>
-              <option value="Other">Other</option>
-            </select>
-          </div>
+      </div>
+      <div class="col-6">
+        <p class="text-uppercase text-muted fw-semibold mb-1" style="font-size:10.5px;letter-spacing:.6px">Category</p>
+        <div class="fw-semibold" style="font-size:13px">
+          <span id="categoryDisplay" style="cursor:pointer;text-decoration:underline dotted;">${t.category || '—'}</span>
+          <select id="categorySelect" class="form-select form-select-sm d-none" style="width:auto;min-width:120px;font-size:13px;">
+            <option value="Bug">Bug</option>
+            <option value="Task">Task</option>
+            <option value="Feature Request">Feature Request</option>
+            <option value="Performance Issue">Performance Issue</option>
+            <option value="Account Issue">Account Issue</option>
+            <option value="Other">Other</option>
+          </select>
         </div>
+      </div>
     </div>
     <ul class="nav nav-tabs mb-3" role="tablist">
       <li class="nav-item"><button class="nav-link active" data-bs-toggle="tab" data-bs-target="#dtAll" type="button" style="font-size:13px">All</button></li>
@@ -626,19 +719,9 @@ function renderDetail() {
     </div>
   `;
 
-       // Returns <option> list for PMs (managers) from a static or localStorage list
-      function getPMOptions(selected) {
-        let pms = [];
-        try {
-          pms = JSON.parse(localStorage.getItem('servicedesk_pms')) || ['Matthew Samson','John Doe'];
-        } catch(e) {
-          pms = ['Matthew Samson','John Doe'];
-        }
-        return pms.map(pm => `<option value="${pm}" ${pm===selected?'selected':''}>${pm}</option>`).join('');
-      }
   // Manager field handlers
   var managerDisplay = document.getElementById('managerDisplay');
-  var managerSelect = document.getElementById('managerSelect');
+  var managerSelect  = document.getElementById('managerSelect');
   if (managerDisplay && managerSelect) {
     managerDisplay.onclick = function() {
       managerDisplay.classList.add('d-none');
@@ -657,85 +740,53 @@ function renderDetail() {
         saveTickets();
         renderDetail();
         if (typeof pmRender === 'function') pmRender();
-        // Add notification and toast
-        const time = new Date().toLocaleString('en-US', {month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'});
-        NOTIFS.unshift({
-          id: Date.now(),
-          icon: 'bi-person-check-fill',
-          bg: '#e0e7ff',
-          fg: '#3730a3',
-          title: 'Manager Changed',
-          body: PM_USER + ' changed manager to ' + newManager + ' for ' + t.id,
-          time,
-          unread: true,
-          ticketId: t.id
-        });
-        saveNotifs();
-        renderNotifList();
-        showToast({
-          type: 'info',
-          title: 'Manager Changed',
-          message: PM_USER + ' changed manager to ' + newManager + ' for ' + t.id
-        });
+        const time = new Date().toLocaleString('en-US',{month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'});
+        NOTIFS.unshift({id:Date.now(),icon:'bi-person-check-fill',bg:'#e0e7ff',fg:'#3730a3',title:'Manager Changed',body:`${PM_USER} changed manager to ${newManager} for ${t.id}`,time,unread:true,ticketId:t.id});
+        saveNotifs(); renderNotifList();
+        showToast({type:'info',title:'Manager Changed',message:`${PM_USER} changed manager to ${newManager} for ${t.id}`});
       }
       managerSelect.classList.add('d-none');
       managerDisplay.classList.remove('d-none');
     };
   }
-  // Developer field handlers
 
-    // Developer field handlers
-    var developerDisplay = document.getElementById('developerDisplay');
-    var developerSelect = document.getElementById('developerSelect');
-    if (developerDisplay && developerSelect) {
-      developerDisplay.onclick = function() {
-        developerDisplay.classList.add('d-none');
-        developerSelect.classList.remove('d-none');
-        developerSelect.value = t.developer || '';
-        developerSelect.focus();
-      };
-      developerSelect.onblur = function() {
-        developerSelect.classList.add('d-none');
-        developerDisplay.classList.remove('d-none');
-      };
-      developerSelect.onchange = function() {
-        var newDeveloper = developerSelect.value;
-        if (newDeveloper !== t.developer) {
-          t.developer = selectedTicket.developer = newDeveloper;
-          saveTickets();
-          renderDetail();
-          if (typeof pmRender === 'function') pmRender();
-          // Add notification and toast
-          const time = new Date().toLocaleString('en-US', {month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'});
-          NOTIFS.unshift({
-            id: Date.now(),
-            icon: 'bi-person-badge',
-            bg: '#e0f2fe',
-            fg: '#0284c7',
-            title: 'Developer Changed',
-            body: PM_USER + ' changed developer to ' + newDeveloper + ' for ' + t.id,
-            time,
-            unread: true,
-            ticketId: t.id
-          });
-          saveNotifs();
-          renderNotifList();
-          showToast({
-            type: 'info',
-            title: 'Developer Changed',
-            message: PM_USER + ' changed developer to ' + newDeveloper + ' for ' + t.id
-          });
-        }
-        developerSelect.classList.add('d-none');
-        developerDisplay.classList.remove('d-none');
-      };
-    }
+  // Developer field handlers
+  var developerDisplay = document.getElementById('developerDisplay');
+  var developerSelect  = document.getElementById('developerSelect');
+  if (developerDisplay && developerSelect) {
+    developerDisplay.onclick = function() {
+      developerDisplay.classList.add('d-none');
+      developerSelect.classList.remove('d-none');
+      developerSelect.value = t.developer || '';
+      developerSelect.focus();
+    };
+    developerSelect.onblur = function() {
+      developerSelect.classList.add('d-none');
+      developerDisplay.classList.remove('d-none');
+    };
+    developerSelect.onchange = function() {
+      var newDeveloper = developerSelect.value;
+      if (newDeveloper !== t.developer) {
+        t.developer = selectedTicket.developer = newDeveloper;
+        saveTickets();
+        renderDetail();
+        if (typeof pmRender === 'function') pmRender();
+        const time = new Date().toLocaleString('en-US',{month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'});
+        NOTIFS.unshift({id:Date.now(),icon:'bi-person-badge',bg:'#e0f2fe',fg:'#0284c7',title:'Developer Changed',body:`${PM_USER} changed developer to ${newDeveloper} for ${t.id}`,time,unread:true,ticketId:t.id});
+        saveNotifs(); renderNotifList();
+        showToast({type:'info',title:'Developer Changed',message:`${PM_USER} changed developer to ${newDeveloper} for ${t.id}`});
+      }
+      developerSelect.classList.add('d-none');
+      developerDisplay.classList.remove('d-none');
+    };
+  }
+
   document.getElementById('detailStatus').value   = t.status;
   document.getElementById('detailPriority').value = t.priority;
 
-  // Attach click-to-edit handler for category (always after HTML is set)
+  // Category click-to-edit handlers
   var catDisplay = document.getElementById('categoryDisplay');
-  var catSelect = document.getElementById('categorySelect');
+  var catSelect  = document.getElementById('categorySelect');
   if (catDisplay && catSelect) {
     catDisplay.onclick = function() {
       catDisplay.classList.add('d-none');
@@ -753,29 +804,11 @@ function renderDetail() {
       if (newCategory !== selectedTicket.category) {
         selectedTicket.category = newCategory;
         const idx = TICKETS.findIndex(t => t.id === selectedTicket.id);
-        if (idx !== -1) {
-          TICKETS[idx].category = newCategory;
-          saveTickets();
-        }
-        // Add notification for category change
+        if (idx !== -1) { TICKETS[idx].category = newCategory; saveTickets(); }
         const time = new Date().toLocaleString('en-US',{month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'});
-        NOTIFS.unshift({
-          id: Date.now(),
-          icon: 'bi-tags-fill',
-          bg: '#ede9fe',
-          fg: '#6d28d9',
-          title: 'Category: ' + selectedTicket.id,
-          body: PM_USER + ' set category to ' + newCategory,
-          time,
-          unread: true,
-          ticketId: selectedTicket.id
-        });
+        NOTIFS.unshift({id:Date.now(),icon:'bi-tags-fill',bg:'#ede9fe',fg:'#6d28d9',title:'Category: '+selectedTicket.id,body:`${PM_USER} set category to ${newCategory}`,time,unread:true,ticketId:selectedTicket.id});
         renderNotifList && renderNotifList();
-        showToast({
-          type: 'info',
-          title: 'Category updated',
-          message: selectedTicket.id + ': ' + PM_USER + ' set category to ' + newCategory
-        });
+        showToast({type:'info',title:'Category updated',message:`${selectedTicket.id}: ${PM_USER} set category to ${newCategory}`});
         if (typeof pmRender === 'function') pmRender();
         renderDetail();
       } else {
@@ -784,15 +817,13 @@ function renderDetail() {
       }
     };
   }
-  // Attach Enter-to-submit for internal notes
+
+  // Enter-to-submit for internal notes
   setTimeout(function() {
     var noteBox = document.getElementById('newNote');
     if (noteBox) {
       noteBox.addEventListener('keydown', function(e) {
-        if (e.key === 'Enter' && !e.shiftKey) {
-          e.preventDefault();
-          pmAddNote();
-        }
+        if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); pmAddNote(); }
       });
     }
   }, 0);
@@ -806,15 +837,12 @@ function pmUpdateStatus(v) {
   const time = new Date().toLocaleString('en-US',{month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'});
   t.activity = t.activity||[];
   t.activity.unshift({type:'status',author:PM_USER,action:'set status to',value:v,time});
-  NOTIFS.unshift({id:Date.now(),icon:'bi-arrow-clockwise',bg:'#fef9c3',fg:'#92400e',title:'Status: '+t.id,body:PM_USER+' set status to '+v,time,unread:true,ticketId:t.id});
+  NOTIFS.unshift({id:Date.now(),icon:'bi-arrow-clockwise',bg:'#fef9c3',fg:'#92400e',title:'Status: '+t.id,body:`${PM_USER} set status to ${v}`,time,unread:true,ticketId:t.id});
   saveTickets(); saveNotifs(); renderDetail(); renderNotifList();
-  showToast({
-    type: 'info',
-    title: 'Status updated',
-    message: t.id + ' ' + PM_USER + ' changed status from ' + prevStatus + ' to ' + v
-  });
+  showToast({type:'info',title:'Status updated',message:`${t.id} ${PM_USER} changed status from ${prevStatus} to ${v}`});
   if (document.getElementById('sec-tickets').offsetParent!==null) pmRender();
 }
+
 function pmUpdatePriority(v) {
   if (!selectedTicket) return;
   const t = TICKETS.find(x=>x.id===selectedTicket.id); if(!t) return;
@@ -823,75 +851,23 @@ function pmUpdatePriority(v) {
   const time = new Date().toLocaleString('en-US',{month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'});
   t.activity = t.activity||[];
   t.activity.unshift({type:'priority',author:PM_USER,action:'set priority to',value:v,time});
-  NOTIFS.unshift({id:Date.now(),icon:'bi-flag-fill',bg:'#ffedd5',fg:'#9a3412',title:'Priority: '+t.id,body:PM_USER+' set priority to '+v,time,unread:true,ticketId:t.id});
+  NOTIFS.unshift({id:Date.now(),icon:'bi-flag-fill',bg:'#ffedd5',fg:'#9a3412',title:'Priority: '+t.id,body:`${PM_USER} set priority to ${v}`,time,unread:true,ticketId:t.id});
   saveTickets(); saveNotifs(); renderDetail(); renderNotifList();
-  showToast({
-    type: 'info',
-    title: 'Priority updated',
-    message: t.id + ' ' + PM_USER + ' changed priority from ' + prevPriority + ' to ' + v
-  });
+  showToast({type:'info',title:'Priority updated',message:`${t.id} ${PM_USER} changed priority from ${prevPriority} to ${v}`});
   if (document.getElementById('sec-tickets')?.offsetParent !== null) pmRender();
 }
+
 function pmAddNote() {
   const txt = document.getElementById('newNote')?.value.trim();
-  if(!txt||!selectedTicket) return;
+  if (!txt||!selectedTicket) return;
   const time = new Date().toLocaleString('en-US',{month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'});
   NOTES[selectedTicket.id] = NOTES[selectedTicket.id]||[];
   NOTES[selectedTicket.id].unshift({author:PM_USER,time,text:txt});
   saveNotes();
-  document.getElementById('newNote').value='';
-  // Re-render only the notes tab content to avoid tab switch
-  if (document.querySelector('#dtNotes')) {
-    // Re-render notes list and clear textarea
-    const nts = NOTES[selectedTicket.id]||[];
-    // Re-attach Enter-to-submit for newNote
-  // Click-to-edit category (PM view, like client view)
-  setTimeout(function() {
-    var catDisplay = document.getElementById('categoryDisplay');
-    var catSelect = document.getElementById('categorySelect');
-    if (catDisplay && catSelect) {
-      catDisplay.onclick = function() {
-        catDisplay.classList.add('d-none');
-        catSelect.classList.remove('d-none');
-        catSelect.value = selectedTicket.category;
-        catSelect.focus();
-      };
-      catSelect.onblur = function() {
-        catSelect.classList.add('d-none');
-        catDisplay.classList.remove('d-none');
-      };
-      catSelect.onchange = function() {
-        var newCategory = catSelect.value;
-        if (!selectedTicket) return;
-        if (newCategory !== selectedTicket.category) {
-          selectedTicket.category = newCategory;
-          const idx = TICKETS.findIndex(t => t.id === selectedTicket.id);
-          if (idx !== -1) {
-            TICKETS[idx].category = newCategory;
-            saveTickets();
-          }
-          renderDetail();
-        } else {
-          catSelect.classList.add('d-none');
-          catDisplay.classList.remove('d-none');
-        }
-      };
-    }
-  }, 0);
-    setTimeout(function() {
-      var noteBox = document.getElementById('newNote');
-      if (noteBox) {
-        noteBox.addEventListener('keydown', function(e) {
-          if (e.key === 'Enter' && !e.shiftKey) {
-            e.preventDefault();
-            pmAddNote();
-          }
-        });
-      }
-    }, 0);
-  }
+  renderDetail();
   showToast({type:'success',title:'Note added',message:'Internal note saved'});
 }
+
 function pmSubmitComment() {
   const txt = document.getElementById('newComment').value.trim();
   if (!txt||!selectedTicket) return;
@@ -900,16 +876,13 @@ function pmSubmitComment() {
   commentsMap[selectedTicket.id].push({author:PM_USER,role:'support',time,text:txt});
   const t = TICKETS.find(x=>x.id===selectedTicket.id);
   if (t) { t.comments=[...commentsMap[selectedTicket.id]]; t.activity=t.activity||[]; t.activity.unshift({type:'comment',author:PM_USER,action:'commented',value:txt,time}); }
-  NOTIFS.unshift({id:Date.now(),icon:'bi-chat-left-text-fill',bg:'#f0fdf4',fg:'#16a34a',title:'Comment on '+selectedTicket.id,body:PM_USER+': '+txt,time,unread:true,ticketId:selectedTicket.id});
+  NOTIFS.unshift({id:Date.now(),icon:'bi-chat-left-text-fill',bg:'#f0fdf4',fg:'#16a34a',title:'Comment on '+selectedTicket.id,body:`${PM_USER}: ${txt}`,time,unread:true,ticketId:selectedTicket.id});
   saveTickets(); saveNotifs(); renderNotifList();
   document.getElementById('newComment').value='';
   renderDetail();
-  showToast({
-    type: 'info',
-    title: 'Comment added',
-    message: PM_USER + ' commented to ' + selectedTicket.id
-  });
+  showToast({type:'info',title:'Comment added',message:`${PM_USER} commented to ${selectedTicket.id}`});
 }
+
 function pmSaveEdit() {
   const t = TICKETS.find(x=>x.id===selectedTicket?.id); if(!t) return;
   t.title    = selectedTicket.title    = document.getElementById('editTitle').value.trim()||t.title;
@@ -921,24 +894,24 @@ function pmSaveEdit() {
   const time = new Date().toLocaleString('en-US',{month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'});
   t.activity = t.activity||[];
   t.activity.unshift({type:'edit',author:PM_USER,action:'edited ticket',value:'',time});
-  NOTIFS.unshift({id:Date.now(),icon:'bi-pencil-fill',bg:'#e0e7ff',fg:'#3730a3',title:'Edited: '+t.id,body:PM_USER+' edited the ticket',time,unread:true,ticketId:t.id});
+  NOTIFS.unshift({id:Date.now(),icon:'bi-pencil-fill',bg:'#e0e7ff',fg:'#3730a3',title:'Edited: '+t.id,body:`${PM_USER} edited the ticket`,time,unread:true,ticketId:t.id});
   saveTickets(); saveNotifs();
   document.getElementById('detailStatus').value   = t.status;
   document.getElementById('detailPriority').value = t.priority;
   renderDetail(); renderNotifList();
   if (document.getElementById('sec-tickets').offsetParent!==null) pmRender();
-  showToast({type:'success',title:'Ticket updated',message:t.id+' saved successfully'});
+  showToast({type:'success',title:'Ticket updated',message:`${t.id} saved successfully`});
 }
+
 function pmDeleteTicket() {
   if (!selectedTicket) return;
   if (selectedTicket.status !== 'Resolved' && selectedTicket.status !== 'Closed') {
     var msg = document.getElementById('removeTicketModalMsg');
     if (msg) msg.textContent = 'Only Resolved or Closed tickets can be removed.';
-    var modal = new bootstrap.Modal(document.getElementById('removeTicketModal'));
-    modal.show();
+    new bootstrap.Modal(document.getElementById('removeTicketModal')).show();
     return;
   }
-  document.getElementById('confirmRemoveTicketModalMsg').textContent = `Are you sure you want to remove this ticket? This action cannot be undone.`;
+  document.getElementById('confirmRemoveTicketModalMsg').textContent = 'Are you sure you want to remove this ticket? This action cannot be undone.';
   var confirmModal = new bootstrap.Modal(document.getElementById('confirmRemoveTicketModal'));
   confirmModal.show();
   var confirmBtn = document.getElementById('confirmRemoveTicketBtn');
@@ -947,7 +920,7 @@ function pmDeleteTicket() {
       confirmModal.hide();
       const idx = TICKETS.findIndex(x=>x.id===selectedTicket.id);
       if (idx>-1) TICKETS.splice(idx,1);
-      NOTIFS.unshift({id:Date.now(),icon:'bi-trash-fill',bg:'#fee2e2',fg:'#b91c1c',title:'Deleted: '+selectedTicket.id,body:PM_USER+' deleted the ticket',time:new Date().toLocaleString('en-US',{month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'}),unread:true,ticketId:selectedTicket.id});
+      NOTIFS.unshift({id:Date.now(),icon:'bi-trash-fill',bg:'#fee2e2',fg:'#b91c1c',title:'Deleted: '+selectedTicket.id,body:`${PM_USER} deleted the ticket`,time:new Date().toLocaleString('en-US',{month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'}),unread:true,ticketId:selectedTicket.id});
       saveTickets(); saveNotifs(); renderNotifList();
       pmOffcanvas.hide();
       selectedTicket = null;
@@ -966,18 +939,13 @@ function openCreateModal() {
   window.ctAttachments = [];
   const preview = document.getElementById('ctPreview');
   if (preview) preview.innerHTML = '';
-  // Render developer options dynamically
   const ctDeveloper = document.getElementById('ctDeveloper');
-  if (ctDeveloper) {
-    ctDeveloper.innerHTML = AGENTS.map(a => `<option value="${a}">${a}</option>`).join('');
-  }
-  // Set reporter field to PM_USER
+  if (ctDeveloper) ctDeveloper.innerHTML = AGENTS.map(a => `<option value="${a}">${a}</option>`).join('');
   const ctReporter = document.getElementById('ctReporter');
-  if (ctReporter) {
-    ctReporter.value = PM_USER;
-  }
+  if (ctReporter) ctReporter.value = PM_USER;
   new bootstrap.Modal(document.getElementById('createTicketModal')).show();
 }
+
 function pmSubmitTicket() {
   const title = document.getElementById('ctTitle').value.trim();
   const desc  = document.getElementById('ctDesc').value.trim();
@@ -986,32 +954,24 @@ function pmSubmitTicket() {
   const id = 'TK-'+String(maxId+1).padStart(3,'0');
   const time = new Date().toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'});
   TICKETS.unshift({
-    id,
-    title,
-    status:   'Open',
-    priority: document.getElementById('ctPriority').value,
-    category: document.getElementById('ctCategory').value,
-    reporter: document.getElementById('ctReporter').value,
-    manager: PM_USER, // Always set manager for PM-created tickets
+    id, title,
+    status:    'Open',
+    priority:  document.getElementById('ctPriority').value,
+    category:  document.getElementById('ctCategory').value,
+    reporter:  document.getElementById('ctReporter').value,
+    manager:   PM_USER,
     developer: document.getElementById('ctDeveloper').value,
-    ac:'',
-    created:time,
-    desc,
-    comments:[],
-    attachments:[...window.ctAttachments]
+    ac:'', created:time, desc,
+    comments:[], attachments:[...window.ctAttachments]
   });
   commentsMap[id]=[];
-  NOTIFS.unshift({id:Date.now(),icon:'bi-plus-lg',bg:'#e0f2fe',fg:'#0284c7',title:'Created: '+id,body:PM_USER+' created: '+title,time,unread:true,ticketId:id});
+  NOTIFS.unshift({id:Date.now(),icon:'bi-plus-lg',bg:'#e0f2fe',fg:'#0284c7',title:'Created: '+id,body:`${PM_USER} created: ${title}`,time,unread:true,ticketId:id});
   saveTickets(); saveNotifs(); renderNotifList();
   bootstrap.Modal.getInstance(document.getElementById('createTicketModal')).hide();
   window.ctAttachments = [];
   document.getElementById('ctPreview').innerHTML = '';
   pmRender(); renderOverview();
-  showToast({
-    type: 'success',
-    title: 'Ticket created',
-    message: PM_USER + ' created ' + id
-  });
+  showToast({type:'success',title:'Ticket created',message:`${PM_USER} created ${id}`});
 }
 
 // ═══════════════════════════════════════════════════════
@@ -1021,17 +981,12 @@ function renderNotifList() {
   const unread = NOTIFS.filter(n=>n.unread).length;
   document.getElementById('notifDot').style.display = unread>0?'block':'none';
   const notifListEl = document.getElementById('notifList');
-  if (!notifListEl) {
-    console.warn('notifList element not found');
-    return;
-  }
-  console.log('Rendering', NOTIFS.length, 'notifications');
+  if (!notifListEl) { console.warn('notifList element not found'); return; }
   notifListEl.innerHTML = NOTIFS.length===0
     ? '<p class="text-muted text-center py-3 mb-0" style="font-size:13px">No notifications</p>'
     : NOTIFS.map(n=>{
         const tid = n.ticketId || (n.title && n.title.match(/TK-\d{3}/) ? n.title.match(/TK-\d{3}/)[0] : '');
-        console.log('Notification for ticket:', tid, 'title:', n.title);
-        return `<div class="notif-row ${n.unread?'unread':''}" onclick="event.stopPropagation(); console.log('Clicked notification'); openDetail('${tid}');">
+        return `<div class="notif-row ${n.unread?'unread':''}" onclick="event.stopPropagation(); openDetail('${tid}');">
           <div class="notif-icon-sm" style="background:${n.bg};color:${n.fg}"><i class="bi ${n.icon}"></i></div>
           <div class="flex-grow-1">
             <div class="fw-semibold" style="font-size:12.5px;color:#1a2235">${n.title}</div>
@@ -1042,11 +997,11 @@ function renderNotifList() {
       }).join('')
     + `<div class="text-center py-2 border-top"><span class="text-muted" style="font-size:12px">${unread} unread · ${NOTIFS.length} total</span></div>`;
 }
-function markAllRead()    { NOTIFS.forEach(n=>n.unread=false); saveNotifs(); renderNotifList(); }
-function deleteAllNotifs(){ NOTIFS.length=0; saveNotifs(); renderNotifList(); }
+function markAllRead()     { NOTIFS.forEach(n=>n.unread=false); saveNotifs(); renderNotifList(); }
+function deleteAllNotifs() { NOTIFS.length=0; saveNotifs(); renderNotifList(); }
 
 // ═══════════════════════════════════════════════════════
-// TOAST (same as main.js)
+// TOAST
 // ═══════════════════════════════════════════════════════
 function showToast({type='info',title='',message=''}) {
   const map={success:{bg:'#bbf7d0',fg:'#166534',icon:'bi-check-circle'},info:{bg:'#bae6fd',fg:'#075985',icon:'bi-info-circle'},warning:{bg:'#fef3c7',fg:'#92400e',icon:'bi-exclamation-circle'},error:{bg:'#fecaca',fg:'#b91c1c',icon:'bi-x-circle'}};
@@ -1098,8 +1053,8 @@ function addFiles(files, target) {
   files.forEach(file => {
     const reader = new FileReader();
     reader.onload = ev => {
-      if (target === 'ct')  { window.ctAttachments.push(ev.target.result);      renderPreviews(window.ctAttachments,      'ctPreview',      'ct'); }
-      else                  { window.commentAttachments.push(ev.target.result);  renderPreviews(window.commentAttachments, 'commentPreview', 'comment'); }
+      if (target === 'ct') { window.ctAttachments.push(ev.target.result);     renderPreviews(window.ctAttachments,     'ctPreview',      'ct'); }
+      else                 { window.commentAttachments.push(ev.target.result); renderPreviews(window.commentAttachments,'commentPreview', 'comment'); }
     };
     reader.readAsDataURL(file);
   });
@@ -1116,6 +1071,6 @@ function renderPreviews(arr, cid, target) {
 }
 
 function removeAttachment(i, target) {
-  if (target === 'ct')  { window.ctAttachments.splice(i,1);      renderPreviews(window.ctAttachments,      'ctPreview',      'ct'); }
-  else                  { window.commentAttachments.splice(i,1);  renderPreviews(window.commentAttachments, 'commentPreview', 'comment'); }
+  if (target === 'ct') { window.ctAttachments.splice(i,1);     renderPreviews(window.ctAttachments,     'ctPreview',      'ct'); }
+  else                 { window.commentAttachments.splice(i,1); renderPreviews(window.commentAttachments,'commentPreview', 'comment'); }
 }
