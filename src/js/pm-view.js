@@ -306,6 +306,30 @@ function catBadge(c) {
 // ═══════════════════════════════════════════════════════
 // OVERVIEW
 // ═══════════════════════════════════════════════════════
+function renderUrgentList() {
+  const urgentListEl = document.getElementById('urgentList');
+  if (!urgentListEl) return;
+  const urgentTickets = TICKETS.filter(t => (t.priority === 'Critical' || t.priority === 'High') && t.status === 'Open');
+  if (!urgentTickets.length) {
+    urgentListEl.innerHTML = '<div class="text-muted px-4 py-3" style="font-size:13px">No open Critical or High priority tickets.</div>';
+    return;
+  }
+  urgentListEl.innerHTML = urgentTickets.map(t => `
+    <div class="d-flex align-items-center gap-3 px-4 py-3 border-bottom" style="cursor:pointer" onclick="openDetail('${t.id}')">
+      <div class="avatar-sm" style="background:${t.priority==='Critical' ? '#ffe4e6' : '#ffedd5'};color:${t.priority==='Critical' ? '#be123c' : '#9a3412'};width:28px;height:28px;font-size:11px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-weight:700">${t.priority[0]}</div>
+      <div class="flex-grow-1">
+        <div class="fw-semibold" style="font-size:13.5px;color:#1a2235">${t.title}</div>
+        <div class="d-flex gap-2 align-items-center" style="font-size:12px">
+          <span class="badge rounded-pill" style="${PRIO_STYLE[t.priority]||''};font-size:11px">${t.priority}</span>
+          <span class="badge rounded-pill" style="background: #141d22">#${t.id}</span>
+          <span class="badge rounded-pill" style="background: #7c8f99">${t.reporter||'—'}</span>
+        </div>
+      </div>
+      <div class="text-muted" style="font-size:12px">${t.created||''}</div>
+    </div>
+  `).join('');
+}
+
 function renderOverview() {
   const open     = TICKETS.filter(t => t.status === 'Open').length;
   const inprog   = TICKETS.filter(t => t.status === 'In Progress').length;
@@ -328,6 +352,9 @@ function renderOverview() {
   // Update sidebar ticket count
   const sidebarOpenCountEl = document.getElementById('sidebarOpenCount');
   if (sidebarOpenCountEl) sidebarOpenCountEl.textContent = TICKETS.length;
+
+  // Render urgent ticket list
+  renderUrgentList();
 
   const activities = [
     {icon:'bi-plus-lg',bg:'#e0f2fe',fg:'#0284c7',text:`<b>${PM_USER}</b> opened PM Dashboard`,time:'Just now'},
