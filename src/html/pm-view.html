@@ -19,68 +19,6 @@
 <div id="pmApp" class="d-flex" style="height:100vh;overflow:hidden">
 
   <!-- SIDEBAR -->
-  <!-- <aside class="sidebar flex-shrink-0" id="sidebar">
-    <button id="sidebarToggle" class="btn btn-light btn-sm" style="position:absolute;z-index:10;top:16px;right:12px;width:28px;height:28px;padding:0;border-radius:50%;box-shadow:0 2px 8px rgba(0,0,0,0.1);display:flex;align-items:center;justify-content:center;" title="Toggle sidebar">
-      <i class="bi bi-chevron-left" id="sidebarToggleIcon" style="font-size:14px"></i>
-    </button>
-    <div class="d-flex align-items-center gap-2 px-3 py-3 border-bottom border-white border-opacity-10">
-      <div class="brand-icon d-flex align-items-center justify-content-center text-white flex-shrink-0" style="background:transparent;padding:0">
-        <svg width="34" height="34" viewBox="0 0 37 53.8" xmlns="http://www.w3.org/2000/svg"><path fill="#FFFFFF" d="M28.7,0c-4,0-6.1,7.7-14.8,11.9C10.7,13.4,0,15.9,0,19.4l0,0c0,4.9,5.2,2.5,8.2,2.5c11.4,0,11.6,7.1,1.3,11c-3.8,1.5-8.3,2.3-8.3,7.2c0,7.5,13.7,2.1,20.9,8.9c2.4,2.3,1.7,4.8,8.4,4.8c5.8,0,8.8-7.7,4.6-10.8c-3.4-2.6-6.3-0.9-11.6-0.9c-3,0-9.3-1.9-9.3-5.6c0-3.9,4.7-6.1,8.1-7c3.5-1,6.5-0.3,6.5-5c0-3.7-6.1-3-10-3.1c-3.1-0.1-9.1-1.7-9.7-3.4c-0.7-2.5,9.6-5.9,12.5-6.8c4.3-1.4,5.3-1,8.2-1.6C31,9.3,32.2,8.8,33,7.9c1.5-1.8,1.8-4.5-0.1-6.4C31.6,0.1,30.4,0,28.7,0"/></svg>
-      </div>
-      <div>
-        <div class="text-white fw-bold" style="font-size:14px;white-space:nowrap">PM Portal</div>
-        <div class="text-white-50" style="font-size:10.5px;white-space:nowrap">Support Center</div>
-      </div>
-    </div>
-    <nav class="flex-grow-1 px-2 py-3">
-      <ul class="nav flex-column gap-1">
-        <li class="nav-item">
-          <a class="nav-link active d-flex align-items-center gap-2" onclick="showSection('overview')" href="#" id="nav-overview">
-            <i class="bi bi-grid-1x2"></i>
-            <span class="sidebar-link-text">Dashboard</span>
-            <span class="ms-auto badge rounded-pill sidebar-link-badge" id="sidebarOpenCount" style="background:rgba(255,255,255,.25);font-size:10px">0</span>
-          </a>
-        </li>
-        <li class="nav-item">
-          <a class="nav-link d-flex align-items-center gap-2" onclick="showSection('tickets')" href="#" id="nav-tickets">
-            <i class="bi bi-ticket-detailed"></i>
-            <span class="sidebar-link-text">All Tickets</span>
-          </a>
-        </li>
-        <li class="nav-item">
-          <a class="nav-link d-flex align-items-center gap-2" onclick="showSection('clients')" href="#" id="nav-clients">
-            <i class="bi bi-person-badge"></i>
-            <span class="sidebar-link-text">Clients</span>
-          </a>
-        </li>
-        <li class="nav-item">
-          <a class="nav-link d-flex align-items-center gap-2" onclick="showSection('workload')" href="#" id="nav-workload">
-            <i class="bi bi-people"></i>
-            <span class="sidebar-link-text">Team Workload</span>
-          </a>
-        </li>
-        <li class="nav-item">
-          <a class="nav-link d-flex align-items-center gap-2" onclick="showSection('analytics')" href="#" id="nav-analytics">
-            <i class="bi bi-bar-chart-line"></i>
-            <span class="sidebar-link-text">Analytics</span>
-          </a>
-        </li>
-      </ul>
-    </nav>
-    <div class="px-2 py-3 border-top border-white border-opacity-10">
-      <div class="user-chip d-flex align-items-center gap-2 px-2 py-2">
-        <div class="user-avatar-wrap d-flex flex-column align-items-center position-relative">
-          <div class="user-avatar d-flex align-items-center justify-content-center text-white flex-shrink-0 mb-1" id="pmAvatar" style="background:#7c3aed" title="Rachel Morgan – Project Manager">RM</div>
-          <i class="bi bi-box-arrow-right logout-icon-collapsed text-white-50 mt-1" style="cursor:pointer; display:none; font-size:18px; background:#23293a; border-radius:50%; padding:4px; z-index:2;" onclick="doLogout()" title="Sign out"></i>
-        </div>
-        <div class="user-info flex-grow-1">
-          <div class="text-white fw-semibold" style="font-size:12.5px" id="pmName">Rachel Morgan</div>
-          <div class="text-white-50" style="font-size:10.5px;white-space:nowrap">Project Manager</div>
-        </div>
-        <i class="bi bi-box-arrow-right ms-auto text-white-50 logout-icon" style="cursor:pointer" onclick="doLogout()" title="Sign out"></i>
-      </div>
-    </div>
-  </aside> -->
  @@include('./partials/sidebar.html', {
     "role" : "pm",
     "portalName" : "PM Portal",
@@ -93,41 +31,11 @@
   <div class="flex-grow-1 d-flex flex-column overflow-hidden">
 
     <!-- TOPBAR -->
-    <header class="topbar d-flex align-items-center gap-3 px-4 py-3 flex-shrink-0">
-      <div class="d-flex align-items-center gap-3">
-        <span class="fw-bold" style="font-size:16px;color:#1a2235" id="topbarTitle">Dashboard</span>
-        <div class="d-flex align-items-center gap-2 px-3 py-1 rounded-3" style="background:#eff4ff;border:1px solid #c7d5f8">
-          <svg width="22" height="22" viewBox="0 0 37 53.8" xmlns="http://www.w3.org/2000/svg"><path fill="#141d22" d="M28.7,0c-4,0-6.1,7.7-14.8,11.9C10.7,13.4,0,15.9,0,19.4l0,0c0,4.9,5.2,2.5,8.2,2.5c11.4,0,11.6,7.1,1.3,11c-3.8,1.5-8.3,2.3-8.3,7.2c0,7.5,13.7,2.1,20.9,8.9c2.4,2.3,1.7,4.8,8.4,4.8c5.8,0,8.8-7.7,4.6-10.8c-3.4-2.6-6.3-0.9-11.6-0.9c-3,0-9.3-1.9-9.3-5.6c0-3.9,4.7-6.1,8.1-7c3.5-1,6.5-0.3,6.5-5c0-3.7-6.1-3-10-3.1c-3.1-0.1-9.1-1.7-9.7-3.4c-0.7-2.5,9.6-5.9,12.5-6.8c4.3-1.4,5.3-1,8.2-1.6C31,9.3,32.2,8.8,33,7.9c1.5-1.8,1.8-4.5-0.1-6.4C31.6,0.1,30.4,0,28.7,0"/></svg>
-          <span class="fw-semibold" style="font-size:12.5px;color:#3b7cf4">E-Bureauet</span>
-          <span class="text-muted" style="font-size:11px" id="topbarSub">· PM View</span>
-        </div>
-      </div>
-      <div class="search-wrap ms-2">
-        <i class="bi bi-search"></i>
-        <input class="search-input" id="pmSearch" type="text" placeholder="Search tickets..." oninput="onSearch(this.value)">
-      </div>
-      <div class="d-flex gap-2 ms-auto align-items-center">
-        <button class="btn btn-primary btn-sm d-flex align-items-center gap-1 rounded-2 fw-semibold px-3" onclick="openCreateModal()" style="font-size:13px">
-          <i class="bi bi-plus-lg"></i> Create Ticket
-        </button>
-        <div class="dropdown">
-          <button class="btn-icon-top" data-bs-toggle="dropdown" data-bs-auto-close="outside">
-            <i class="bi bi-bell"></i><span class="notif-dot" id="notifDot" style="display:none"></span>
-          </button>
-          <div class="dropdown-menu dropdown-menu-end p-0 shadow rounded-3 notif-dropdown" style="border:1px solid #e4e9f2">
-            <div class="d-flex align-items-center justify-content-between px-3 py-2 border-bottom">
-              <span class="fw-bold" style="font-size:13px">Notifications</span>
-              <div class="d-flex gap-2">
-                <button class="btn btn-link btn-sm p-0 text-decoration-none" style="font-size:12px;color:#3b7cf4" onclick="markAllRead()">Mark all read</button>
-                <button class="btn btn-link btn-sm p-0 text-decoration-none" style="font-size:12px;color:#d11a2a" onclick="deleteAllNotifs()">Delete all</button>
-              </div>
-            </div>
-            <div id="notifList"></div>
-          </div>
-        </div>
-        <button class="btn-icon-top"><i class="bi bi-gear"></i></button>
-      </div>
-    </header>
+    @@include('./partials/topbar.html', {
+      "role" : "pm",
+      "clientIdentifier" : "Client",
+      "clientUser" : "User"
+    })
 
     <!-- ── SECTION: OVERVIEW ─────────────────────────────── -->
     <div id="sec-overview" class="content-scroll d-flex flex-column gap-3">
