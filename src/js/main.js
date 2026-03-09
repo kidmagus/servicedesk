@@ -1,3 +1,11 @@
+// Set client identifier and user dynamically from localStorage (for client.html)
+window.addEventListener('DOMContentLoaded', function() {
+  var clientName = localStorage.getItem('servicedesk_current_user') || 'Client';
+  var clientIdentifier = document.getElementById('clientIdentifier');
+  if (clientIdentifier) clientIdentifier.textContent = clientName;
+  var clientUser = document.getElementById('clientUser');
+  if (clientUser) clientUser.textContent = '· ' + clientName;
+});
 // Dynamic user (frontend-only)
 let CURRENT_USER = localStorage.getItem('servicedesk_current_user') || 'Matthew Samson';
 
