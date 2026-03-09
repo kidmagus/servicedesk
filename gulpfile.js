@@ -58,7 +58,6 @@ export function html() {
       prefix: '@@',
       basepath: '@file'
     }))
-    .pipe(htmlmin({ collapseWhitespace: true }))
     .pipe(dest(paths.html.dest))
     .pipe(browserSync.stream());
 }

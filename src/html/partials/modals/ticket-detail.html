@@ -1,0 +1,45 @@
+<div class="offcanvas offcanvas-end offcanvas-detail" tabindex="-1" id="ticketOffcanvas">
+  <div class="offcanvas-header border-bottom px-4 py-3">
+    <div class="d-flex align-items-center gap-2">
+      <h6 class="offcanvas-title fw-bold mb-0" style="font-size:14px">Ticket Details</h6>
+      <span class="text-muted" id="detailTid" style="font-family:'JetBrains Mono',monospace;font-size:12px"></span>
+    </div>
+    <button type="button" class="btn-close" data-bs-dismiss="offcanvas"></button>
+  </div>
+  <div class="offcanvas-body p-4" id="detailBody" style="overflow-y:auto;flex:1"></div>
+  <div class="border-top px-4 pt-3 pb-3 flex-shrink-0">
+    <div class="row g-2 mb-3">
+      <div class="col-6">
+        <label class="text-uppercase text-muted fw-semibold d-block mb-1" style="font-size:10px;letter-spacing:.6px">Update Status</label>
+        <select class="action-select" id="detailStatus" onchange="updateStatus(this.value)">
+          <option value="Open">Open</option>
+          <option value="In Progress">In Progress</option>
+          <option value="Resolved">Resolved</option>
+          <option value="Closed">Closed</option>
+        </select>
+      </div>
+      <div class="col-6">
+        <label class="text-uppercase text-muted fw-semibold d-block mb-1" style="font-size:10px;letter-spacing:.6px">Set Priority</label>
+        <select class="action-select" id="detailPriority" onchange="updatePriority(this.value)">
+          <option value="Critical">Critical</option>
+          <option value="High">High</option>
+          <option value="Medium">Medium</option>
+          <option value="Low">Low</option>
+        </select>
+      </div>
+    </div>
+    <!-- Comment with paste screenshot -->
+    <textarea class="form-control rounded-3 mb-2" id="newComment" rows="2"
+      placeholder="Add a comment... (paste screenshot with Ctrl+V)"
+      style="font-size:13px;font-family:inherit;resize:none"></textarea>
+    <div class="screenshot-preview mb-2" id="commentPreview"></div>
+    <div class="d-flex justify-content-between align-items-center">
+      <button class="btn btn-primary btn-sm px-4 rounded-2 fw-semibold" style="font-size:13px" onclick="submitComment()">
+        Add Comment
+      </button>
+      <button class="btn-danger-soft d-flex align-items-center gap-1" onclick="doRemoveTicket()" id="removeTicketBtn">
+        <i class="bi bi-trash3"></i> Remove
+      </button>
+    </div>
+  </div>
+</div>

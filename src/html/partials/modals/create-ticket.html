@@ -1,0 +1,72 @@
+<div class="modal fade" id="createTicketModal" tabindex="-1">
+  <div class="modal-dialog modal-dialog-centered modal-lg">
+    <div class="modal-content rounded-3 border-0 shadow">
+      <div class="modal-header px-4 py-3 border-bottom">
+        <h6 class="modal-title fw-bold mb-0">Create Ticket</h6>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body px-4 py-3">
+        <div class="mb-3">
+          <label class="form-label">Title <span class="text-danger">*</span></label>
+          <input type="text" class="form-control" id="ctTitle" placeholder="Brief description of the issue"/>
+        </div>
+        <div class="row g-3 mb-3">
+          <div class="col-3">
+            <label class="form-label">Priority <span class="text-danger">*</span></label>
+            <select class="form-select" id="ctPriority">
+              <option value="Low">Low</option>
+              <option value="Medium" selected>Medium</option>
+              <option value="High">High</option>
+              <option value="Critical">Critical</option>
+            </select>
+          </div>
+          <div class="col-3">
+            <label class="form-label">Category <span class="text-danger">*</span></label>
+            <select class="form-select" id="ctCategory">
+              <option value="Task">Task</option>
+              <option value="Bug">Bug</option>
+              <option value="Feature Request">Feature Request</option>
+              <option value="Performance Issue">Performance Issue</option>
+              <option value="Account Issue">Account Issue</option>
+              <option value="Other">Other</option>
+            </select>
+          </div>
+          <div class="col-3">
+            <label class="form-label">Reporter <span class="text-danger">*</span></label>
+            <input type="text" class="form-control" id="ctReporter" readonly>
+          </div>
+          <div class="col-3">
+            <label class="form-label">Manager <span class="text-danger">*</span></label>
+            <select class="form-select" id="ctManager">
+              <!-- Manager options will be rendered by JS -->
+            </select>
+          </div>
+        </div>
+        <div class="mb-3">
+          <label class="form-label">Description <span class="text-danger">*</span></label>
+          <textarea class="form-control" id="ctDesc" rows="3" placeholder="Describe the issue in detail..."></textarea>
+        </div>
+        <!-- Screenshot -->
+        <div>
+          <label class="form-label">
+            Screenshots
+            <span class="text-muted fw-normal ms-1" style="font-size:11.5px">(optional — paste Ctrl+V, drag & drop, or browse)</span>
+          </label>
+          <div class="screenshot-drop" id="ctDropZone">
+            <i class="bi bi-images d-block mb-1" style="font-size:22px"></i>
+            <div>Drag & drop images or <strong>click to browse</strong></div>
+            <div class="mt-1" style="font-size:11.5px;color:#9aa5bc">You can also paste a screenshot with Ctrl+V / ⌘V</div>
+            <input type="file" id="ctFileInput" accept="image/*" multiple style="display:none"/>
+          </div>
+          <div class="screenshot-preview" id="ctPreview"></div>
+        </div>
+      </div>
+      <div class="modal-footer px-4 py-3 border-top">
+        <button class="btn btn-light rounded-2 fw-semibold border" data-bs-dismiss="modal" style="font-size:13px">Cancel</button>
+        <button class="btn btn-primary rounded-2 fw-semibold px-4" onclick="submitTicket()" style="font-size:13px">
+          <i class="bi bi-send me-1"></i> Submit Ticket
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
