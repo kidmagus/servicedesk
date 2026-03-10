@@ -40,152 +40,19 @@
     <!-- ── SECTION: OVERVIEW ─────────────────────────────── -->
     <div id="sec-overview" class="content-scroll d-flex flex-column gap-3">
       <!-- Stats row -->
-      <div class="row g-3 flex-shrink-0">
-        <div class="col-2">
-          <div class="card border-0 shadow-sm rounded-3">
-            <div class="card-body d-flex justify-content-between align-items-start p-3">
-              <div><p class="text-muted mb-2 fw-medium" style="font-size:11.5px">Total</p><div class="stat-value text-dark" id="ovTotal">0</div><p class="text-muted mt-1 mb-0" style="font-size:11px">All tickets</p></div>
-              <div class="stat-icon" style="background:#eff4ff;color:#3b7cf4"><i class="bi bi-collection"></i></div>
-            </div>
-          </div>
-        </div>
-        <div class="col-2">
-          <div class="card border-0 shadow-sm rounded-3">
-            <div class="card-body d-flex justify-content-between align-items-start p-3">
-              <div><p class="text-muted mb-2 fw-medium" style="font-size:11.5px">Open</p><div class="stat-value" style="color:#1d4ed8" id="ovOpen">0</div><p class="text-muted mt-1 mb-0" style="font-size:11px">Awaiting action</p></div>
-              <div class="stat-icon" style="background:#dbeafe;color:#1d4ed8"><i class="bi bi-circle-fill" style="font-size:11px"></i></div>
-            </div>
-          </div>
-        </div>
-        <div class="col-2">
-          <div class="card border-0 shadow-sm rounded-3">
-            <div class="card-body d-flex justify-content-between align-items-start p-3">
-              <div><p class="text-muted mb-2 fw-medium" style="font-size:11.5px">In Progress</p><div class="stat-value" style="color:#b45309" id="ovInProg">0</div><p class="text-muted mt-1 mb-0" style="font-size:11px">Active work</p></div>
-              <div class="stat-icon" style="background:#fef9c3;color:#92400e"><i class="bi bi-arrow-repeat"></i></div>
-            </div>
-          </div>
-        </div>
-        <div class="col-2">
-          <div class="card border-0 shadow-sm rounded-3">
-            <div class="card-body d-flex justify-content-between align-items-start p-3">
-              <div><p class="text-muted mb-2 fw-medium" style="font-size:11.5px">Resolved</p><div class="stat-value" style="color:#16a34a" id="ovResolved">0</div><p class="text-muted mt-1 mb-0" style="font-size:11px">Completed</p></div>
-              <div class="stat-icon" style="background:#dcfce7;color:#166534"><i class="bi bi-check-circle"></i></div>
-            </div>
-          </div>
-        </div>
-        <div class="col-2">
-          <div class="card border-0 shadow-sm rounded-3">
-            <div class="card-body d-flex justify-content-between align-items-start p-3">
-              <div><p class="text-muted mb-2 fw-medium" style="font-size:11.5px">Closed</p><div class="stat-value text-secondary" id="ovClosed">0</div><p class="text-muted mt-1 mb-0" style="font-size:11px">Archived</p></div>
-              <div class="stat-icon" style="background:#f1f5f9;color:#64748b"><i class="bi bi-lock"></i></div>
-            </div>
-          </div>
-        </div>
-        <div class="col-2">
-          <div class="card border-0 shadow-sm rounded-3">
-            <div class="card-body d-flex justify-content-between align-items-start p-3">
-              <div><p class="text-muted mb-2 fw-medium" style="font-size:11.5px">Critical</p><div class="stat-value" style="color:#be123c" id="ovCritical">0</div><p class="text-muted mt-1 mb-0" style="font-size:11px">Urgent priority</p></div>
-              <div class="stat-icon" style="background:#ffe4e6;color:#be123c"><i class="bi bi-exclamation-triangle"></i></div>
-            </div>
-          </div>
-        </div>
-      </div>
+      @@include('./partials/stats-pm.html')
       <!-- Charts row -->
-      <div class="row g-3 flex-shrink-0">
-        <div class="col-4">
-          <div class="chart-card h-100">
-            <div class="chart-title">Tickets by Status</div>
-            <div class="chart-sub">Current distribution</div>
-            <div style="position:relative;height:200px"><canvas id="chartStatus"></canvas></div>
-          </div>
-        </div>
-        <div class="col-4">
-          <div class="chart-card h-100">
-            <div class="chart-title">Priority Breakdown</div>
-            <div class="chart-sub">All open tickets</div>
-            <div style="position:relative;height:200px"><canvas id="chartPriority"></canvas></div>
-          </div>
-        </div>
-        <div class="col-4">
-          <div class="chart-card h-100">
-            <div class="chart-title">Tickets by Category</div>
-            <div class="chart-sub">All time</div>
-            <div style="position:relative;height:200px"><canvas id="chartCategory"></canvas></div>
-          </div>
-        </div>
-      </div>
+      @@include('./partials/charts.html')
       <!-- Urgent + Activity row -->
-      <div class="row g-3 flex-shrink-0">
-        <div class="col-6">
-          <div class="card border-0 shadow-sm rounded-3 h-100">
-            <div class="card-header bg-white border-bottom px-4 py-3">
-              <span class="fw-bold" style="font-size:14px;color:#1a2235"><i class="bi bi-exclamation-triangle text-danger me-2"></i>Critical & High Tickets</span>
-            </div>
-            <div id="urgentList" style="overflow-y:auto;max-height:220px"></div>
-          </div>
-        </div>
-        <div class="col-6">
-          <div class="card border-0 shadow-sm rounded-3 h-100">
-            <div class="card-header bg-white border-bottom px-4 py-3">
-              <span class="fw-bold" style="font-size:14px;color:#1a2235"><i class="bi bi-clock-history me-2 text-primary"></i>Recent Activity</span>
-            </div>
-            <div id="activityFeed" style="overflow-y:auto;max-height:220px"></div>
-          </div>
-        </div>
-      </div>
+      @@include('./partials/activities.html')
     </div>
 
     <!-- ── SECTION: ALL TICKETS ──────────────────────────── -->
     <div id="sec-tickets" class="d-flex flex-column flex-grow-1 overflow-hidden d-none">
       <div class="d-flex flex-column flex-grow-1 overflow-hidden p-4 gap-3">
-        <div class="card border-0 shadow-sm rounded-3 tickets-panel flex-grow-1">
-          <div class="card-header bg-white border-bottom d-flex align-items-center gap-2 py-3 px-4">
-            <span class="fw-bold" style="font-size:14px;color:#1a2235">All Tickets</span>
-            <span class="badge bg-light text-secondary rounded-pill ms-1" id="pmTicketCount" style="font-size:11px">0 found</span>
-            <div class="d-flex gap-2 ms-auto align-items-center">
-              <select class="filter-select" id="pmFStatus" onchange="pmRender()">
-                <option value="">All Statuses</option><option>Open</option><option>In Progress</option><option>Resolved</option><option>Closed</option>
-              </select>
-              <select class="filter-select" id="pmFPriority" onchange="pmRender()">
-                <option value="">All Priorities</option><option>Critical</option><option>High</option><option>Medium</option><option>Low</option>
-              </select>
-              <select class="filter-select" id="pmFClient" onchange="pmRender()">
-                <option value="">All Clients</option>
-                <option>John Client</option><option>Maria Santos</option><option>Carlos Reyes</option><option>Ana Rivera</option><option>Ben Cruz</option>
-              </select>
-              <select class="filter-select" id="pmFManager" onchange="pmRender()">
-                <option value="">All Managers</option>
-                <option>Sarah Johnson</option><option>Alex Lee</option><option>Priya Patel</option><option>David Kim</option><option>Emma Brown</option>
-              </select>
-            </div>
-          </div>
-          <div class="table-scroll">
-            <table class="table table-hover mb-0">
-              <thead>
-                <tr>
-                  <th onclick="pmSort('id')">Ticket ID <i class="bi bi-chevron-expand ms-1" style="font-size:10px;opacity:.4"></i></th>
-                  <th onclick="pmSort('title')">Title <i class="bi bi-chevron-expand ms-1" style="font-size:10px;opacity:.4"></i></th>
-                  <th onclick="pmSort('status')">Status <i class="bi bi-chevron-expand ms-1" style="font-size:10px;opacity:.4"></i></th>
-                  <th onclick="pmSort('priority')">Priority <i class="bi bi-chevron-expand ms-1" style="font-size:10px;opacity:.4"></i></th>
-                  <th onclick="pmSort('category')">Category <i class="bi bi-chevron-expand ms-1" style="font-size:10px;opacity:.4"></i></th>
-                  <th onclick="pmSort('reporter')">Reporter <i class="bi bi-chevron-expand ms-1" style="font-size:10px;opacity:.4"></i></th>
-                  <th>Manager</th>
-                  <th>Developer</th>
-                  <th onclick="pmSort('created')">Created <i class="bi bi-chevron-expand ms-1" style="font-size:10px;opacity:.4"></i></th>
-                </tr>
-              </thead>
-              <tbody id="pmTableBody"></tbody>
-            </table>
-            <div class="d-none text-center py-5 text-muted" id="pmEmptyState">
-              <i class="bi bi-inbox fs-1 d-block mb-2 opacity-25"></i>
-              <p class="mb-0" style="font-size:13.5px">No tickets match your filters.</p>
-            </div>
-          </div>
-          <div class="card-footer bg-white border-top d-flex align-items-center justify-content-between px-4 py-2">
-            <div class="text-muted" style="font-size:12.5px">Showing <strong class="text-dark" id="pmPageFrom">1</strong>–<strong class="text-dark" id="pmPageTo">8</strong> of <strong class="text-dark" id="pmPageTotal">0</strong> tickets</div>
-            <div class="d-flex gap-1" id="pmPageControls"></div>
-          </div>
-        </div>
+        @@include('./partials/tickets-panel.html', {
+          "role": "pm"
+        })
       </div>
     </div>
 
@@ -323,157 +190,21 @@
 <!-- ═══════════════════════════════════════════════════════
      CREATE TICKET MODAL (PM version — includes status + reporter selector)
 ═══════════════════════════════════════════════════════ -->
-<div class="modal fade" id="createTicketModal" tabindex="-1">
-  <div class="modal-dialog modal-dialog-centered modal-lg">
-    <div class="modal-content rounded-3 border-0 shadow">
-      <div class="modal-header px-4 py-3 border-bottom">
-        <h6 class="modal-title fw-bold mb-0" id="createModalTitle">Create Ticket</h6>
-        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-      </div>
-      <div class="modal-body px-4 py-3">
-        <div class="mb-3">
-          <label class="form-label">Title <span class="text-danger">*</span></label>
-          <input type="text" class="form-control" id="ctTitle" placeholder="Brief description of the issue">
-        </div>
-        <div class="row g-3 mb-3">
-          <!-- Status field removed: always set to 'Open' for new tickets -->
-          <div class="col-3">
-            <label class="form-label">Priority <span class="text-danger">*</span></label>
-            <select class="form-select" id="ctPriority">
-              <option value="Low">Low</option>
-              <option value="Medium" selected>Medium</option>
-              <option value="High">High</option>
-              <option value="Critical">Critical</option>
-            </select>
-          </div>
-          <div class="col-3">
-            <label class="form-label">Category <span class="text-danger">*</span></label>
-            <select class="form-select" id="ctCategory">
-              <option value="Task">Task</option>
-              <option value="Bug">Bug</option>
-              <option value="Feature Request">Feature Request</option>
-              <option value="Performance Issue">Performance Issue</option>
-              <option value="Account Issue">Account Issue</option>
-              <option value="Other">Other</option>
-            </select>
-          </div>
-          <div class="col-3">
-            <label class="form-label">Reporter <span class="text-danger">*</span></label>
-            <input type="text" class="form-control" id="ctReporter" readonly>
-          </div>
-          <div class="col-3">
-            <label class="form-label">Developer <span class="text-danger">*</span></label>
-            <select class="form-select" id="ctDeveloper">
-              <!-- Developer options will be rendered by JS -->
-            </select>
-          </div>
-        </div>
-        <div class="mb-3">
-          <label class="form-label">Description <span class="text-danger">*</span></label>
-          <textarea class="form-control" id="ctDesc" rows="3" placeholder="Describe the issue in detail..."></textarea>
-        </div>
-        <!-- Screenshot upload section (copied from index.html) -->
-        <div>
-          <label class="form-label">
-            Screenshots
-            <span class="text-muted fw-normal ms-1" style="font-size:11.5px">(optional — paste Ctrl+V, drag & drop, or browse)</span>
-          </label>
-          <div class="screenshot-drop" id="ctDropZone">
-            <i class="bi bi-images d-block mb-1" style="font-size:22px"></i>
-            <div>Drag & drop images or <strong>click to browse</strong></div>
-            <div class="mt-1" style="font-size:11.5px;color:#9aa5bc">You can also paste a screenshot with Ctrl+V / ⌘V</div>
-            <input type="file" id="ctFileInput" accept="image/*" multiple style="display:none"/>
-          </div>
-          <div class="screenshot-preview" id="ctPreview"></div>
-        </div>
-      </div>
-      <div class="modal-footer px-4 py-3 border-top">
-        <button class="btn btn-light rounded-2 fw-semibold border" data-bs-dismiss="modal" style="font-size:13px">Cancel</button>
-        <button class="btn btn-primary rounded-2 fw-semibold px-4" onclick="pmSubmitTicket()" style="font-size:13px"><i class="bi bi-send me-1"></i> Submit Ticket</button>
-      </div>
-    </div>
-  </div>
-</div>
+   @@include('./partials/modals/create-ticket.html', {
+          "role": "pm"
+    })
 
 <!-- ═══════════════════════════════════════════════════════
      TICKET DETAIL OFFCANVAS (PM version — with internal notes + full edit + delete)
 ═══════════════════════════════════════════════════════ -->
-<div class="offcanvas offcanvas-end offcanvas-detail" tabindex="-1" id="ticketOffcanvas">
-  <div class="offcanvas-header border-bottom px-4 py-3">
-    <div class="d-flex align-items-center gap-2">
-      <h6 class="offcanvas-title fw-bold mb-0" style="font-size:14px">Ticket Details</h6>
-      <span class="text-muted" id="detailTid" style="font-family:'JetBrains Mono',monospace;font-size:12px"></span>
-    </div>
-    <button type="button" class="btn-close" data-bs-dismiss="offcanvas"></button>
-  </div>
-  <div class="offcanvas-body p-4" id="detailBody" style="overflow-y:auto;flex:1"></div>
-  <div class="border-top px-4 pt-3 pb-3 flex-shrink-0">
-    <div class="row g-2 mb-3">
-      <div class="col-6">
-        <label class="text-uppercase text-muted fw-semibold d-block mb-1" style="font-size:10px;letter-spacing:.6px">Update Status</label>
-        <select class="action-select" id="detailStatus" onchange="pmUpdateStatus(this.value)">
-          <option>Open</option><option>In Progress</option><option>Resolved</option><option>Closed</option>
-        </select>
-      </div>
-      <div class="col-6">
-        <label class="text-uppercase text-muted fw-semibold d-block mb-1" style="font-size:10px;letter-spacing:.6px">Set Priority</label>
-        <select class="action-select" id="detailPriority" onchange="pmUpdatePriority(this.value)">
-          <option>Critical</option><option>High</option><option>Medium</option><option>Low</option>
-        </select>
-      </div>
-    </div>
-    <textarea class="form-control rounded-3 mb-2" id="newComment" rows="2" placeholder="Add a comment..." style="font-size:13px;font-family:inherit;resize:none"></textarea>
-    <div class="d-flex justify-content-between align-items-center">
-      <button class="btn btn-primary btn-sm px-4 rounded-2 fw-semibold" style="font-size:13px" onclick="pmSubmitComment()">Add Comment</button>
-      <button class="btn-delete-soft d-flex align-items-center gap-1" onclick="pmDeleteTicket()"><i class="bi bi-trash3"></i> Delete</button>
-    </div>
-  </div>
-</div>
+  @@include('./partials/modals/ticket-detail.html');
 
 <!-- REMOVE TICKET MODAL -->
-<div class="modal fade" id="removeTicketModal" tabindex="-1" aria-labelledby="removeTicketModalLabel" aria-hidden="true">
-  <div class="modal-dialog modal-dialog-centered">
-    <div class="modal-content rounded-3 border-0 shadow">
-      <div class="modal-header">
-        <h6 class="modal-title fw-bold" id="removeTicketModalLabel">Cannot Remove Ticket</h6>
-        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-      </div>
-      <div class="modal-body">
-        <div class="d-flex align-items-center gap-2">
-          <i class="bi bi-exclamation-triangle text-warning fs-3"></i>
-          <span id="removeTicketModalMsg">Only Resolved or Closed tickets can be removed.</span>
-        </div>
-      </div>
-      <div class="modal-footer">
-        <button type="button" class="btn btn-primary" data-bs-dismiss="modal">OK</button>
-      </div>
-    </div>
-  </div>
-</div>
-<!-- END REMOVE TICKET MODAL -->
+  @@include('./partials/modals/remove-ticket.html')
 
 <!-- CONFIRM REMOVE TICKET MODAL -->
-<div class="modal fade" id="confirmRemoveTicketModal" tabindex="-1" aria-labelledby="confirmRemoveTicketModalLabel" aria-hidden="true">
-  <div class="modal-dialog modal-dialog-centered">
-    <div class="modal-content rounded-3 border-0 shadow">
-      <div class="modal-header">
-        <h6 class="modal-title fw-bold" id="confirmRemoveTicketModalLabel">Remove Ticket</h6>
-        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-      </div>
-      <div class="modal-body">
-        <div class="d-flex align-items-center gap-2">
-          <i class="bi bi-trash3 text-danger fs-3"></i>
-          <span id="confirmRemoveTicketModalMsg">Are you sure you want to remove this ticket? This action cannot be undone.</span>
-        </div>
-      </div>
-      <div class="modal-footer">
-        <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancel</button>
-        <button type="button" class="btn btn-danger" id="confirmRemoveTicketBtn">Remove</button>
-      </div>
-    </div>
-  </div>
-</div>
-<!-- END CONFIRM REMOVE TICKET MODAL -->
+   @@include('./partials/modals/confirmation-removal.html')
+
 
 <script src="js/bootstrap.bundle.min.js"></script>
 <script src="js/pm-view.js"></script>

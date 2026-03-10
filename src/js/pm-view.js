@@ -173,8 +173,8 @@ let NOTES    = {}; // { ticketId: [{author,time,text}] }
 let commentsMap = {};
 let selectedTicket = null;
 let pmOffcanvas    = null;
-let pmPage = 1, pmSortField = 'id', pmSortDir = 1;
-let pmFStatus='', pmFPriority='', pmFClient='', pmFManager='', pmFSearch='';
+let pmPage = 1, sortByField = 'id', sortByDir = 1;
+let pmFSearch='';
 let charts = {};
 
 const initials = n => n.split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,2);
@@ -232,6 +232,18 @@ document.addEventListener('DOMContentLoaded', function() {
       }
     });
   }
+
+  // Add event listeners for PM filter selects (no inline onchange)
+  // Add event listeners for PM filter selects (no inline onchange)
+  ['filterStatus', 'filterPriority', 'filterClient', 'filterManager'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) {
+      el.addEventListener('change', () => {
+        pmPage = 1;
+        pmRender();
+      });
+    }
+  });
 });
 
 function doLogout() {
@@ -535,13 +547,13 @@ function renderOverview() {
 // ALL TICKETS TABLE
 // ═══════════════════════════════════════════════════════
 function onSearch(v) { pmFSearch = v.trim().toLowerCase(); pmPage=1; pmRender(); }
-function pmSort(f) { pmSortDir = pmSortField===f ? -pmSortDir : 1; pmSortField=f; pmPage=1; pmRender(); }
+function sortBy(f) { sortByDir = sortByField===f ? -sortByDir : 1; sortByField=f; pmPage=1; pmRender(); }
 function pmGetFiltered() {
   let list = [...TICKETS];
-  const sf = document.getElementById('pmFStatus')?.value||'';
-  const pf = document.getElementById('pmFPriority')?.value||'';
-  const cf = document.getElementById('pmFClient')?.value||'';
-  const af = document.getElementById('pmFManager')?.value||'';
+  const sf = document.getElementById('filterStatus')?.value||'';
+  const pf = document.getElementById('filterPriority')?.value||'';
+  const cf = document.getElementById('filterClient')?.value||'';
+  const af = document.getElementById('filterManager')?.value||'';
   if (sf) list = list.filter(t=>t.status===sf);
   if (pf) list = list.filter(t=>t.priority===pf);
   if (cf) list = list.filter(t=>t.reporter===cf);
@@ -552,7 +564,7 @@ function pmGetFiltered() {
     (t.reporter||'').toLowerCase().includes(pmFSearch)||
     t.manager.toLowerCase().includes(pmFSearch)
   );
-  return list.sort((a,b)=>((a[pmSortField]||'').localeCompare(b[pmSortField]||''))*pmSortDir);
+  return list.sort((a,b)=>((a[sortByField]||'').localeCompare(b[sortByField]||''))*sortByDir);
 }
 function pmGoPage(p) {
   const total = Math.max(1, Math.ceil(pmGetFiltered().length/PAGE_SIZE));
@@ -564,23 +576,27 @@ function pmRender() {
   const maxPage = Math.max(1, Math.ceil(total/PAGE_SIZE));
   if (pmPage>maxPage) pmPage=maxPage;
   const start = (pmPage-1)*PAGE_SIZE, slice = all.slice(start, start+PAGE_SIZE);
-  const tbody = document.getElementById('pmTableBody');
-  const empty = document.getElementById('pmEmptyState');
-  document.getElementById('pmTicketCount').textContent = total+' found';
-  document.getElementById('pmPageFrom').textContent  = total ? start+1 : 0;
-  document.getElementById('pmPageTo').textContent    = Math.min(start+PAGE_SIZE, total);
-  document.getElementById('pmPageTotal').textContent = total;
-  document.getElementById('pmPageControls').innerHTML = renderPagination(pmPage, total);
+  const tbody = document.getElementById('ticketTableBody');
+  const empty = document.getElementById('emptyState');
+  document.getElementById('ticketCountBadge').textContent = total+' found';
+  document.getElementById('pageFrom').textContent  = total ? start+1 : 0;
+  document.getElementById('pageTo').textContent    = Math.min(start+PAGE_SIZE, total);
+  document.getElementById('pageTotal').textContent = total;
+  document.getElementById('pageControls').innerHTML = renderPagination(pmPage, total);
 
-  const clientSelect = document.getElementById('pmFClient');
+  const clientSelect = document.getElementById('filterClient');
   if (clientSelect) {
+    const prev = clientSelect.value;
     const clients = Array.from(new Set(TICKETS.map(t => t.reporter))).filter(Boolean);
     clientSelect.innerHTML = '<option value="">All Clients</option>' + clients.map(c => `<option value="${c}">${c}</option>`).join('');
+    clientSelect.value = prev;
   }
-  const managerSelect = document.getElementById('pmFManager');
+  const managerSelect = document.getElementById('filterManager');
   if (managerSelect) {
+    const prev = managerSelect.value;
     const pms = JSON.parse(localStorage.getItem('servicedesk_pms')) || ['Matthew Samson', 'John Doe'];
     managerSelect.innerHTML = '<option value="">All Managers</option>' + pms.map(pm => `<option value="${pm}">${pm}</option>`).join('');
+    managerSelect.value = prev;
   }
   if (!slice.length) { tbody.innerHTML=''; empty.classList.remove('d-none'); return; }
   empty.classList.add('d-none');
@@ -1014,7 +1030,7 @@ function renderDetail() {
   }, 0);
 }
 
-function pmUpdateStatus(v) {
+function updateStatus(v) {
   if (!selectedTicket) return;
   const t = TICKETS.find(x=>x.id===selectedTicket.id); if(!t) return;
   const prevStatus = selectedTicket.status;
@@ -1028,7 +1044,7 @@ function pmUpdateStatus(v) {
   if (document.getElementById('sec-tickets').offsetParent!==null) pmRender();
 }
 
-function pmUpdatePriority(v) {
+function updatePriority(v) {
   if (!selectedTicket) return;
   const t = TICKETS.find(x=>x.id===selectedTicket.id); if(!t) return;
   const prevPriority = selectedTicket.priority;
@@ -1053,7 +1069,7 @@ function pmAddNote() {
   showToast({type:'success',title:'Note added',message:'Internal note saved'});
 }
 
-function pmSubmitComment() {
+function submitComment() {
   const txt = document.getElementById('newComment').value.trim();
   if (!txt||!selectedTicket) return;
   const time = new Date().toLocaleString('en-US',{month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'});
@@ -1064,6 +1080,8 @@ function pmSubmitComment() {
   NOTIFS.unshift({id:Date.now(),icon:'bi-chat-left-text-fill',bg:'#f0fdf4',fg:'#16a34a',title:'Comment on '+selectedTicket.id,body:`${PM_USER}: ${txt}`,time,unread:true,ticketId:selectedTicket.id});
   saveTickets(); saveNotifs(); renderNotifList();
   document.getElementById('newComment').value='';
+  window.commentAttachments = [];
+  document.getElementById('commentPreview').innerHTML = '';
   renderDetail();
   showToast({type:'info',title:'Comment added',message:`${PM_USER} commented to ${selectedTicket.id}`});
 }
@@ -1088,7 +1106,7 @@ function pmSaveEdit() {
   showToast({type:'success',title:'Ticket updated',message:`${t.id} saved successfully`});
 }
 
-function pmDeleteTicket() {
+function doRemoveTicket() {
   if (!selectedTicket) return;
   if (selectedTicket.status !== 'Resolved' && selectedTicket.status !== 'Closed') {
     var msg = document.getElementById('removeTicketModalMsg');
@@ -1131,7 +1149,7 @@ function openCreateModal() {
   new bootstrap.Modal(document.getElementById('createTicketModal')).show();
 }
 
-function pmSubmitTicket() {
+function submitTicket() {
   const title = document.getElementById('ctTitle').value.trim();
   const desc  = document.getElementById('ctDesc').value.trim();
   if (!title||!desc) { alert('Title and Description are required.'); return; }

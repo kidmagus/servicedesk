@@ -17,6 +17,16 @@
               <option value="Medium">Medium</option>
               <option value="Low">Low</option>
             </select>
+            @@if (typeof role === 'undefined' || role === 'pm') {
+              <select class="filter-select" id="filterClient">
+                <option value="">All Clients</option>
+                <option>John Client</option><option>Maria Santos</option><option>Carlos Reyes</option><option>Ana Rivera</option><option>Ben Cruz</option>
+              </select>
+              <select class="filter-select" id="filterManager">
+                <option value="">All Managers</option>
+                <option>Sarah Johnson</option><option>Alex Lee</option><option>Priya Patel</option><option>David Kim</option><option>Emma Brown</option>
+              </select>
+            }
           </div>
         </div>
 
@@ -31,6 +41,9 @@
                 <th onclick="sortBy('category')">Category <i class="bi bi-chevron-expand ms-1" style="font-size:10px;opacity:.4"></i></th>
                 <th onclick="sortBy('reporter')">Reporter <i class="bi bi-chevron-expand ms-1" style="font-size:10px;opacity:.4"></i></th>
                 <th onclick="sortBy('manager')">Manager <i class="bi bi-chevron-expand ms-1" style="font-size:10px;opacity:.4"></i></th>
+                @@if (typeof role === 'undefined' || role === 'pm') {
+                  <th onclick="sortBy('developer')">Developer <i class="bi bi-chevron-expand ms-1" style="font-size:10px;opacity:.4"></i></th>
+                }
                 <th onclick="sortBy('created')">Created <i class="bi bi-chevron-expand ms-1" style="font-size:10px;opacity:.4"></i></th>
               </tr>
             </thead>

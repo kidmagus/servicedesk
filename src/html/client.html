@@ -26,6 +26,7 @@
 
     <!-- TOPBAR -->
     @@include('./partials/topbar.html', {
+      "role" : "client",
       "clientIdentifier" : "Client",
       "clientUser" : "User"
     })
@@ -37,13 +38,17 @@
      @@include('./partials/stats.html')
 
       <!-- TICKETS PANEL -->
-      @@include('./partials/tickets-panel.html')
+      @@include('./partials/tickets-panel.html', {
+        "role": "client"
+      })
     </div>
   </div>
 </div>
 
 <!-- CREATE TICKET MODAL -->
-@@include('./partials/modals/create-ticket.html');
+@@include('./partials/modals/create-ticket.html', {
+  "role" : "client"
+});
 
 <!-- TICKET DETAIL OFFCANVAS -->
 @@include('./partials/modals/ticket-detail.html');
