@@ -1029,13 +1029,11 @@ function renderDetail() {
     </div>`
     : "";
 
-  let activeTabId = null;
-  if (!IS_PM()) {
-    const nav = document.getElementById("ticketTabNav");
-    if (nav) {
-      const cur = nav.querySelector(".nav-link.active");
-      if (cur) activeTabId = cur.id;
-    }
+  let activeTabTarget = null;
+  const existingNav = document.querySelector("#detailBody .nav-tabs");
+  if (existingNav) {
+    const cur = existingNav.querySelector(".nav-link.active");
+    if (cur) activeTabTarget = cur.getAttribute("data-bs-target");
   }
 
   const tabNavId = IS_PM() ? "" : ' id="ticketTabNav"';
@@ -1109,9 +1107,9 @@ function renderDetail() {
   document.getElementById("detailStatus").value = t.status;
   document.getElementById("detailPriority").value = t.priority;
 
-  if (!IS_PM() && activeTabId) {
+  if (activeTabTarget) {
     setTimeout(() => {
-      const btn = document.getElementById(activeTabId);
+      const btn = document.querySelector(`#detailBody .nav-tabs [data-bs-target="${activeTabTarget}"]`);
       if (btn) new bootstrap.Tab(btn).show();
     }, 0);
   }
@@ -2027,12 +2025,6 @@ function pmAddNote() {
   NOTES[selectedTicket.id].unshift({ author: CURRENT_USER, time, text: txt });
   saveNotes();
   renderDetail();
-  if (IS_PM()) {
-    setTimeout(() => {
-      const notesTabBtn = document.querySelector('button[data-bs-target="#dtNotes"]');
-      if (notesTabBtn) notesTabBtn.click();
-    }, 0);
-  }
   showToast({
     type: "success",
     title: "Note added",
