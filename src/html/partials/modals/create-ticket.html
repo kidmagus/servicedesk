@@ -35,21 +35,14 @@
             <label class="form-label">Reporter <span class="text-danger">*</span></label>
             <input type="text" class="form-control" id="ctReporter" readonly>
           </div>
-          <div class="col-3">
-            @@if (typeof role === 'undefined' || role === 'pm') {
-              <label class="form-label">Developer <span class="text-danger">*</span></label>
-              <select class="form-select" id="ctDeveloper">
-                <!-- Developer options will be rendered by JS -->
-              </select>
-            }
-
-            @@if (typeof role === 'undefined' || role !== 'pm') {
-              <label class="form-label">Manager <span class="text-danger">*</span></label>
-              <select class="form-select" id="ctManager">
-                <!-- Manager options will be rendered by JS -->
-              </select>
-            }
-          </div>
+     <div class="col-3" id="ctDeveloperWrap">
+        <label class="form-label">Developer <span class="text-danger">*</span></label>
+        <select class="form-select" id="ctDeveloper"></select>
+      </div>
+      <div class="col-3" id="ctManagerWrap">
+        <label class="form-label">Manager <span class="text-danger">*</span></label>
+        <select class="form-select" id="ctManager"></select>
+      </div>
         </div>
         <div class="mb-3">
           <label class="form-label">Description <span class="text-danger">*</span></label>
