@@ -1014,11 +1014,11 @@ function renderDetail() {
     : "";
 
   const notesTab = IS_PM()
-    ? `<li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#dtNotes" type="button" style="font-size:13px"><i class="bi bi-lock-fill me-1 text-warning" style="font-size:11px"></i>Internal Notes</button></li>`
+    ? `<li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#tabNotes" type="button" style="font-size:13px"><i class="bi bi-lock-fill me-1 text-warning" style="font-size:11px"></i>Internal Notes</button></li>`
     : "";
   const notesPane = IS_PM()
     ? `
-    <div class="tab-pane fade" id="dtNotes">
+    <div class="tab-pane fade" id="tabNotes">
       <div class="internal-badge"><i class="bi bi-lock-fill me-1"></i>PM Only — Not visible to client</div>
       ${nts.length ? nts.map((n) => `<div class="internal-note mb-2"><div class="internal-note-meta">🔒 ${n.author} · ${n.time}</div><div class="internal-note-text">${n.text}</div></div>`).join("") : '<p class="text-muted" style="font-size:13px">No internal notes yet.</p>'}
       <div class="mt-3">
@@ -1029,21 +1029,15 @@ function renderDetail() {
     </div>`
     : "";
 
+  // Capture active tab before re-render
   let activeTabTarget = null;
-  const existingNav = document.querySelector("#detailBody .nav-tabs");
+  const existingNav = document.getElementById("ticketTabNav");
   if (existingNav) {
     const cur = existingNav.querySelector(".nav-link.active");
     if (cur) activeTabTarget = cur.getAttribute("data-bs-target");
   }
 
-  const tabNavId = IS_PM() ? "" : ' id="ticketTabNav"';
-  const tabContentId = IS_PM() ? "" : ' id="ticketTabContent"';
-  const allTabId = IS_PM() ? "" : ' id="tab-all"';
-  const wlTabId = IS_PM() ? "" : ' id="tab-worklog"';
-  const cmTabId = IS_PM() ? "" : ' id="tab-comments"';
-  const paneAllId = IS_PM() ? "dtAll" : "tabAll";
-  const paneWlId = IS_PM() ? "dtWorklog" : "tabWorklog";
-  const paneCmId = IS_PM() ? "dtComments" : "tabComments";
+
 
   document.getElementById("detailBody").innerHTML = `
     <span class="ticket-id" style="font-family:'JetBrains Mono',monospace;margin-bottom:10px;display:inline-block">${t.id}</span>
@@ -1086,18 +1080,18 @@ function renderDetail() {
         </div>
       </div>
     </div>
-    <ul class="nav nav-tabs mb-3"${tabNavId} role="tablist">
-      <li class="nav-item"><button class="nav-link active"${allTabId} data-bs-toggle="tab" data-bs-target="#${paneAllId}" type="button" style="font-size:13px">All</button></li>
-      <li class="nav-item"><button class="nav-link"${wlTabId}         data-bs-toggle="tab" data-bs-target="#${paneWlId}"  type="button" style="font-size:13px">Worklog</button></li>
-      <li class="nav-item"><button class="nav-link"${cmTabId}         data-bs-toggle="tab" data-bs-target="#${paneCmId}"  type="button" style="font-size:13px">Comments</button></li>
+    <ul class="nav nav-tabs mb-3" id="ticketTabNav" role="tablist">
+      <li class="nav-item"><button class="nav-link active" id="tab-all" data-bs-toggle="tab" data-bs-target="#tabAll" type="button" style="font-size:13px">All</button></li>
+      <li class="nav-item"><button class="nav-link" id="tab-worklog"         data-bs-toggle="tab" data-bs-target="#tabWorklog"  type="button" style="font-size:13px">Worklog</button></li>
+      <li class="nav-item"><button class="nav-link" id="tab-comments"         data-bs-toggle="tab" data-bs-target="#tabComments"  type="button" style="font-size:13px">Comments</button></li>
       ${notesTab}
     </ul>
-    <div class="tab-content"${tabContentId}>
-      <div class="tab-pane fade show active" id="${paneAllId}">
+    <div class="tab-content" id="ticketTabContent">
+      <div class="tab-pane fade show active" id="tabAll">
         ${actHTML}<p class="fw-bold mb-2 mt-1" style="font-size:13px">Comments (${cms.length})</p>${commentsHTML}
       </div>
-      <div class="tab-pane fade" id="${paneWlId}">${actHTML || '<p class="text-muted">No worklog yet.</p>'}</div>
-      <div class="tab-pane fade" id="${paneCmId}">
+      <div class="tab-pane fade" id="tabWorklog">${actHTML || '<p class="text-muted">No worklog yet.</p>'}</div>
+      <div class="tab-pane fade" id="tabComments">
         <p class="fw-bold mb-2" style="font-size:13px">Comments (${cms.length})</p>${commentsHTML}
       </div>
       ${notesPane}
@@ -1109,7 +1103,7 @@ function renderDetail() {
 
   if (activeTabTarget) {
     setTimeout(() => {
-      const btn = document.querySelector(`#detailBody .nav-tabs [data-bs-target="${activeTabTarget}"]`);
+      const btn = document.querySelector(`#ticketTabNav [data-bs-target="${activeTabTarget}"]`);
       if (btn) new bootstrap.Tab(btn).show();
     }, 0);
   }
