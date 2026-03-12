@@ -1041,9 +1041,26 @@ function renderDetail() {
 
   document.getElementById("detailBody").innerHTML = `
     <span class="ticket-id" style="font-family:'JetBrains Mono',monospace;margin-bottom:10px;display:inline-block">${t.id}</span>
-    <h5 class="fw-bold mb-3" style="font-size:18px;line-height:1.3">${t.title}</h5>
+    <div class="mb-2">
+      <div class="d-flex align-items-start gap-2">
+        <h5 class="fw-bold mb-0 flex-grow-1" id="titleDisplay" style="font-size:18px;line-height:1.3">${t.title}</h5>
+        <button class="btn btn-sm btn-link p-0 text-muted" id="titleEditBtn" onclick="editTitle()" style="font-size:14px" title="Edit title">
+          <i class="bi bi-pencil"></i>
+        </button>
+      </div>
+      <input type="text" class="form-control form-control-sm fw-bold d-none" id="detailTitleInput" value="${t.title}" style="font-size:18px;line-height:1.3;border:1px solid #3b7cf4;padding:8px 12px">
+    </div>
     <div class="d-flex gap-2 mb-3">${statusBadgeHTML(t.status)} ${prioBadgeHTML(t.priority)}</div>
-    <div class="detail-desc p-3 mb-3 rounded-3">${t.desc}</div>
+    <div class="mb-3">
+      <div class="d-flex align-items-center justify-content-between mb-1">
+        <label class="text-uppercase text-muted fw-semibold mb-0" style="font-size:10.5px;letter-spacing:.6px">Description</label>
+        <button class="btn btn-sm btn-link p-0 text-muted" id="descEditBtn" onclick="editDescription()" style="font-size:13px" title="Edit description">
+          <i class="bi bi-pencil"></i>
+        </button>
+      </div>
+      <div class="detail-desc p-3 rounded-3" id="descDisplay" style="background:#f8fafc;border:1px solid #e4e9f2;font-size:13px;line-height:1.6;white-space:pre-wrap">${t.desc}</div>
+      <textarea class="form-control rounded-3 d-none" id="detailDescInput" rows="4" style="font-size:13px;font-family:inherit;resize:vertical;border:1px solid #3b7cf4;padding:12px">${t.desc}</textarea>
+    </div>
     ${attachmentsHTML}
     <div class="row g-3 mb-3">
       <div class="col-6">
@@ -1292,6 +1309,163 @@ function updatePriority(val) {
     type: "info",
     title: "Priority updated",
     message: `${CURRENT_USER} changed priority from ${prev} to ${val}`,
+  });
+  saveTickets();
+  saveNotifs();
+  renderDetail();
+  renderNotifList();
+  IS_PM()
+    ? document.getElementById("sec-tickets")?.offsetParent && pmRender()
+    : clientRender();
+}
+
+function editTitle() {
+  const display = document.getElementById("titleDisplay");
+  const input = document.getElementById("detailTitleInput");
+  const btn = document.getElementById("titleEditBtn");
+  
+  if (display && input && btn) {
+    display.classList.add("d-none");
+    btn.classList.add("d-none");
+    input.classList.remove("d-none");
+    input.focus();
+    input.select();
+    
+    // Save on blur or Enter key
+    const saveTitle = () => {
+      const val = input.value.trim();
+      if (!val) {
+        showToast({
+          type: "error",
+          title: "Invalid title",
+          message: "Title cannot be empty",
+        });
+        input.value = selectedTicket.title;
+        return;
+      }
+      
+      if (val !== selectedTicket.title) {
+        updateTitle(val);
+      } else {
+        // No change, just hide input
+        input.classList.add("d-none");
+        display.classList.remove("d-none");
+        btn.classList.remove("d-none");
+      }
+    };
+    
+    input.onblur = saveTitle;
+    input.onkeydown = (e) => {
+      if (e.key === "Enter") {
+        e.preventDefault();
+        input.blur();
+      } else if (e.key === "Escape") {
+        input.value = selectedTicket.title;
+        input.blur();
+      }
+    };
+  }
+}
+
+function editDescription() {
+  const display = document.getElementById("descDisplay");
+  const input = document.getElementById("detailDescInput");
+  const btn = document.getElementById("descEditBtn");
+  
+  if (display && input && btn) {
+    display.classList.add("d-none");
+    btn.classList.add("d-none");
+    input.classList.remove("d-none");
+    input.focus();
+    input.select();
+    
+    // Save on blur
+    const saveDesc = () => {
+      const val = input.value.trim();
+      if (!val) {
+        showToast({
+          type: "error",
+          title: "Invalid description",
+          message: "Description cannot be empty",
+        });
+        input.value = selectedTicket.desc;
+        return;
+      }
+      
+      if (val !== selectedTicket.desc) {
+        updateDescription(val);
+      } else {
+        // No change, just hide input
+        input.classList.add("d-none");
+        display.classList.remove("d-none");
+        btn.classList.remove("d-none");
+      }
+    };
+    
+    input.onblur = saveDesc;
+    input.onkeydown = (e) => {
+      if (e.key === "Escape") {
+        input.value = selectedTicket.desc;
+        input.blur();
+      }
+    };
+  }
+}
+
+function updateTitle(val) {
+  if (!selectedTicket) return;
+  const t = TICKETS.find((x) => x.id === selectedTicket.id);
+  if (!t) return;
+  
+  const prev = t.title;
+  t.title = selectedTicket.title = val;
+  _logActivity(t, "title", "updated title to", `"${val}"`);
+  NOTIFS.unshift(
+    _notif(
+      "bi-pencil-fill",
+      "#e0f2fe",
+      "#075985",
+      `Title: ${t.id}`,
+      `${CURRENT_USER} updated the title`,
+      t.id,
+    ),
+  );
+  showToast({
+    type: "success",
+    title: "Title updated",
+    message: `Title changed successfully`,
+  });
+  saveTickets();
+  saveNotifs();
+  renderDetail();
+  renderNotifList();
+  IS_PM()
+    ? document.getElementById("sec-tickets")?.offsetParent && pmRender()
+    : clientRender();
+}
+
+function updateDescription(val) {
+  if (!selectedTicket) return;
+  const t = TICKETS.find((x) => x.id === selectedTicket.id);
+  if (!t) return;
+  
+  const prev = t.desc;
+  t.desc = selectedTicket.desc = val;
+  _logActivity(t, "description", "updated description", "");
+  NOTIFS.unshift(
+    _notif(
+      "bi-file-text-fill",
+      "#f3e8ff",
+      "#6b21a8",
+      `Description: ${t.id}`,
+      `${CURRENT_USER} updated the description`,
+      t.id,
+    ),
+  );
+  showToast({
+    type: "success",
+    title: "Description updated",
+    message: `Description changed successfully`,
   });
   saveTickets();
   saveNotifs();
