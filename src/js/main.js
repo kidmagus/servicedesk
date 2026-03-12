@@ -174,6 +174,375 @@ function openCreateModal() {
 }
 window.openCreateModal = openCreateModal;
 
+// ── EXPANDED TICKET VIEW ───────────────────────────────
+function openExpandedView() {
+  if (!selectedTicket) return;
+  _offcanvas.hide();
+
+  let overlay = document.getElementById("ticketExpandedOverlay");
+  if (!overlay) {
+    overlay = document.createElement("div");
+    overlay.id = "ticketExpandedOverlay";
+    document.body.appendChild(overlay);
+  }
+
+  const isFirstOpen = overlay.style.display === "none" || overlay.style.display === "";
+  overlay.style.cssText = "position:fixed;inset:0;z-index:1060;display:flex;align-items:stretch;padding:16px;background:rgba(15,23,42,0.5);backdrop-filter:blur(3px)";
+  overlay.onclick = (e) => { if (e.target === overlay) closeExpandedView(); };
+
+  // Build or rebuild innerHTML
+  _renderExpHTML(overlay, isFirstOpen);
+}
+
+function _renderExpHTML(overlay, animate) {
+  const t = selectedTicket;
+  const cms = commentsMap[t.id] || [];
+  const nts = IS_PM() ? (NOTES[t.id] || []) : [];
+
+  const commentsHTML = cms.length
+    ? cms.map((c) => `
+      <div class="d-flex gap-2 mb-3">
+        <div class="avatar-sm ${c.role === "support" ? "green" : ""} flex-shrink-0">${initials(c.author)}</div>
+        <div class="flex-grow-1">
+          <div class="d-flex align-items-center gap-2 mb-1 flex-wrap">
+            <span class="fw-bold" style="font-size:12.5px">${c.author}</span>
+            <span class="comment-role-badge ${c.role}">${c.role === "client" ? "Client" : "Support"}</span>
+            <span class="text-muted ms-auto" style="font-size:11px">${c.time}</span>
+          </div>
+          <p class="mb-0 comment-text" style="font-size:13px;color:#3a4560">${c.text}</p>
+          ${c.attachments && c.attachments.length ? `<div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:7px">${c.attachments.map(src => `<img src="${src}" style="width:60px;height:60px;object-fit:cover;border-radius:7px;border:1px solid #e4e9f2;cursor:pointer" onclick="window.open().document.write('<img src=\\''+src+'\\' style=max-width:100%>')">`).join("")}</div>` : ""}
+        </div>
+      </div>`).join("")
+    : '<p class="text-muted" style="font-size:13px">No comments yet.</p>';
+
+  const actHTML = t.activity && t.activity.length
+    ? t.activity.map((a) => `
+      <div style="font-size:12.5px;color:#7a8599;margin-bottom:8px;padding-left:14px;border-left:2px solid #e4e9f2">
+        <span style="font-weight:600;color:#3b7cf4">${a.author}</span> ${a.action}
+        ${a.value ? `<strong>${a.value}</strong>` : ""}
+        <span style="font-size:11px;color:#bfc6d1;margin-left:6px">${a.time}</span>
+      </div>`).join("")
+    : '<p class="text-muted" style="font-size:13px">No activity yet.</p>';
+
+  const notesSection = IS_PM() ? `
+    <div class="border-top p-3" style="background:#fffbeb">
+      <p class="text-uppercase fw-semibold mb-2" style="font-size:10px;letter-spacing:.7px;color:#9aa5bc">
+        <i class="bi bi-lock-fill me-1" style="color:#f59e0b"></i>Internal Notes
+        <span style="font-size:10px;color:#9aa5bc;font-weight:400;text-transform:none;letter-spacing:0">(PM only)</span>
+      </p>
+      ${nts.length ? nts.map(n => `
+        <div class="rounded-2 p-2 mb-2" style="background:#fff;border:1px solid #fde68a">
+          <div style="font-size:11px;color:#92400e;font-weight:600;margin-bottom:3px">🔒 ${n.author} · ${n.time}</div>
+          <div style="font-size:13px;color:#3a4560">${n.text}</div>
+        </div>`).join("") : '<p class="text-muted mb-2" style="font-size:13px">No internal notes.</p>'}
+      <textarea id="expNewNote" class="form-control form-control-sm rounded-2 mb-2" rows="2"
+        style="font-size:13px;font-family:inherit;resize:none" placeholder="Add a private note..."></textarea>
+      <button class="btn btn-sm btn-outline-secondary rounded-2 fw-semibold" onclick="expAddNote()">
+        <i class="bi bi-plus me-1"></i>Add Note
+      </button>
+    </div>` : "";
+
+  const attachHTML = t.attachments && t.attachments.length
+    ? `<div class="mb-3">
+        <p class="text-uppercase fw-semibold mb-2" style="font-size:10px;letter-spacing:.7px;color:#9aa5bc">Attachments</p>
+        <div style="display:flex;flex-wrap:wrap;gap:6px">
+          ${t.attachments.map(src => `<img src="${src}" style="width:60px;height:60px;object-fit:cover;border-radius:7px;border:1px solid #e4e9f2;cursor:pointer" onclick="window.open().document.write('<img src=\\''+src+'\\' style=max-width:100%>')">`).join("")}
+        </div>
+      </div>` : "";
+
+  // Manager inline edit
+  let mgOptions = "";
+  try { const pms = JSON.parse(localStorage.getItem("servicedesk_pms")) || ["Matthew Samson","John Doe"]; mgOptions = pms.map(p => `<option value="${p}" ${p===t.manager?"selected":""}>${p}</option>`).join(""); }
+  catch(e) { mgOptions = `<option value="${t.manager}">${t.manager}</option>`; }
+
+  const managerField = `
+    <div class="d-flex align-items-center gap-2">
+      <div class="avatar-sm ${t.ac||""}" style="width:22px;height:22px;font-size:9px">${initials(t.manager||"?")}</div>
+      <span id="expManagerDisplay" style="cursor:pointer;text-decoration:underline dotted;font-size:13px;font-weight:600">${t.manager||"—"}</span>
+      <select id="expManagerSelect" class="form-select form-select-sm d-none" style="width:auto;min-width:130px;font-size:13px">${mgOptions}</select>
+    </div>`;
+
+  const devField = IS_PM() ? `
+    <div class="col-6">
+      <div class="p-3 rounded-3 border" style="background:#f8fafc">
+        <p class="text-uppercase fw-semibold mb-1" style="font-size:10px;letter-spacing:.7px;color:#9aa5bc">Developer</p>
+        <div class="d-flex align-items-center gap-2">
+          <div class="avatar-sm" style="width:22px;height:22px;font-size:9px;background:#e0e7ef;color:#3b3b4f;border-radius:7px">${initials(t.developer||"?")}</div>
+          <span id="expDeveloperDisplay" style="cursor:pointer;text-decoration:underline dotted;font-size:13px;font-weight:600">${t.developer||"—"}</span>
+          <select id="expDeveloperSelect" class="form-select form-select-sm d-none" style="width:auto;min-width:130px;font-size:13px">
+            ${AGENTS.map(a => `<option value="${a}" ${a===t.developer?"selected":""}>${a}</option>`).join("")}
+          </select>
+        </div>
+      </div>
+    </div>` : "";
+
+  const canRemove = true; // always allow click; doRemoveTicket() enforces the rule itself
+  const panelStyle = animate
+    ? "position:relative;flex:1;display:flex;flex-direction:column;background:#f5f7fb;border-radius:14px;box-shadow:0 20px 60px rgba(15,23,42,0.25);overflow:hidden;transition:transform .25s ease,opacity .25s ease;transform:translateY(12px);opacity:0"
+    : "position:relative;flex:1;display:flex;flex-direction:column;background:#f5f7fb;border-radius:14px;box-shadow:0 20px 60px rgba(15,23,42,0.25);overflow:hidden";
+
+  overlay.innerHTML = `
+    <div id="expPanel" onclick="event.stopPropagation()" style="${panelStyle}">
+
+      <!-- Header -->
+      <div class="d-flex align-items-center justify-content-between px-4 py-3 border-bottom flex-shrink-0" style="background:#fff;flex-wrap:wrap;gap:10px">
+        <div class="d-flex align-items-center gap-3 flex-wrap">
+          <button class="btn btn-sm btn-light border rounded-2 fw-semibold" style="font-size:13px" onclick="closeExpandedView()">
+            <i class="bi bi-arrow-left me-1"></i>Back
+          </button>
+          <span class="ticket-id">${t.id}</span>
+          <div class="d-flex gap-2 align-items-center">${statusBadgeHTML(t.status)} ${prioBadgeHTML(t.priority)} ${catBadge(t.category)}</div>
+        </div>
+        <div class="d-flex align-items-center gap-3 flex-wrap">
+          <div>
+            <label class="text-uppercase text-muted fw-semibold d-block mb-1" style="font-size:10px;letter-spacing:.6px">Status</label>
+            <select class="action-select" onchange="updateStatus(this.value)">
+              ${["Open","In Progress","Resolved","Closed"].map(s => `<option value="${s}" ${t.status===s?"selected":""}>${s}</option>`).join("")}
+            </select>
+          </div>
+          <div>
+            <label class="text-uppercase text-muted fw-semibold d-block mb-1" style="font-size:10px;letter-spacing:.6px">Priority</label>
+            <select class="action-select" onchange="updatePriority(this.value)">
+              ${["Critical","High","Medium","Low"].map(p => `<option value="${p}" ${t.priority===p?"selected":""}>${p}</option>`).join("")}
+            </select>
+          </div>
+          <div>
+            <label class="text-uppercase text-muted fw-semibold d-block mb-1" style="font-size:10px;letter-spacing:.6px">Category</label>
+            <select id="expCategorySelect" class="action-select" onchange="expUpdateCategory(this.value)">
+              ${["Bug","Task","Feature Request","Performance Issue","Account Issue","Other"].map(c => `<option value="${c}" ${c===t.category?"selected":""}>${c}</option>`).join("")}
+            </select>
+          </div>
+          <button class="btn-danger-soft d-flex align-items-center gap-1 mt-3" onclick="doRemoveTicket()">
+            <i class="bi bi-trash3"></i>Remove
+          </button>
+        </div>
+      </div>
+
+      <!-- Two-column body -->
+      <div style="display:grid;grid-template-columns:1fr 420px;flex:1;overflow:hidden;min-height:0">
+
+        <!-- LEFT -->
+        <div class="p-4" style="overflow-y:auto;background:#fff;border-right:1px solid #e4e9f2">
+
+          <!-- Editable title -->
+          <div class="d-flex align-items-start gap-2 mb-2">
+            <h5 class="fw-bold mb-0 flex-grow-1" id="expTitleDisplay" style="font-size:20px;line-height:1.35;color:#0f172a">${t.title}</h5>
+            <button class="btn btn-sm btn-link p-0 text-muted" onclick="expEditTitle()" title="Edit title"><i class="bi bi-pencil"></i></button>
+          </div>
+          <input type="text" id="expTitleInput" class="form-control fw-bold d-none mb-2" value="${t.title}" style="font-size:18px;border:1px solid #3b7cf4;padding:8px 12px">
+
+          <!-- Editable description -->
+          <div class="d-flex align-items-center justify-content-between mb-1">
+            <label class="text-uppercase text-muted fw-semibold mb-0" style="font-size:10.5px;letter-spacing:.6px">Description</label>
+            <button class="btn btn-sm btn-link p-0 text-muted" onclick="expEditDesc()" title="Edit description"><i class="bi bi-pencil"></i></button>
+          </div>
+          <div class="detail-desc p-3 mb-3 rounded-3" id="expDescDisplay" style="font-size:14px;line-height:1.75">${t.desc}</div>
+          <textarea id="expDescInput" class="form-control rounded-3 d-none mb-3" rows="4" style="font-size:13px;font-family:inherit;resize:vertical;border:1px solid #3b7cf4;padding:12px">${t.desc}</textarea>
+
+          ${attachHTML}
+
+          <div class="row g-3 mb-4">
+            <div class="col-6">
+              <div class="p-3 rounded-3 border" style="background:#f8fafc">
+                <p class="text-uppercase fw-semibold mb-1" style="font-size:10px;letter-spacing:.7px;color:#9aa5bc">Reporter</p>
+                <div class="d-flex align-items-center gap-2">
+                  <div class="avatar-sm" style="width:22px;height:22px;font-size:9px;background:#e0e7ef;color:#3b3b4f;border-radius:7px">${initials(t.reporter||"?")}</div>
+                  <span class="fw-semibold" style="font-size:13px">${t.reporter||"—"}</span>
+                </div>
+              </div>
+            </div>
+            <div class="col-6">
+              <div class="p-3 rounded-3 border" style="background:#f8fafc">
+                <p class="text-uppercase fw-semibold mb-1" style="font-size:10px;letter-spacing:.7px;color:#9aa5bc">Manager</p>
+                ${managerField}
+              </div>
+            </div>
+            ${devField}
+            <div class="col-6">
+              <div class="p-3 rounded-3 border" style="background:#f8fafc">
+                <p class="text-uppercase fw-semibold mb-1" style="font-size:10px;letter-spacing:.7px;color:#9aa5bc">Created</p>
+                <span class="fw-semibold" style="font-size:13px">${t.created}</span>
+              </div>
+            </div>
+          </div>
+
+          <p class="text-uppercase fw-semibold mb-3" style="font-size:10px;letter-spacing:.7px;color:#9aa5bc">Activity Log</p>
+          ${actHTML}
+        </div>
+
+        <!-- RIGHT -->
+        <div style="display:flex;flex-direction:column;background:#f5f7fb;overflow:hidden">
+          <div style="flex:1;overflow-y:auto;padding:20px 20px 0">
+            <p class="text-uppercase fw-semibold mb-3" style="font-size:10px;letter-spacing:.7px;color:#9aa5bc">
+              Comments <span class="badge rounded-pill" style="background:#eef2ff;color:#3b7cf4;font-size:10px;text-transform:none;letter-spacing:0">${cms.length}</span>
+            </p>
+            ${commentsHTML}
+          </div>
+          ${notesSection}
+          <div class="p-3 border-top flex-shrink-0" style="background:#fff">
+            <div class="d-flex align-items-center gap-2 mb-2">
+              <div class="avatar-sm" style="background:#3b7cf4;color:#fff;width:26px;height:26px;font-size:10px">${initials(CURRENT_USER)}</div>
+              <span class="fw-semibold" style="font-size:13px;color:#1a2235">${CURRENT_USER}</span>
+            </div>
+            <textarea id="expNewComment" class="form-control rounded-3 mb-2" rows="3"
+              style="font-size:13px;font-family:inherit;resize:none"
+              placeholder="Write a comment... (paste screenshot with Ctrl+V / ⌘V)"></textarea>
+            <div class="screenshot-preview mb-2" id="expCommentPreview"></div>
+            <div class="d-flex justify-content-end">
+              <button class="btn btn-primary btn-sm px-4 rounded-2 fw-semibold" style="font-size:13px" onclick="expSubmitComment()">
+                <i class="bi bi-send me-1"></i>Send
+              </button>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>`;
+
+  if (animate) {
+    requestAnimationFrame(() => {
+      const panel = document.getElementById("expPanel");
+      if (panel) { panel.style.transform = "translateY(0)"; panel.style.opacity = "1"; }
+    });
+  }
+
+  // Paste in comment box
+  document.getElementById("expNewComment")?.addEventListener("paste", (e) => {
+    const imgs = Array.from(e.clipboardData.items).filter(i => i.type.startsWith("image/")).map(i => i.getAsFile());
+    if (imgs.length) { e.preventDefault(); addFiles(imgs, "comment"); }
+  });
+
+  // Wire inline selects
+  _bindInlineSelect("expManagerDisplay", "expManagerSelect", t.manager, (val) => {
+    t.manager = selectedTicket.manager = val;
+    _logActivity(t, "manager", "changed manager to", val);
+    NOTIFS.unshift(_notif("bi-person-check-fill","#e0e7ff","#3730a3",`Manager changed: ${t.id}`,`${CURRENT_USER} assigned to ${val}`,t.id));
+    showToast({ type:"info", title:"Manager changed", message:`Assigned to ${val}` });
+    saveTickets(); saveNotifs(); renderNotifList();
+    IS_PM() ? pmRender() : clientRender();
+    _refreshExpLeft();
+  });
+
+  if (IS_PM()) {
+    _bindInlineSelect("expDeveloperDisplay", "expDeveloperSelect", t.developer, (val) => {
+      t.developer = selectedTicket.developer = val;
+      _logActivity(t, "developer", "changed developer to", val);
+      NOTIFS.unshift(_notif("bi-person-badge","#e0f2fe","#0284c7","Developer changed",`${CURRENT_USER} changed developer to ${val} for ${t.id}`,t.id));
+      showToast({ type:"info", title:"Developer changed", message:`Assigned to ${val}` });
+      saveTickets(); saveNotifs(); renderNotifList(); pmRender();
+      _refreshExpLeft();
+    });
+  }
+
+}
+
+function _refreshExpLeft() {
+  const overlay = document.getElementById("ticketExpandedOverlay");
+  if (!overlay || overlay.style.display === "none") return;
+  const t = selectedTicket;
+  const badgeWrap = document.querySelector("#expPanel .d-flex.gap-2.align-items-center");
+  if (badgeWrap) badgeWrap.innerHTML = statusBadgeHTML(t.status) + " " + prioBadgeHTML(t.priority) + " " + catBadge(t.category);
+}
+
+function renderExpandedView() {
+  const overlay = document.getElementById("ticketExpandedOverlay");
+  if (!overlay || overlay.style.display === "none") return;
+  _renderExpHTML(overlay, false); // no animation on updates
+}
+
+function closeExpandedView() {
+  const overlay = document.getElementById("ticketExpandedOverlay");
+  const panel = document.getElementById("expPanel");
+  if (!overlay) return;
+  if (panel) { panel.style.transition = "transform .25s ease,opacity .25s ease"; panel.style.transform = "translateY(12px)"; panel.style.opacity = "0"; }
+  setTimeout(() => { overlay.style.display = "none"; }, 260);
+}
+
+// Inline edit: title
+function expEditTitle() {
+  const display = document.getElementById("expTitleDisplay");
+  const input   = document.getElementById("expTitleInput");
+  if (!display || !input) return;
+  display.classList.add("d-none"); input.classList.remove("d-none");
+  input.focus(); input.select();
+  const save = () => {
+    const val = input.value.trim();
+    if (!val) { input.value = selectedTicket.title; }
+    else if (val !== selectedTicket.title) {
+      updateTitle(val);
+      // update display directly — no re-render needed
+      display.textContent = val;
+    }
+    input.classList.add("d-none"); display.classList.remove("d-none");
+  };
+  input.onblur = save;
+  input.onkeydown = (e) => { if (e.key === "Enter") { e.preventDefault(); input.blur(); } else if (e.key === "Escape") { input.value = selectedTicket.title; input.blur(); } };
+}
+
+// Inline edit: description
+function expEditDesc() {
+  const display = document.getElementById("expDescDisplay");
+  const input   = document.getElementById("expDescInput");
+  if (!display || !input) return;
+  display.classList.add("d-none"); input.classList.remove("d-none");
+  input.focus();
+  const save = () => {
+    const val = input.value.trim();
+    if (!val) { input.value = selectedTicket.desc; }
+    else if (val !== selectedTicket.desc) {
+      updateDescription(val);
+      // update display directly — no re-render needed
+      display.textContent = val;
+    }
+    input.classList.add("d-none"); display.classList.remove("d-none");
+  };
+  input.onblur = save;
+  input.onkeydown = (e) => { if (e.key === "Escape") { input.value = selectedTicket.desc; input.blur(); } };
+}
+
+function expUpdateCategory(val) {
+  if (!selectedTicket || !val) return;
+  const t = TICKETS.find(x => x.id === selectedTicket.id);
+  if (!t) return;
+  t.category = selectedTicket.category = val;
+  _logActivity(t, "category", "set category to", val);
+  NOTIFS.unshift(_notif("bi-tags-fill","#ede9fe","#6d28d9",`Category: ${t.id}`,`${CURRENT_USER} set category to ${val}`,t.id));
+  showToast({ type:"info", title:"Category updated", message:`Set to ${val}` });
+  saveTickets(); saveNotifs(); renderNotifList();
+  IS_PM() ? pmRender() : clientRender();
+  // Refresh the badge row in the header left
+  const badgeWrap = document.querySelector("#expPanel .d-flex.gap-2.align-items-center");
+  if (badgeWrap) badgeWrap.innerHTML = statusBadgeHTML(t.status) + " " + prioBadgeHTML(t.priority) + " " + catBadge(t.category);
+}
+
+function expSubmitComment() {
+  const txt = document.getElementById("expNewComment")?.value.trim();
+  const atts = window.commentAttachments || [];
+  if (!txt && !atts.length) return;
+  // proxy text into offcanvas textarea so submitComment() picks it up
+  const box = document.getElementById("newComment");
+  if (box) box.value = txt || "";
+  submitComment();
+  // clear the expanded preview (submitComment already cleared commentPreview)
+  const expPreview = document.getElementById("expCommentPreview");
+  if (expPreview) expPreview.innerHTML = "";
+  renderExpandedView();
+}
+
+function expAddNote() {
+  const txt = document.getElementById("expNewNote")?.value.trim();
+  if (!txt || !selectedTicket) return;
+  NOTES[selectedTicket.id] = NOTES[selectedTicket.id] || [];
+  NOTES[selectedTicket.id].unshift({ author: CURRENT_USER, time: _now(), text: txt });
+  saveNotes();
+  showToast({ type: "success", title: "Note added", message: "Internal note saved" });
+  renderExpandedView();
+}
+
+window.openExpandedView = openExpandedView;
+window.closeExpandedView = closeExpandedView;
+
+
 // ── ATTACHMENTS ────────────────────────────────────────
 window.ctAttachments = window.ctAttachments || [];
 window.commentAttachments = window.commentAttachments || [];
@@ -240,6 +609,7 @@ function addFiles(files, target) {
       } else {
         window.commentAttachments.push(ev.target.result);
         renderPreviews(window.commentAttachments, "commentPreview", "comment");
+        renderPreviews(window.commentAttachments, "expCommentPreview", "comment");
       }
     };
     reader.readAsDataURL(file);
@@ -267,6 +637,7 @@ function removeAttachment(i, target) {
   } else {
     window.commentAttachments.splice(i, 1);
     renderPreviews(window.commentAttachments, "commentPreview", "comment");
+    renderPreviews(window.commentAttachments, "expCommentPreview", "comment");
   }
 }
 
@@ -935,6 +1306,15 @@ function openDetail(id) {
   document.getElementById("newComment").value = "";
   renderDetail();
   _offcanvas.show();
+
+  // Wire expand button
+  const expandBtn = document.getElementById("expandTicketBtn");
+  if (expandBtn) {
+    expandBtn.onclick = () => {
+      _offcanvas.hide();
+      setTimeout(() => openExpandedView(), 250);
+    };
+  }
 }
 
 // ══════════════════════════════════════════════════════
@@ -1286,6 +1666,8 @@ function updateStatus(val) {
   IS_PM()
     ? document.getElementById("sec-tickets")?.offsetParent && pmRender()
     : clientRender();
+  const badgeWrap = document.querySelector("#expPanel .d-flex.gap-2.align-items-center");
+  if (badgeWrap) badgeWrap.innerHTML = statusBadgeHTML(t.status) + " " + prioBadgeHTML(t.priority) + " " + catBadge(t.category);
 }
 
 function updatePriority(val) {
@@ -1317,6 +1699,8 @@ function updatePriority(val) {
   IS_PM()
     ? document.getElementById("sec-tickets")?.offsetParent && pmRender()
     : clientRender();
+  const badgeWrap = document.querySelector("#expPanel .d-flex.gap-2.align-items-center");
+  if (badgeWrap) badgeWrap.innerHTML = statusBadgeHTML(t.status) + " " + prioBadgeHTML(t.priority) + " " + catBadge(t.category);
 }
 
 function editTitle() {
@@ -1331,7 +1715,6 @@ function editTitle() {
     input.focus();
     input.select();
     
-    // Save on blur or Enter key
     const saveTitle = () => {
       const val = input.value.trim();
       if (!val) {
@@ -1347,7 +1730,6 @@ function editTitle() {
       if (val !== selectedTicket.title) {
         updateTitle(val);
       } else {
-        // No change, just hide input
         input.classList.add("d-none");
         display.classList.remove("d-none");
         btn.classList.remove("d-none");
@@ -1379,7 +1761,6 @@ function editDescription() {
     input.focus();
     input.select();
     
-    // Save on blur
     const saveDesc = () => {
       const val = input.value.trim();
       if (!val) {
@@ -1395,7 +1776,6 @@ function editDescription() {
       if (val !== selectedTicket.desc) {
         updateDescription(val);
       } else {
-        // No change, just hide input
         input.classList.add("d-none");
         display.classList.remove("d-none");
         btn.classList.remove("d-none");
@@ -1417,7 +1797,6 @@ function updateTitle(val) {
   const t = TICKETS.find((x) => x.id === selectedTicket.id);
   if (!t) return;
   
-  const prev = t.title;
   t.title = selectedTicket.title = val;
   _logActivity(t, "title", "updated title to", `"${val}"`);
   NOTIFS.unshift(
@@ -1449,7 +1828,6 @@ function updateDescription(val) {
   const t = TICKETS.find((x) => x.id === selectedTicket.id);
   if (!t) return;
   
-  const prev = t.desc;
   t.desc = selectedTicket.desc = val;
   _logActivity(t, "description", "updated description", "");
   NOTIFS.unshift(
@@ -1570,6 +1948,12 @@ function doRemoveTicket() {
     if (msg)
       msg.textContent = "Only Resolved or Closed tickets can be removed.";
     new bootstrap.Modal(document.getElementById("removeTicketModal")).show();
+    const warnEl = document.getElementById("removeTicketModal");
+    warnEl.addEventListener("shown.bs.modal", () => {
+      warnEl.style.zIndex = 1070;
+      const backdrop = document.querySelector(".modal-backdrop:last-child");
+      if (backdrop) backdrop.style.zIndex = 1065;
+    }, { once: true });
     return;
   }
   const confirmEl = document.getElementById("confirmRemoveTicketModalMsg");
@@ -1580,6 +1964,13 @@ function doRemoveTicket() {
     document.getElementById("confirmRemoveTicketModal"),
   );
   confirmModal.show();
+  // Ensure modal appears above expanded view overlay (z-index 1060)
+  const confirmModalEl = document.getElementById("confirmRemoveTicketModal");
+  confirmModalEl.addEventListener("shown.bs.modal", () => {
+    confirmModalEl.style.zIndex = 1070;
+    const backdrop = document.querySelector(".modal-backdrop:last-child");
+    if (backdrop) backdrop.style.zIndex = 1065;
+  }, { once: true });
   const confirmBtn = document.getElementById("confirmRemoveTicketBtn");
   if (confirmBtn) {
     confirmBtn.onclick = function () {
@@ -1605,6 +1996,7 @@ function doRemoveTicket() {
       saveNotifs();
       renderNotifList();
       _offcanvas.hide();
+      closeExpandedView();
       selectedTicket = null;
       IS_PM() ? pmRender() : clientRender();
     };
