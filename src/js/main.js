@@ -143,6 +143,14 @@ function doLogout() {
 }
 window.doLogout = doLogout;
 
+// Will link
+function linkify(text) {
+  const urlRegex = /(https?:\/\/[^\s<>"']+)/g;
+  return text.replace(urlRegex, (url) =>
+    `<a href="${url}" target="_blank" rel="noopener noreferrer" style="color:#3b7cf4;word-break:break-all">${url}</a>`
+  );
+}
+
 // ── CREATE TICKET MODAL ────────────────────────────────
 function openCreateModal() {
   // Reporter — always the current logged-in user
@@ -216,7 +224,7 @@ function _renderExpHTML(overlay, animate) {
             <span class="comment-role-badge ${c.role}">${c.role === "client" ? "Client" : "Support"}</span>
             <span class="text-muted ms-auto" style="font-size:11px">${c.time}</span>
           </div>
-          <p class="mb-0 comment-text" style="font-size:13px;color:#3a4560">${c.text}</p>
+          <p class="mb-0 comment-text" style="font-size:13px;color:#3a4560">${linkify(c.text)}</p>
           ${c.attachments && c.attachments.length ? `<div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:7px">${c.attachments.map(src => `<img src="${src}" style="width:60px;height:60px;object-fit:cover;border-radius:7px;border:1px solid #e4e9f2;cursor:pointer" onclick="window.open().document.write('<img src=\\''+src+'\\' style=max-width:100%>')">`).join("")}</div>` : ""}
         </div>
       </div>`).join("")
@@ -224,10 +232,12 @@ function _renderExpHTML(overlay, animate) {
 
   const actHTML = t.activity && t.activity.length
     ? t.activity.map((a) => `
-      <div style="font-size:12.5px;color:#7a8599;margin-bottom:8px;padding-left:14px;border-left:2px solid #e4e9f2">
+      <div style="font-size:12.5px;color:#7a8599;margin-bottom:8px;padding-left:14px;border-left:2px solid #e4e9f2; display: grid; grid-template-columns: 1fr 200px;">
+        <div>
         <span style="font-weight:600;color:#3b7cf4">${a.author}</span> ${a.action}
         ${a.value ? `<strong>${a.value}</strong>` : ""}
-        <span style="font-size:11px;color:#bfc6d1;margin-left:6px">${a.time}</span>
+        </div>
+        <span class="ms-auto" style="font-size:11px; margin-left:6px">${a.time}</span>
       </div>`).join("")
     : '<p class="text-muted" style="font-size:13px">No activity yet.</p>';
 
@@ -374,33 +384,70 @@ function _renderExpHTML(overlay, animate) {
           </div>
 
           <p class="text-uppercase fw-semibold mb-3" style="font-size:10px;letter-spacing:.7px;color:#9aa5bc">Activity Log</p>
-          ${actHTML}
+          <div style="max-height: 405px; overflow-y: auto;"> ${actHTML} </div>
+         
         </div>
 
         <!-- RIGHT -->
         <div style="display:flex;flex-direction:column;background:#f5f7fb;overflow:hidden">
-          <div style="flex:1;overflow-y:auto;padding:20px 20px 0">
-            <p class="text-uppercase fw-semibold mb-3" style="font-size:10px;letter-spacing:.7px;color:#9aa5bc">
-              Comments <span class="badge rounded-pill" style="background:#eef2ff;color:#3b7cf4;font-size:10px;text-transform:none;letter-spacing:0">${cms.length}</span>
-            </p>
-            ${commentsHTML}
-          </div>
-          ${notesSection}
-          <div class="p-3 border-top flex-shrink-0" style="background:#fff">
-            <div class="d-flex align-items-center gap-2 mb-2">
-              <div class="avatar-sm" style="background:#3b7cf4;color:#fff;width:26px;height:26px;font-size:10px">${initials(CURRENT_USER)}</div>
-              <span class="fw-semibold" style="font-size:13px;color:#1a2235">${CURRENT_USER}</span>
+
+          <!-- Tab nav -->
+          <div class="flex-shrink-0 px-3 pt-3" style="background:#f5f7fb;border-bottom:1px solid #e4e9f2">
+            <div class="d-flex gap-1">
+              <button id="expTabBtnComments" onclick="expSwitchTab('comments')"
+                style="font-size:12.5px;font-weight:600;padding:6px 14px;border:none;border-radius:8px 8px 0 0;background:#fff;color:#3b7cf4;border-bottom:2px solid #3b7cf4;cursor:pointer">
+                Comments
+                <span class="badge rounded-pill ms-1" style="background:#eef2ff;color:#3b7cf4;font-size:10px">${cms.length}</span>
+              </button>
+              ${IS_PM() ? `<button id="expTabBtnNotes" onclick="expSwitchTab('notes')"
+                style="font-size:12.5px;font-weight:600;padding:6px 14px;border:none;border-radius:8px 8px 0 0;background:transparent;color:#9aa5bc;border-bottom:2px solid transparent;cursor:pointer">
+                <i class="bi bi-lock-fill me-1" style="color:#f59e0b;font-size:10px"></i>Internal
+                <span class="badge rounded-pill ms-1" style="background:#fef9c3;color:#92400e;font-size:10px">${nts.length}</span>
+              </button>` : ""}
             </div>
-            <textarea id="expNewComment" class="form-control rounded-3 mb-2" rows="3"
-              style="font-size:13px;font-family:inherit;resize:none"
-              placeholder="Write a comment... (paste screenshot with Ctrl+V / ⌘V)"></textarea>
-            <div class="screenshot-preview mb-2" id="expCommentPreview"></div>
-            <div class="d-flex justify-content-end">
-              <button class="btn btn-primary btn-sm px-4 rounded-2 fw-semibold" style="font-size:13px" onclick="expSubmitComment()">
-                <i class="bi bi-send me-1"></i>Send
+          </div>
+
+          <!-- Comments tab -->
+          <div id="expTabComments" style="flex:1;display:flex;flex-direction:column;overflow:hidden">
+            <div style="flex:1;overflow-y:auto;padding:20px">
+              ${commentsHTML}
+            </div>
+            <div class="p-3 border-top flex-shrink-0" style="background:#fff">
+              <div class="d-flex align-items-center gap-2 mb-2">
+                <div class="avatar-sm" style="background:#3b7cf4;color:#fff;width:26px;height:26px;font-size:10px">${initials(CURRENT_USER)}</div>
+                <span class="fw-semibold" style="font-size:13px;color:#1a2235">${CURRENT_USER}</span>
+              </div>
+              <textarea id="expNewComment" class="form-control rounded-3 mb-2" rows="3"
+                style="font-size:13px;font-family:inherit;resize:none"
+                placeholder="Write a comment... (paste screenshot with Ctrl+V / ⌘V)"></textarea>
+              <div class="screenshot-preview mb-2" id="expCommentPreview"></div>
+              <div class="d-flex justify-content-end">
+                <button class="btn btn-primary btn-sm px-4 rounded-2 fw-semibold" style="font-size:13px" onclick="expSubmitComment()">
+                  <i class="bi bi-send me-1"></i>Send
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Internal Notes tab (PM only) -->
+          ${IS_PM() ? `<div id="expTabNotes" style="flex:1;display:none;flex-direction:column;overflow:hidden;background:#fffbeb">
+            <div style="flex:1;overflow-y:auto;padding:20px">
+              <div class="internal-badge mb-3"><i class="bi bi-lock-fill me-1"></i>PM Only — Not visible to client</div>
+              ${nts.length ? nts.map(n => `
+                <div class="rounded-2 p-2 mb-2" style="background:#fff;border:1px solid #fde68a">
+                  <div style="font-size:11px;color:#92400e;font-weight:600;margin-bottom:3px">🔒 ${n.author} · ${n.time}</div>
+                  <div style="font-size:13px;color:#3a4560">${n.text}</div>
+                </div>`).join("") : '<p class="text-muted mb-2" style="font-size:13px">No internal notes yet.</p>'}
+            </div>
+            <div class="p-3 border-top flex-shrink-0" style="background:#fffbeb">
+              <textarea id="expNewNote" class="form-control form-control-sm rounded-2 mb-2" rows="2"
+                style="font-size:13px;font-family:inherit;resize:none" placeholder="Add a private note..."></textarea>
+              <button class="btn btn-sm btn-outline-secondary rounded-2 fw-semibold" onclick="expAddNote()">
+                <i class="bi bi-plus me-1"></i>Add Note
               </button>
             </div>
-          </div>
+          </div>` : ""}
+
         </div>
 
       </div>
@@ -427,7 +474,8 @@ function _renderExpHTML(overlay, animate) {
     showToast({ type:"info", title:"Manager changed", message:`Assigned to ${val}` });
     saveTickets(); saveNotifs(); renderNotifList();
     IS_PM() ? pmRender() : clientRender();
-    _refreshExpLeft();
+    // _refreshExpLeft();
+    renderExpandedView()
   });
 
   if (IS_PM()) {
@@ -518,8 +566,9 @@ function expUpdateCategory(val) {
   saveTickets(); saveNotifs(); renderNotifList();
   IS_PM() ? pmRender() : clientRender();
   // Refresh the badge row in the header left
-  const badgeWrap = document.querySelector("#expPanel .d-flex.gap-2.align-items-center");
-  if (badgeWrap) badgeWrap.innerHTML = statusBadgeHTML(t.status) + " " + prioBadgeHTML(t.priority) + " " + catBadge(t.category);
+  // const badgeWrap = document.querySelector("#expPanel .d-flex.gap-2.align-items-center");
+  // if (badgeWrap) badgeWrap.innerHTML = statusBadgeHTML(t.status) + " " + prioBadgeHTML(t.priority) + " " + catBadge(t.category);
+  renderExpandedView();
 }
 
 function expSubmitComment() {
@@ -536,6 +585,24 @@ function expSubmitComment() {
   renderExpandedView();
 }
 
+function expSwitchTab(tab) {
+  const commentsEl = document.getElementById("expTabComments");
+  const notesEl    = document.getElementById("expTabNotes");
+  const btnC       = document.getElementById("expTabBtnComments");
+  const btnN       = document.getElementById("expTabBtnNotes");
+  if (tab === "comments") {
+    if (commentsEl) commentsEl.style.display = "flex";
+    if (notesEl)    notesEl.style.display    = "none";
+    if (btnC) { btnC.style.background = "#fff"; btnC.style.color = "#3b7cf4"; btnC.style.borderBottom = "2px solid #3b7cf4"; }
+    if (btnN) { btnN.style.background = "transparent"; btnN.style.color = "#9aa5bc"; btnN.style.borderBottom = "2px solid transparent"; }
+  } else {
+    if (commentsEl) commentsEl.style.display = "none";
+    if (notesEl)    { notesEl.style.display = "flex"; notesEl.style.flexDirection = "column"; }
+    if (btnN) { btnN.style.background = "#fffbeb"; btnN.style.color = "#92400e"; btnN.style.borderBottom = "2px solid #f59e0b"; }
+    if (btnC) { btnC.style.background = "transparent"; btnC.style.color = "#9aa5bc"; btnC.style.borderBottom = "2px solid transparent"; }
+  }
+}
+
 function expAddNote() {
   const txt = document.getElementById("expNewNote")?.value.trim();
   if (!txt || !selectedTicket) return;
@@ -548,6 +615,14 @@ function expAddNote() {
 
 window.openExpandedView = openExpandedView;
 window.closeExpandedView = closeExpandedView;
+
+window.addEventListener('keydown', (e) => {
+  if (e.key === 'Enter') {
+    e.preventDefault();
+    expAddNote();
+    expSubmitComment();
+  }
+})
 
 
 // ── ATTACHMENTS ────────────────────────────────────────
@@ -1344,7 +1419,7 @@ function renderDetail() {
               <span class="comment-role-badge ${c.role}">${c.role === "client" ? "Client" : "Support"}</span>
               <span class="text-muted ms-auto" style="font-size:11px">${c.time}</span>
             </div>
-            <p class="mb-0 comment-text" style="font-size:13px;color:#3a4560">${c.text}</p>
+            <p class="mb-0 comment-text" style="font-size:13px;color:#3a4560">${linkify(c.text)}</p>
             ${c.attachments && c.attachments.length ? `<div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:7px">${c.attachments.map((src) => `<img src="${src}" style="width:64px;height:64px;object-fit:cover;border-radius:7px;border:1px solid #e4e9f2;cursor:pointer" onclick="window.open().document.write('<img src=\\''+src+'\\' style=max-width:100%>')">`).join("")}</div>` : ""}
           </div>
         </div>`,
@@ -1355,7 +1430,7 @@ function renderDetail() {
   const actHTML =
     t.activity && t.activity.length
       ? `<div class="mb-4"><h6 class="fw-bold mb-2" style="font-size:14px">Activity Log</h6>
-        ${t.activity.map((a) => `<div style="font-size:12.5px;color:#7a8599;margin-bottom:6px"><span style="font-weight:600;color:#3b7cf4">${a.author}</span> ${a.action} <b>${a.value || ""}</b> <span style="font-size:11px;color:#bfc6d1">${a.time}</span></div>`).join("")}
+        ${t.activity.map((a) => `<div style="display: grid; grid-template-columns: 1fr 90px; font-size:12.5px;color:#7a8599;margin-bottom:6px;"><div><span style="font-weight:600;color:#3b7cf4">${a.author}</span> ${a.action} <b>${a.value || ""}</b></div><span class="ms-auto" style="font-size:11px;">${a.time}</span></div>`).join("")}
        </div>`
       : "";
 
@@ -1673,8 +1748,9 @@ function updateStatus(val) {
   IS_PM()
     ? document.getElementById("sec-tickets")?.offsetParent && pmRender()
     : clientRender();
-  const badgeWrap = document.querySelector("#expPanel .d-flex.gap-2.align-items-center");
-  if (badgeWrap) badgeWrap.innerHTML = statusBadgeHTML(t.status) + " " + prioBadgeHTML(t.priority) + " " + catBadge(t.category);
+    renderExpandedView();
+  // const badgeWrap = document.querySelector("#expPanel .d-flex.gap-2.align-items-center");
+  // if (badgeWrap) badgeWrap.innerHTML = statusBadgeHTML(t.status) + " " + prioBadgeHTML(t.priority) + " " + catBadge(t.category);
 }
 
 function updatePriority(val) {
@@ -1706,8 +1782,9 @@ function updatePriority(val) {
   IS_PM()
     ? document.getElementById("sec-tickets")?.offsetParent && pmRender()
     : clientRender();
-  const badgeWrap = document.querySelector("#expPanel .d-flex.gap-2.align-items-center");
-  if (badgeWrap) badgeWrap.innerHTML = statusBadgeHTML(t.status) + " " + prioBadgeHTML(t.priority) + " " + catBadge(t.category);
+    renderExpandedView();
+  // const badgeWrap = document.querySelector("#expPanel .d-flex.gap-2.align-items-center");
+  // if (badgeWrap) badgeWrap.innerHTML = statusBadgeHTML(t.status) + " " + prioBadgeHTML(t.priority) + " " + catBadge(t.category);
 }
 
 function editTitle() {
