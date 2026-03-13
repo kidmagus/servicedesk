@@ -179,6 +179,13 @@ function openExpandedView() {
   if (!selectedTicket) return;
   _offcanvas.hide();
 
+  window.addEventListener("keydown", (e) => {
+    if (e.key === "Escape") {
+      e.preventDefault();
+      closeExpandedView();
+    }
+  })
+ 
   let overlay = document.getElementById("ticketExpandedOverlay");
   if (!overlay) {
     overlay = document.createElement("div");
@@ -319,7 +326,7 @@ function _renderExpHTML(overlay, animate) {
       </div>
 
       <!-- Two-column body -->
-      <div style="display:grid;grid-template-columns:1fr 420px;flex:1;overflow:hidden;min-height:0">
+      <div style="display:grid;grid-template-columns:1fr 1fr;flex:1;overflow:hidden;min-height:0">
 
         <!-- LEFT -->
         <div class="p-4" style="overflow-y:auto;background:#fff;border-right:1px solid #e4e9f2">
