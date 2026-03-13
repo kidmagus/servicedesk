@@ -274,7 +274,7 @@ function _renderExpHTML(overlay, animate) {
 
   const managerField = `
     <div class="d-flex align-items-center gap-2">
-      <div class="avatar-sm ${t.ac||""}" style="width:22px;height:22px;font-size:9px">${initials(t.manager||"?")}</div>
+    <div class="avatar-sm" style="width:22px;height:22px;font-size:9px;background:#16a34a;color:#fff;border-radius:7px">${initials(t.manager)}</div>
       <span id="expManagerDisplay" style="cursor:pointer;text-decoration:underline dotted;font-size:13px;font-weight:600">${t.manager||"—"}</span>
       <select id="expManagerSelect" class="form-select form-select-sm d-none" style="width:auto;min-width:130px;font-size:13px">${mgOptions}</select>
     </div>`;
@@ -363,7 +363,7 @@ function _renderExpHTML(overlay, animate) {
               <div class="p-3 rounded-3 border" style="background:#f8fafc">
                 <p class="text-uppercase fw-semibold mb-1" style="font-size:10px;letter-spacing:.7px;color:#9aa5bc">Reporter</p>
                 <div class="d-flex align-items-center gap-2">
-                  <div class="avatar-sm" style="width:22px;height:22px;font-size:9px;background:#e0e7ef;color:#3b3b4f;border-radius:7px">${initials(t.reporter||"?")}</div>
+                  <div class="avatar-sm ${t.role === "support" ? "green": "" } " style="width:22px;height:22px;font-size:9px;background:#e0e7ef;color:#3b3b4f;border-radius:7px">${initials(t.reporter||"?")}</div>
                   <span class="fw-semibold" style="font-size:13px">${t.reporter||"—"}</span>
                 </div>
               </div>
@@ -1528,7 +1528,7 @@ function renderDetail() {
       <div class="col-6">
         <p class="text-uppercase text-muted fw-semibold mb-1" style="font-size:10.5px;letter-spacing:.6px">Manager</p>
         <div class="d-flex align-items-center gap-2">
-          <div class="avatar-sm ${t.ac || ""}" style="width:22px;height:22px;font-size:9px">${initials(t.manager)}</div>
+          <div class="avatar-sm ${t.ac || ""}" style="width:22px;height:22px;font-size:9px; background: #16a34a;">${initials(t.manager)}</div>
           <span id="managerDisplay" style="cursor:pointer;text-decoration:underline dotted;font-size:13px">${t.manager || "—"}</span>
           <select id="managerSelect" class="form-select form-select-sm d-none" style="width:auto;min-width:130px;font-size:13px">${managerOptions}</select>
         </div>
@@ -1541,7 +1541,7 @@ function renderDetail() {
       <div class="col-6">
         <p class="text-uppercase text-muted fw-semibold mb-1" style="font-size:10.5px;letter-spacing:.6px">Reporter</p>
         <div class="fw-semibold d-flex align-items-center gap-2" style="font-size:13px">
-          <div class="avatar-sm" style="background:#e0e7ef;color:#3b3b4f;width:22px;height:22px;font-size:9px;border-radius:7px">${initials(t.reporter || "?")}</div>
+          <div class="avatar-sm" style="background:#3b7cf4;width:22px;height:22px;font-size:9px;border-radius:7px">${initials(t.reporter || "?")}</div>
           ${t.reporter || "—"}
         </div>
       </div>
@@ -1974,7 +1974,7 @@ function submitComment() {
           "#f0fdf4",
           "#16a34a",
           `Comment on ${t.id}`,
-          `${CURRENT_USER}: ${txt}`,
+          `${CURRENT_USER}: commented on ${t.id}`,
           t.id,
         ),
       );
@@ -2212,8 +2212,8 @@ function clientRender() {
         <td>${statusBadgeHTML(t.status)}</td>
         <td>${prioBadgeHTML(t.priority)}</td>
         <td>${catBadge(t.category)}</td>
-        <td style="font-size:12.5px"><div class="d-flex align-items-center gap-2"><div class="avatar-sm" style="background:#e0e7ef;color:#3b3b4f;width:22px;height:22px;font-size:9px;border-radius:7px">${initials(t.reporter)}</div><span>${t.reporter || "—"}</span></div></td>
-        <td><div class="d-flex align-items-center gap-2"><div class="avatar-sm ${t.ac}">${initials(t.manager)}</div><span style="font-size:12.5px">${t.manager}</span></div></td>
+        <td style="font-size:12.5px"><div class="d-flex align-items-center gap-2"><div class="avatar-sm" style="background:#3b7cf4;width:22px;height:22px;font-size:9px;border-radius:7px">${initials(t.reporter)}</div><span>${t.reporter || "—"}</span></div></td>
+        <td><div class="d-flex align-items-center gap-2"><div class="avatar-sm " style="background: #16a34a;">${initials(t.manager)}</div><span style="font-size:12.5px">${t.manager}</span></div></td>
         <td class="text-muted" style="font-size:12px">${t.created}</td>
       </tr>`,
       )
@@ -2456,8 +2456,8 @@ function pmRender() {
       <td><span class="ticket-id">${t.id}</span></td>
       <td class="fw-medium" style="color:#1a2235">${t.title}</td>
       <td>${statusBadgeHTML(t.status)}</td><td>${prioBadgeHTML(t.priority)}</td><td>${catBadge(t.category)}</td>
-      <td style="font-size:12.5px"><div class="d-flex align-items-center gap-2"><div class="avatar-sm" style="background:#e0e7ef;color:#3b3b4f;width:22px;height:22px;font-size:9px;border-radius:7px">${initials(t.reporter || "?")}</div>${t.reporter || "—"}</div></td>
-      <td style="font-size:13px"><div class="d-flex align-items-center gap-2"><div class="avatar-sm" style="background:#e0e7ef;color:#3b3b4f;width:22px;height:22px;font-size:9px;border-radius:7px">${initials(t.manager || "?")}</div>${t.manager || "—"}</div></td>
+      <td style="font-size:12.5px"><div class="d-flex align-items-center gap-2"><div class="avatar-sm" style="background:#3b7cf4;width:22px;height:22px;font-size:9px;border-radius:7px">${initials(t.reporter || "?")}</div>${t.reporter || "—"}</div></td>
+      <td style="font-size:13px"><div class="d-flex align-items-center gap-2"><div class="avatar-sm" style="background:#16a34a;width:22px;height:22px;font-size:9px;border-radius:7px">${initials(t.manager || "?")}</div>${t.manager || "—"}</div></td>
       <td style="font-size:13px"><div class="d-flex align-items-center gap-2"><div class="avatar-sm" style="background:#e0e7ef;color:#3b3b4f;width:22px;height:22px;font-size:9px;border-radius:7px">${initials(t.developer || "?")}</div>${t.developer || "—"}</div></td>
       <td class="text-muted" style="font-size:12px">${t.created}</td>
     </tr>`,
