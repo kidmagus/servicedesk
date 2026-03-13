@@ -12,6 +12,21 @@
 
 const IS_PM = () => document.body.dataset.view === "pm";
 
+// ── API ────────────────────────────────────────────────
+const API_BASE = "https://www.myprojectworld.com/api/servicedesk";
+
+async function _apiSync(method, path, body) {
+  try {
+    await fetch(API_BASE + path, {
+      method,
+      headers: { "Content-Type": "application/json" },
+      body: body ? JSON.stringify(body) : undefined,
+    });
+  } catch (e) {
+    console.warn("API sync failed:", method, path, e.message);
+  }
+}
+
 // ── CONSTANTS ──────────────────────────────────────────
 const STATUS_CLASS = {
   Open: "primary text-white",
@@ -426,6 +441,7 @@ function _renderExpHTML(overlay, animate) {
     NOTIFS.unshift(_notif("bi-person-check-fill","#e0e7ff","#3730a3",`Manager changed: ${t.id}`,`${CURRENT_USER} assigned to ${val}`,t.id));
     showToast({ type:"info", title:"Manager changed", message:`Assigned to ${val}` });
     saveTickets(); saveNotifs(); renderNotifList();
+    _apiSync("PATCH", `/tickets/${t.id}`, { manager: val, activity: t.activity });
     IS_PM() ? pmRender() : clientRender();
     _refreshExpLeft();
   });
@@ -436,7 +452,9 @@ function _renderExpHTML(overlay, animate) {
       _logActivity(t, "developer", "changed developer to", val);
       NOTIFS.unshift(_notif("bi-person-badge","#e0f2fe","#0284c7","Developer changed",`${CURRENT_USER} changed developer to ${val} for ${t.id}`,t.id));
       showToast({ type:"info", title:"Developer changed", message:`Assigned to ${val}` });
-      saveTickets(); saveNotifs(); renderNotifList(); pmRender();
+      saveTickets(); saveNotifs(); renderNotifList();
+      _apiSync("PATCH", `/tickets/${t.id}`, { developer: val, activity: t.activity });
+      pmRender();
       _refreshExpLeft();
     });
   }
@@ -516,6 +534,7 @@ function expUpdateCategory(val) {
   NOTIFS.unshift(_notif("bi-tags-fill","#ede9fe","#6d28d9",`Category: ${t.id}`,`${CURRENT_USER} set category to ${val}`,t.id));
   showToast({ type:"info", title:"Category updated", message:`Set to ${val}` });
   saveTickets(); saveNotifs(); renderNotifList();
+  _apiSync("PATCH", `/tickets/${t.id}`, { category: val, activity: t.activity });
   IS_PM() ? pmRender() : clientRender();
   // Refresh the badge row in the header left
   const badgeWrap = document.querySelector("#expPanel .d-flex.gap-2.align-items-center");
@@ -542,6 +561,7 @@ function expAddNote() {
   NOTES[selectedTicket.id] = NOTES[selectedTicket.id] || [];
   NOTES[selectedTicket.id].unshift({ author: CURRENT_USER, time: _now(), text: txt });
   saveNotes();
+  _apiSync("POST", `/tickets/${selectedTicket.id}/notes`, { author: CURRENT_USER, text: txt, time: _now() });
   showToast({ type: "success", title: "Note added", message: "Internal note saved" });
   renderExpandedView();
 }
@@ -1028,8 +1048,7 @@ function saveClients() {
   localStorage.setItem("servicedesk_clients", JSON.stringify(CLIENTS));
 }
 
-function _loadAll() {
-  TICKETS = loadTicketsFromStorage() || [];
+async function _loadAll() {
   NOTIFS = loadNotifsFromStorage();
   try {
     NOTES = JSON.parse(localStorage.getItem(NOTES_KEY)) || {};
@@ -1057,6 +1076,19 @@ function _loadAll() {
     CLIENTS = JSON.parse(localStorage.getItem("servicedesk_clients")) || [];
   } catch (e) {
     CLIENTS = [];
+  }
+  // Load tickets from API, fall back to localStorage
+  try {
+    const res = await fetch(API_BASE + "/tickets");
+    if (res.ok) {
+      TICKETS = await res.json();
+      saveTicketsToStorage(TICKETS);
+    } else {
+      TICKETS = loadTicketsFromStorage() || [];
+    }
+  } catch (e) {
+    console.warn("API unreachable, using localStorage");
+    TICKETS = loadTicketsFromStorage() || [];
   }
   TICKETS.forEach((t) => (commentsMap[t.id] = [...(t.comments || [])]));
 }
@@ -1173,8 +1205,8 @@ function _logActivity(t, type, action, value) {
 }
 
 // ── BOOT ───────────────────────────────────────────────
-document.addEventListener("DOMContentLoaded", function () {
-  _loadAll();
+document.addEventListener("DOMContentLoaded", async function () {
+  await _loadAll();
   _offcanvas = new bootstrap.Offcanvas(
     document.getElementById("ticketOffcanvas"),
   );
@@ -1538,6 +1570,7 @@ function renderDetail() {
     saveNotifs();
     renderNotifList();
     saveTickets();
+    _apiSync("PATCH", `/tickets/${t.id}`, { manager: newVal, activity: t.activity });
     IS_PM() ? pmRender() : clientRender();
     renderDetail();
   });
@@ -1550,6 +1583,7 @@ function renderDetail() {
       (newVal) => {
         t.developer = selectedTicket.developer = newVal;
         saveTickets();
+        _apiSync("PATCH", `/tickets/${t.id}`, { developer: newVal, activity: t.activity });
         renderDetail();
         pmRender();
         NOTIFS.unshift(
@@ -1583,6 +1617,7 @@ function renderDetail() {
       if (idx !== -1) {
         TICKETS[idx].category = newVal;
         saveTickets();
+        _apiSync("PATCH", `/tickets/${t.id}`, { category: newVal, activity: t.activity });
       }
       NOTIFS.unshift(
         _notif(
@@ -1668,6 +1703,7 @@ function updateStatus(val) {
   });
   saveTickets();
   saveNotifs();
+  _apiSync("PATCH", `/tickets/${t.id}`, { status: val, activity: t.activity });
   renderDetail();
   renderNotifList();
   IS_PM()
@@ -1701,6 +1737,7 @@ function updatePriority(val) {
   });
   saveTickets();
   saveNotifs();
+  _apiSync("PATCH", `/tickets/${t.id}`, { priority: val, activity: t.activity });
   renderDetail();
   renderNotifList();
   IS_PM()
@@ -1823,6 +1860,7 @@ function updateTitle(val) {
   });
   saveTickets();
   saveNotifs();
+  _apiSync("PATCH", `/tickets/${t.id}`, { title: val, activity: t.activity });
   renderDetail();
   renderNotifList();
   IS_PM()
@@ -1854,6 +1892,7 @@ function updateDescription(val) {
   });
   saveTickets();
   saveNotifs();
+  _apiSync("PATCH", `/tickets/${t.id}`, { desc: val, activity: t.activity });
   renderDetail();
   renderNotifList();
   IS_PM()
@@ -1936,6 +1975,9 @@ function submitComment() {
   }
   saveTickets();
   saveNotifs();
+  // Sync comment to API
+  const _lastComment = commentsMap[selectedTicket.id].slice(-1)[0];
+  if (_lastComment) _apiSync("POST", `/tickets/${selectedTicket.id}/comments`, _lastComment);
   document.getElementById("newComment").value = "";
   window.commentAttachments = [];
   document.getElementById("commentPreview").innerHTML = "";
@@ -1999,8 +2041,10 @@ function doRemoveTicket() {
         title: "Ticket removed",
         message: `${CURRENT_USER} removed the ticket`,
       });
+      const _deletedId = selectedTicket.id;
       saveTickets();
       saveNotifs();
+      _apiSync("DELETE", `/tickets/${_deletedId}`);
       renderNotifList();
       _offcanvas.hide();
       closeExpandedView();
@@ -2208,6 +2252,8 @@ function submitTicket() {
   });
   saveTickets();
   saveNotifs();
+  // Sync new ticket to API
+  _apiSync("POST", "/tickets", TICKETS[0]);
   document.getElementById("ctTitle").value = document.getElementById(
     "ctDesc",
   ).value = "";
@@ -2591,6 +2637,7 @@ function pmAddNote() {
   NOTES[selectedTicket.id] = NOTES[selectedTicket.id] || [];
   NOTES[selectedTicket.id].unshift({ author: CURRENT_USER, time, text: txt });
   saveNotes();
+  _apiSync("POST", `/tickets/${selectedTicket.id}/notes`, { author: CURRENT_USER, text: txt, time: _now() });
   renderDetail();
   showToast({
     type: "success",
