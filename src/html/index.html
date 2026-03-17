@@ -70,41 +70,16 @@ function selectRole(r) {
 }
 
 function doLogin() {
-  let user = '';
   if (loginRole === 'client') {
-    user = document.getElementById('selClient').value;
-    localStorage.setItem('servicedesk_current_user', user);
-    localStorage.setItem('servicedesk_current_role', 'client');
-    // Add client to CLIENTS array in localStorage if not present
-    let clients = [];
-    try {
-      clients = JSON.parse(localStorage.getItem('servicedesk_clients')) || [];
-    } catch (e) { clients = []; }
-    if (!clients.includes(user)) {
-      clients.push(user);
-      localStorage.setItem('servicedesk_clients', JSON.stringify(clients));
-    }
     window.location.href = 'client.html';
   } else if (loginRole === 'pm') {
-    user = document.getElementById('selPM').value;
-    localStorage.setItem('servicedesk_current_user', user);
-    localStorage.setItem('servicedesk_current_role', 'pm');
-    // Sync PM list for manager dropdown
-    localStorage.setItem('servicedesk_pms', JSON.stringify(['Matthew Samson', 'John Doe']));
     window.location.href = 'pm-view.html';
   }
 }
 
-// Populate client dropdown dynamically from localStorage CLIENTS
+// Populate client dropdown from static demo clients
 function populateClientDropdown() {
-  let clients = [];
-  try {
-    clients = JSON.parse(localStorage.getItem('servicedesk_clients')) || [];
-  } catch (e) { clients = []; }
-  // If no clients, use default demo list
-  if (clients.length === 0) {
-    clients = ['E-Bureauet', 'Insatech', 'Roskilde', 'Dansk Standard', 'Imerco'];
-  }
+  const clients = ['E-Bureauet', 'Insatech', 'Roskilde', 'Dansk Standard', 'Imerco'];
   const sel = document.getElementById('selClient');
   sel.innerHTML = clients.map(c => `<option>${c}</option>`).join('');
 }

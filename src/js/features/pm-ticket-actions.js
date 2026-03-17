@@ -24,8 +24,6 @@ function quickReassign(id, agent) {
     unread: true,
     ticketId: id,
   });
-  saveTickets();
-  saveNotifs();
   renderNotifList();
   pmRender();
   showToast({
@@ -41,7 +39,6 @@ function pmAddNote() {
   const time = _now();
   NOTES[selectedTicket.id] = NOTES[selectedTicket.id] || [];
   NOTES[selectedTicket.id].unshift({ author: CURRENT_USER, time, text: txt });
-  saveNotes();
   renderDetail();
   showToast({
     type: "success",
@@ -84,8 +81,6 @@ function pmSaveEdit() {
       t.id,
     ),
   );
-  saveTickets();
-  saveNotifs();
   document.getElementById("detailStatus").value = t.status;
   document.getElementById("detailPriority").value = t.priority;
   renderDetail();
@@ -97,3 +92,4 @@ function pmSaveEdit() {
     message: `${t.id} saved successfully`,
   });
 }
+

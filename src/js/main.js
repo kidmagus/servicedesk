@@ -1,4 +1,4 @@
-// ═══════════════════════════════════════════════════════
+﻿// ═══════════════════════════════════════════════════════
 // app.js — Single script for client.html & pm-view.html
 //
 // HTML setup required:
@@ -29,9 +29,8 @@ const PRIO_STYLE = {
 
 const PAGE_SIZE = 8;
 
-const SIDEBAR_STORAGE_KEY = "servicedesk_sidebar_collapsed";
-const TICKETS_STORAGE_KEY = "servicedesk_tickets";
-const NOTIFS_STORAGE_KEY = "servicedesk_notifs";
+
+// Static mode.
 
 // ── UTILITIES ──────────────────────────────────────────
 const initials = (n) =>
@@ -59,23 +58,19 @@ function initSidebar() {
   const brandIcon = document.querySelector(".brand-icon");
   if (!sidebar || !toggleBtn) return;
 
-  if (localStorage.getItem(SIDEBAR_STORAGE_KEY) === "true") {
-    sidebar.classList.add("collapsed");
-  }
+  // Static mode: always start expanded
+  sidebar.classList.remove("collapsed");
 
   toggleBtn.addEventListener("click", function () {
     sidebar.classList.toggle("collapsed");
-    localStorage.setItem(
-      SIDEBAR_STORAGE_KEY,
-      sidebar.classList.contains("collapsed"),
-    );
+    // No-op for static mode
   });
 
   if (brandIcon) {
     brandIcon.addEventListener("click", function () {
       if (sidebar.classList.contains("collapsed")) {
         sidebar.classList.remove("collapsed");
-        localStorage.setItem(SIDEBAR_STORAGE_KEY, false);
+        // No-op for static mode
       }
     });
   }
@@ -172,9 +167,7 @@ function openCreateModal() {
   // Populate Manager options from stored PMs
   const ctManager = document.getElementById("ctManager");
   if (ctManager && !IS_PM()) {
-    let pms;
-    try { pms = JSON.parse(localStorage.getItem("servicedesk_pms")) || ["Matthew Samson", "John Doe"]; }
-    catch(e) { pms = ["Matthew Samson", "John Doe"]; }
+    let pms = ["Matthew Samson", "John Doe"];
     ctManager.innerHTML = pms.map((m) => `<option value="${m}">${m}</option>`).join("");
   }
 
@@ -269,9 +262,7 @@ function _renderExpHTML(overlay, animate) {
       </div>` : "";
 
   // Manager inline edit
-  let mgOptions = "";
-  try { const pms = JSON.parse(localStorage.getItem("servicedesk_pms")) || ["Matthew Samson","John Doe"]; mgOptions = pms.map(p => `<option value="${p}" ${p===t.manager?"selected":""}>${p}</option>`).join(""); }
-  catch(e) { mgOptions = `<option value="${t.manager}">${t.manager}</option>`; }
+  let mgOptions = ["Matthew Samson","John Doe"].map(p => `<option value="${p}" ${p===t.manager?"selected":""}>${p}</option>`).join("");
 
   const managerField = `
     <div class="d-flex align-items-center gap-2">
@@ -473,7 +464,7 @@ function _renderExpHTML(overlay, animate) {
     _logActivity(t, "manager", "changed manager to", val);
     NOTIFS.unshift(_notif("bi-person-check-fill","#e0e7ff","#3730a3",`Manager changed: ${t.id}`,`${CURRENT_USER} assigned to ${val}`,t.id));
     showToast({ type:"info", title:"Manager changed", message:`Assigned to ${val}` });
-    saveTickets(); saveNotifs(); renderNotifList();
+    renderNotifList();
     IS_PM() ? pmRender() : clientRender();
     // _refreshExpLeft();
     renderExpandedView()
@@ -485,7 +476,7 @@ function _renderExpHTML(overlay, animate) {
       _logActivity(t, "developer", "changed developer to", val);
       NOTIFS.unshift(_notif("bi-person-badge","#e0f2fe","#0284c7","Developer changed",`${CURRENT_USER} changed developer to ${val} for ${t.id}`,t.id));
       showToast({ type:"info", title:"Developer changed", message:`Assigned to ${val}` });
-      saveTickets(); saveNotifs(); renderNotifList(); pmRender();
+      renderNotifList(); pmRender();
       _refreshExpLeft();
     });
   }
@@ -566,7 +557,7 @@ function expUpdateCategory(val) {
   _logActivity(t, "category", "set category to", val);
   NOTIFS.unshift(_notif("bi-tags-fill","#ede9fe","#6d28d9",`Category: ${t.id}`,`${CURRENT_USER} set category to ${val}`,t.id));
   showToast({ type:"info", title:"Category updated", message:`Set to ${val}` });
-  saveTickets(); saveNotifs(); renderNotifList();
+  renderNotifList();
   IS_PM() ? pmRender() : clientRender();
   // Refresh the badge row in the header left
   // const badgeWrap = document.querySelector("#expPanel .d-flex.gap-2.align-items-center");
@@ -611,7 +602,6 @@ function expAddNote() {
   if (!txt || !selectedTicket) return;
   NOTES[selectedTicket.id] = NOTES[selectedTicket.id] || [];
   NOTES[selectedTicket.id].unshift({ author: CURRENT_USER, time: _now(), text: txt });
-  saveNotes();
   showToast({ type: "success", title: "Note added", message: "Internal note saved" });
   renderExpandedView();
 }
@@ -727,26 +717,6 @@ function removeAttachment(i, target) {
 }
 
 // ── STORAGE HELPERS ────────────────────────────────────
-function loadTicketsFromStorage() {
-  try {
-    return JSON.parse(localStorage.getItem(TICKETS_STORAGE_KEY)) || null;
-  } catch (e) {
-    return null;
-  }
-}
-function saveTicketsToStorage(data) {
-  localStorage.setItem(TICKETS_STORAGE_KEY, JSON.stringify(data));
-}
-function loadNotifsFromStorage() {
-  try {
-    return JSON.parse(localStorage.getItem(NOTIFS_STORAGE_KEY)) || [];
-  } catch (e) {
-    return [];
-  }
-}
-function saveNotifsToStorage(data) {
-  localStorage.setItem(NOTIFS_STORAGE_KEY, JSON.stringify(data));
-}
 
 // ══════════════════════════════════════════════════════
 // STATE
@@ -992,7 +962,7 @@ const DEFAULT_TICKETS = [
     manager: "Mike Torres",
     ac: "orange",
     created: "Jan 9, 2024",
-    desc: "White flash on page load in dark mode. Fixed by persisting theme in localStorage.",
+    desc: "White flash on page load in dark mode. Fixed by persisting theme preference.",
     comments: [],
   },
   {
@@ -1076,67 +1046,75 @@ const DEFAULT_TICKETS = [
   },
 ];
 
-let TICKETS = loadTicketsFromStorage() || [];
-let NOTIFS = loadNotifsFromStorage();
+const DEFAULT_NOTIFS = [
+  {
+    id: 1,
+    icon: "bi-arrow-clockwise",
+    bg: "#fef9c3",
+    fg: "#92400e",
+    title: "Status: TK-002",
+    body: "Matthew Samson set status to In Progress",
+    ticketId: "TK-002",
+    time: "Jan 22, 09:10 AM",
+    unread: true,
+  },
+  {
+    id: 2,
+    icon: "bi-chat-left-text-fill",
+    bg: "#f0fdf4",
+    fg: "#16a34a",
+    title: "Comment on TK-004",
+    body: "Sarah Johnson added an update",
+    ticketId: "TK-004",
+    time: "Jan 22, 09:40 AM",
+    unread: true,
+  },
+  {
+    id: 3,
+    icon: "bi-person-badge",
+    bg: "#e0f2fe",
+    fg: "#0284c7",
+    title: "Developer changed",
+    body: "Developer changed to Priya Patel for TK-017",
+    ticketId: "TK-017",
+    time: "Jan 22, 10:05 AM",
+    unread: false,
+  },
+  {
+    id: 4,
+    icon: "bi-tags-fill",
+    bg: "#ede9fe",
+    fg: "#6d28d9",
+    title: "Category: TK-012",
+    body: "Category set to Account Issue",
+    ticketId: "TK-012",
+    time: "Jan 22, 10:20 AM",
+    unread: true,
+  },
+];
+
+
+let TICKETS = [...DEFAULT_TICKETS];
+let NOTIFS = [...DEFAULT_NOTIFS];
 let NOTES = {};
-let AGENTS = [];
+let AGENTS = ["Sarah Johnson","Alex Lee","Priya Patel","David Kim","Emma Brown"];
 let CLIENTS = [];
 let commentsMap = {};
 let selectedTicket = null;
 let _offcanvas = null;
 let _expandedViewOpen = false;
 
-const NOTES_KEY = "servicedesk_internal_notes";
-let CURRENT_USER =
-  localStorage.getItem("servicedesk_current_user") || "Matthew Samson";
+let CURRENT_USER = IS_PM() ? "Matthew Samson" : "John Client";
 
 // ── STORAGE WRAPPERS ───────────────────────────────────
-function saveTickets() {
-  saveTicketsToStorage(TICKETS);
-}
-function saveNotifs() {
-  saveNotifsToStorage(NOTIFS);
-}
-function saveAgents() {
-  localStorage.setItem("servicedesk_agents", JSON.stringify(AGENTS));
-}
-function saveNotes() {
-  localStorage.setItem(NOTES_KEY, JSON.stringify(NOTES));
-}
-function saveClients() {
-  localStorage.setItem("servicedesk_clients", JSON.stringify(CLIENTS));
-}
 
 function _loadAll() {
-  TICKETS = loadTicketsFromStorage() || [];
-  NOTIFS = loadNotifsFromStorage();
-  try {
-    NOTES = JSON.parse(localStorage.getItem(NOTES_KEY)) || {};
-  } catch (e) {
-    NOTES = {};
-  }
-  try {
-    AGENTS = JSON.parse(localStorage.getItem("servicedesk_agents")) || [
-      "Sarah Johnson",
-      "Alex Lee",
-      "Priya Patel",
-      "David Kim",
-      "Emma Brown",
-    ];
-  } catch (e) {
-    AGENTS = [
-      "Sarah Johnson",
-      "Alex Lee",
-      "Priya Patel",
-      "David Kim",
-      "Emma Brown",
-    ];
-  }
-  try {
-    CLIENTS = JSON.parse(localStorage.getItem("servicedesk_clients")) || [];
-  } catch (e) {
-    CLIENTS = [];
-  }
+  // Static mode: just copy from defaults
+  TICKETS = [...DEFAULT_TICKETS];
+  NOTIFS = [...DEFAULT_NOTIFS];
+  NOTES = {};
+  AGENTS = ["Sarah Johnson","Alex Lee","Priya Patel","David Kim","Emma Brown"];
+  CLIENTS = [];
   TICKETS.forEach((t) => (commentsMap[t.id] = [...(t.comments || [])]));
 }
 
@@ -1290,25 +1268,11 @@ function _bootClient() {
 
   const ctDeveloper = document.getElementById("ctDeveloper");
   if (ctDeveloper) {
-    let agents = [];
-    try {
-      agents = JSON.parse(localStorage.getItem("servicedesk_agents")) || AGENTS;
-    } catch (e) {
-      agents = AGENTS;
-    }
-    ctDeveloper.innerHTML = agents
-      .map((a) => `<option value="${a}">${a}</option>`)
-      .join("");
+    ctDeveloper.innerHTML = AGENTS.map((a) => `<option value="${a}">${a}</option>`).join("");
   }
   const ctManager = document.getElementById("ctManager");
   if (ctManager) {
-    const pms = JSON.parse(localStorage.getItem("servicedesk_pms")) || [
-      "Matthew Samson",
-      "John Doe",
-    ];
-    ctManager.innerHTML = pms
-      .map((m) => `<option value="${m}">${m}</option>`)
-      .join("");
+    ctManager.innerHTML = ["Matthew Samson","John Doe"].map((m) => `<option value="${m}">${m}</option>`).join("");
   }
 
   const commentBox = document.getElementById("newComment");
@@ -1445,8 +1409,6 @@ function submitTicket() {
     title: "Ticket created",
     message: `${CURRENT_USER} created ${id}`,
   });
-  saveTickets();
-  saveNotifs();
   document.getElementById("ctTitle").value = document.getElementById(
     "ctDesc",
   ).value = "";
@@ -1484,4 +1446,5 @@ function showSection(id, e) {
 // ══════════════════════════════════════════════════════
 // PM table state/search/sort/pagination/render moved to features/pm-ticket-table.js
 // PM quick actions (reassign/note/edit) moved to features/pm-ticket-actions.js
+
 

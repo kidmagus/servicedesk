@@ -69,14 +69,7 @@ function renderDetail() {
   const managerOptions = IS_PM()
     ? (() => {
         let pms = [];
-        try {
-          pms = JSON.parse(localStorage.getItem("servicedesk_pms")) || [
-            "Matthew Samson",
-            "John Doe",
-          ];
-        } catch (e) {
-          pms = ["Matthew Samson", "John Doe"];
-        }
+        pms = ["Matthew Samson", "John Doe"];
         return pms
           .map(
             (pm) =>
@@ -235,9 +228,7 @@ function renderDetail() {
       title: "Manager changed",
       message: `${CURRENT_USER} assigned to ${newVal}`,
     });
-    saveNotifs();
     renderNotifList();
-    saveTickets();
     IS_PM() ? pmRender() : clientRender();
     renderDetail();
   });
@@ -249,7 +240,6 @@ function renderDetail() {
       t.developer,
       (newVal) => {
         t.developer = selectedTicket.developer = newVal;
-        saveTickets();
         renderDetail();
         pmRender();
         NOTIFS.unshift(
@@ -262,7 +252,6 @@ function renderDetail() {
             t.id,
           ),
         );
-        saveNotifs();
         renderNotifList();
         showToast({
           type: "info",
@@ -282,7 +271,6 @@ function renderDetail() {
       const idx = TICKETS.findIndex((x) => x.id === t.id);
       if (idx !== -1) {
         TICKETS[idx].category = newVal;
-        saveTickets();
       }
       NOTIFS.unshift(
         _notif(
@@ -366,8 +354,6 @@ function updateStatus(val) {
     title: "Status updated",
     message: `${CURRENT_USER} changed status from ${prev} to ${val}`,
   });
-  saveTickets();
-  saveNotifs();
   renderDetail();
   renderNotifList();
   IS_PM()
@@ -400,8 +386,6 @@ function updatePriority(val) {
     title: "Priority updated",
     message: `${CURRENT_USER} changed priority from ${prev} to ${val}`,
   });
-  saveTickets();
-  saveNotifs();
   renderDetail();
   renderNotifList();
   IS_PM()
@@ -523,8 +507,6 @@ function updateTitle(val) {
     title: "Title updated",
     message: `Title changed successfully`,
   });
-  saveTickets();
-  saveNotifs();
   renderDetail();
   renderNotifList();
   IS_PM()
@@ -554,8 +536,6 @@ function updateDescription(val) {
     title: "Description updated",
     message: `Description changed successfully`,
   });
-  saveTickets();
-  saveNotifs();
   renderDetail();
   renderNotifList();
   IS_PM()
@@ -636,8 +616,6 @@ function submitComment() {
     }
     renderNotifList();
   }
-  saveTickets();
-  saveNotifs();
   document.getElementById("newComment").value = "";
   window.commentAttachments = [];
   document.getElementById("commentPreview").innerHTML = "";
@@ -701,8 +679,6 @@ function doRemoveTicket() {
         title: "Ticket removed",
         message: `${CURRENT_USER} removed the ticket`,
       });
-      saveTickets();
-      saveNotifs();
       renderNotifList();
       _offcanvas.hide();
       closeExpandedView();
@@ -746,18 +722,16 @@ function renderNotifList() {
           })
           .join("") +
         `<div class="text-center py-2 border-top"><span class="text-muted" style="font-size:12px">${unread} unread · ${visible.length} total</span></div>`;
-  saveNotifs();
 }
 function markAllRead() {
   NOTIFS.forEach((n) => (n.unread = false));
-  saveNotifs();
   renderNotifList();
 }
 function deleteAllNotifs() {
   NOTIFS.length = 0;
-  saveNotifs();
   renderNotifList();
 }
 
 // ══════════════════════════════════════════════════════
+
 

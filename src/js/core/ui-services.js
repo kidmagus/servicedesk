@@ -56,20 +56,19 @@ class SidebarController {
       return;
     }
 
-    if (localStorage.getItem(this.storageKey) === "true") {
-      sidebar.classList.add("collapsed");
-    }
+    // Static mode: always start expanded
+    sidebar.classList.remove("collapsed");
 
     toggleButton.addEventListener("click", () => {
       sidebar.classList.toggle("collapsed");
-      localStorage.setItem(this.storageKey, sidebar.classList.contains("collapsed"));
+      // No-op for static mode
     });
 
     if (brandIcon) {
       brandIcon.addEventListener("click", () => {
         if (sidebar.classList.contains("collapsed")) {
           sidebar.classList.remove("collapsed");
-          localStorage.setItem(this.storageKey, "false");
+          // No-op for static mode
         }
       });
     }

@@ -81,10 +81,7 @@ function pmRender() {
   const ms = document.getElementById("filterManager");
   if (ms) {
     const prev = ms.value;
-    const pms = JSON.parse(localStorage.getItem("servicedesk_pms")) || [
-      "Matthew Samson",
-      "John Doe",
-    ];
+    const pms = ["Matthew Samson","John Doe"];
     ms.innerHTML =
       '<option value="">All Managers</option>' +
       pms.map((pm) => `<option value="${pm}">${pm}</option>`).join("");
