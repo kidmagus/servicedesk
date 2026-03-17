@@ -50,6 +50,7 @@ function pmGoPage(p) {
 function pmRender() {
   const all = pmGetFiltered(),
     total = all.length;
+  renderStats();
   const maxPage = Math.max(1, Math.ceil(total / PAGE_SIZE));
   if (pmState.page > maxPage) pmState.page = maxPage;
   const start = (pmState.page - 1) * PAGE_SIZE,

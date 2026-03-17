@@ -1142,17 +1142,23 @@ function _loadAll() {
 
 // ── SHARED: STATS ──────────────────────────────────────
 function renderStats() {
-  const vis = IS_PM()
+  const isPmStats = IS_PM() || !!document.getElementById("statClosed");
+  const vis = isPmStats
     ? TICKETS
     : TICKETS.filter((t) => t.reporter === CURRENT_USER);
-  document.getElementById("statTotal").textContent = vis.length;
-  document.getElementById("statOpen").textContent = vis.filter(
+  const totalEl = document.getElementById("statTotal");
+  const openEl = document.getElementById("statOpen");
+  const progressEl = document.getElementById("statProgress");
+  const resolvedEl = document.getElementById("statResolved");
+  if (!totalEl || !openEl || !progressEl || !resolvedEl) return;
+  totalEl.textContent = vis.length;
+  openEl.textContent = vis.filter(
     (t) => t.status === "Open",
   ).length;
-  document.getElementById("statProgress").textContent = vis.filter(
+  progressEl.textContent = vis.filter(
     (t) => t.status === "In Progress",
   ).length;
-  document.getElementById("statResolved").textContent = vis.filter(
+  resolvedEl.textContent = vis.filter(
     (t) => t.status === "Resolved",
   ).length;
   const closedEl = document.getElementById("statClosed");
@@ -1375,7 +1381,7 @@ function _bootPM() {
   if (ctDeveloper) {
     ctDeveloper.innerHTML = AGENTS.map((a) => `<option value="${a}">${a}</option>`).join("");
   }
-  showSection("overview");
+  showSection("tickets");
   renderNotifList();
 }
 
@@ -1450,19 +1456,13 @@ function submitTicket() {
     document.getElementById("createTicketModal"),
   ).hide();
   renderNotifList();
-  IS_PM() ? (pmRender(), renderOverview()) : clientRender();
+  IS_PM() ? pmRender() : clientRender();
 }
 
 // ══════════════════════════════════════════════════════
 // PM: SECTION NAV
 // ══════════════════════════════════════════════════════
-const EXT_SECTIONS = [
-  "overview",
-  "tickets",
-  "workload",
-  "analytics",
-  "clients",
-];
+const EXT_SECTIONS = ["tickets"];
 function showSection(id, e) {
   if (e) e.preventDefault();
   EXT_SECTIONS.forEach((s) => {
@@ -1472,18 +1472,10 @@ function showSection(id, e) {
   document.getElementById("sec-" + id)?.classList.remove("d-none");
   document.getElementById("nav-" + id)?.classList.add("active");
   const titles = {
-    overview: "Dashboard",
     tickets: "All Tickets",
-    workload: "Team Workload",
-    analytics: "Analytics",
-    clients: "Clients",
   };
   document.getElementById("topbarTitle").textContent = titles[id] || id;
-  if (id === "overview") renderOverview();
   if (id === "tickets") pmRender();
-  if (id === "workload") renderWorkload();
-  if (id === "analytics") renderAnalytics();
-  if (id === "clients") renderClients();
   return false;
 }
 
