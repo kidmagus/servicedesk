@@ -185,6 +185,7 @@ window.openCreateModal = openCreateModal;
 // ── EXPANDED TICKET VIEW ───────────────────────────────
 function openExpandedView() {
   if (!selectedTicket) return;
+  _expandedViewOpen = true;l
   _offcanvas.hide();
 
   window.addEventListener("keydown", (e) => {
@@ -500,12 +501,14 @@ function _refreshExpLeft() {
 }
 
 function renderExpandedView() {
+  if(!_expandedViewOpen) return;
   const overlay = document.getElementById("ticketExpandedOverlay");
   if (!overlay || overlay.style.display === "none") return;
   _renderExpHTML(overlay, false); // no animation on updates
 }
 
 function closeExpandedView() {
+  _expandedViewOpen = false;
   const overlay = document.getElementById("ticketExpandedOverlay");
   const panel = document.getElementById("expPanel");
   if (!overlay) return;
@@ -1081,6 +1084,7 @@ let CLIENTS = [];
 let commentsMap = {};
 let selectedTicket = null;
 let _offcanvas = null;
+let _expandedViewOpen = false;
 
 const NOTES_KEY = "servicedesk_internal_notes";
 let CURRENT_USER =
