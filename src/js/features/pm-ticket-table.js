@@ -2,6 +2,18 @@
 
 const pmState = { page: 1, sortField: "id", sortDir: 1, search: "" };
 
+// API placeholder:
+// Replace TICKETS with server data once API is available.
+// Example:
+// async function fetchPmTickets() {
+//   const response = await fetch("/api/tickets");
+//   if (!response.ok) throw new Error("Failed to load tickets");
+//   return response.json();
+// }
+// Then hydrate globals before rendering:
+// TICKETS = await fetchPmTickets();
+// pmRender();
+
 function onSearch(v) {
   pmState.search = v.trim().toLowerCase();
   pmState.page = 1;
@@ -16,6 +28,8 @@ function pmSortBy(f) {
 }
 
 function pmGetFiltered() {
+  // Static fallback data source.
+  // API mode: use hydrated TICKETS from fetchPmTickets().
   let list = [...TICKETS];
   const sf = document.getElementById("filterStatus")?.value || "",
     pf = document.getElementById("filterPriority")?.value || "",

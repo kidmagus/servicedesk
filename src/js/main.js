@@ -28,9 +28,10 @@ const PRIO_STYLE = {
 };
 
 const PAGE_SIZE = 8;
+const API_TICKETS_URL = "/api/tickets";
 
 
-// Static mode.
+// Static user mode with optional API ticket hydration.
 
 // ── UTILITIES ──────────────────────────────────────────
 const initials = (n) =>
@@ -1106,15 +1107,37 @@ let _expandedViewOpen = false;
 
 let CURRENT_USER = IS_PM() ? "Matthew Samson" : "John Client";
 
-// ── STORAGE WRAPPERS ───────────────────────────────────
+async function fetchTicketsFromApi() {
+  try {
+    const response = await fetch(API_TICKETS_URL, {
+      method: "GET",
+      headers: { Accept: "application/json" },
+    });
+    if (!response.ok) return null;
+    const payload = await response.json();
+    if (Array.isArray(payload)) return payload;
+    if (Array.isArray(payload?.tickets)) return payload.tickets;
+    return null;
+  } catch (error) {
+    return null;
+  }
+}
 
-function _loadAll() {
-  // Static mode: just copy from defaults
-  TICKETS = [...DEFAULT_TICKETS];
+async function _loadAll() {
+  const apiTickets = await fetchTicketsFromApi();
+  const source = Array.isArray(apiTickets) && apiTickets.length
+    ? apiTickets
+    : DEFAULT_TICKETS;
+
+  TICKETS = source.map((t) => ({
+    ...t,
+    comments: Array.isArray(t.comments) ? [...t.comments] : [],
+  }));
   NOTIFS = [...DEFAULT_NOTIFS];
   NOTES = {};
   AGENTS = ["Sarah Johnson","Alex Lee","Priya Patel","David Kim","Emma Brown"];
   CLIENTS = [];
+  commentsMap = {};
   TICKETS.forEach((t) => (commentsMap[t.id] = [...(t.comments || [])]));
 }
 
@@ -1236,8 +1259,8 @@ function _logActivity(t, type, action, value) {
 }
 
 // ── BOOT ───────────────────────────────────────────────
-document.addEventListener("DOMContentLoaded", function () {
-  _loadAll();
+document.addEventListener("DOMContentLoaded", async function () {
+  await _loadAll();
   window.sortBy = IS_PM() ? pmSortBy : clientSortBy;
   _offcanvas = new bootstrap.Offcanvas(
     document.getElementById("ticketOffcanvas"),
